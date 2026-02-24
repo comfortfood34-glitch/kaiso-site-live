@@ -1,34 +1,214 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #C9A24A;
+  --color-background: #0A0A0A;
+  --color-card: #121212;
+  --color-border: #2A2A2A;
+  --color-text: #E5E5E5;
+  --color-text-muted: #888888;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+html {
+  scroll-behavior: smooth;
 }
 
-.App-link {
-    color: #61dafb;
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+/* Typography */
+.font-serif {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-sans {
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 1s ease-out forwards;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
+
+.delay-300 {
+  animation-delay: 300ms;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-background);
+}
+
+/* Focus states */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Calendar Styles */
+.kaiso-calendar {
+  --rdp-cell-size: 44px;
+  --rdp-accent-color: #C9A24A;
+  --rdp-background-color: #121212;
+}
+
+.kaiso-calendar .rdp-day_button {
+  border-radius: 0;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.kaiso-calendar .rdp-day_button:hover:not([disabled]) {
+  background-color: #C9A24A;
+  color: #000;
+}
+
+.kaiso-calendar .rdp-day_button.rdp-day_selected {
+  background-color: #C9A24A;
+  color: #000;
+}
+
+.kaiso-calendar .rdp-day_button.rdp-day_today:not(.rdp-day_selected) {
+  color: #C9A24A;
+  font-weight: bold;
+}
+
+.kaiso-calendar .rdp-nav button {
+  border-radius: 0;
+  border: 1px solid #2A2A2A;
+}
+
+.kaiso-calendar .rdp-nav button:hover {
+  border-color: #C9A24A;
+  color: #C9A24A;
+}
+
+.kaiso-calendar .rdp-caption_label {
+  font-family: 'Playfair Display', serif;
+  color: #C9A24A;
+}
+
+.kaiso-calendar .rdp-weekday {
+  color: #888;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+/* Form inputs */
+input, select, textarea {
+  font-family: 'Montserrat', sans-serif;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #555;
+}
+
+/* Buttons */
+button {
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Transitions */
+.transition-colors {
+  transition-property: color, background-color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* React Day Picker overrides */
+.rdp-root {
+  --rdp-accent-color: #C9A24A !important;
+  --rdp-accent-background-color: #C9A24A !important;
+}
+
+.rdp-today:not(.rdp-selected) .rdp-day_button {
+  color: #C9A24A;
+  font-weight: bold;
+}
+
+.rdp-selected .rdp-day_button {
+  background-color: #C9A24A;
+  color: #000;
+}
+
+.rdp-day_button:hover:not(:disabled) {
+  background-color: #C9A24A;
+  color: #000;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .kaiso-calendar {
+    --rdp-cell-size: 40px;
+  }
 }
