@@ -206,9 +206,128 @@ button {
   color: #000;
 }
 
+/* Success Page Animations */
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* React Day Picker v9 Custom Styles */
+.rdp {
+  --rdp-cell-size: 44px;
+  --rdp-accent-color: #C9A24A;
+  --rdp-background-color: transparent;
+  margin: 0;
+}
+
+.rdp-root {
+  --rdp-accent-color: #C9A24A !important;
+  --rdp-accent-background-color: #C9A24A !important;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.rdp-month {
+  background: transparent;
+}
+
+.rdp-caption_label {
+  font-family: 'Playfair Display', serif !important;
+  color: #C9A24A !important;
+  font-size: 1.25rem !important;
+}
+
+.rdp-button_previous,
+.rdp-button_next {
+  border: 1px solid #2A2A2A !important;
+  border-radius: 0 !important;
+  color: #888 !important;
+  background: transparent !important;
+}
+
+.rdp-button_previous:hover,
+.rdp-button_next:hover {
+  border-color: #C9A24A !important;
+  color: #C9A24A !important;
+  background: transparent !important;
+}
+
+.rdp-weekday {
+  color: #888 !important;
+  font-size: 0.7rem !important;
+  text-transform: uppercase !important;
+  font-weight: normal !important;
+}
+
+.rdp-day {
+  border-radius: 0 !important;
+}
+
+.rdp-day_button {
+  border-radius: 0 !important;
+  width: 44px !important;
+  height: 44px !important;
+  font-size: 0.875rem;
+  color: #E5E5E5;
+  border: none !important;
+  background: transparent !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rdp-day_button:hover:not(:disabled) {
+  background-color: #C9A24A !important;
+  color: #000 !important;
+}
+
+.rdp-selected .rdp-day_button {
+  background-color: #C9A24A !important;
+  color: #000 !important;
+}
+
+.rdp-today:not(.rdp-selected) .rdp-day_button {
+  color: #C9A24A !important;
+  font-weight: bold !important;
+}
+
+.rdp-disabled .rdp-day_button {
+  color: #444 !important;
+  cursor: not-allowed !important;
+}
+
+.rdp-disabled .rdp-day_button:hover {
+  background: transparent !important;
+  color: #444 !important;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
-  .kaiso-calendar {
+  .rdp {
     --rdp-cell-size: 40px;
+  }
+  
+  .rdp-day_button {
+    width: 40px !important;
+    height: 40px !important;
   }
 }
