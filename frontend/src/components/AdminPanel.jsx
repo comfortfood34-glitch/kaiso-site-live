@@ -165,9 +165,9 @@ export default function AdminPanel() {
               />
             </div>
             
-            {loginError && (
+            {loginError ? (
               <p className="text-kaiso-red text-sm text-center">{loginError}</p>
-            )}
+            ) : null}
             
             <button
               type="submit"
@@ -437,7 +437,7 @@ export default function AdminPanel() {
                     <div key={b.date} className="flex items-center justify-between bg-kaiso-bg p-3 border border-kaiso-border">
                       <div>
                         <span className="text-kaiso-text text-sm">{b.date}</span>
-                        {b.reason && <span className="text-kaiso-muted text-xs ml-2">({b.reason})</span>}
+                        {b.reason ? <span className="text-kaiso-muted text-xs ml-2">({b.reason})</span> : null}
                       </div>
                       <button
                         onClick={() => handleRemoveBlackout(b.date)}
