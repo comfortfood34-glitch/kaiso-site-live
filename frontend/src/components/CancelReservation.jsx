@@ -14,6 +14,7 @@ export default function CancelReservation() {
 
   useEffect(() => {
     loadReservation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const loadReservation = async () => {
