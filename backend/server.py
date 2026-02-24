@@ -114,7 +114,7 @@ class Reservation(BaseModel):
     has_discount: bool = False
     discount_percentage: int = 0
     estimated_value: float = 0.0
-    status: str = "pendente"  # pendente, confirmada, cancelada, no-show
+    status: str = "confirmada"  # AUTO-ACEITAR: confirmada por padrão
     admin_notes: str = ""
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
