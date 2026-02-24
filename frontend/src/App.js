@@ -440,6 +440,7 @@ const HomePage = () => {
     <div className="min-h-screen bg-kaiso-bg text-kaiso-text">
       <Navigation onReserve={() => setShowReservation(true)} />
       <HeroSection onReserve={() => setShowReservation(true)} />
+      <AboutSection />
       <CartaSection />
       <DeliverySection />
       <FranchiseSection />
