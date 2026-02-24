@@ -12,7 +12,7 @@ const WhatsAppIcon = ({ size = 16, className = "" }) => (
 
 export default function MenuSection() {
   const { t, lang } = useLanguage();
-  const [activeCategory, setActiveCategory] = useState('favoritos');
+  const [activeCategory, setActiveCategory] = useState('handhelds');
   const [selectedItem, setSelectedItem] = useState(null);
 
   const activeItems = menuCategories.find(c => c.id === activeCategory)?.items || [];
