@@ -1,0 +1,523 @@
+import React, { useState, useEffect } from 'react';
+import { format, addDays, isBefore, startOfDay } from 'date-fns';
+import { es, pt, enUS } from 'date-fns/locale';
+import { DayPicker } from 'react-day-picker';
+import { Calendar, Clock, Users, X, ArrowLeft, ArrowRight, Check, Info, Sparkles, Phone } from 'lucide-react';
+import { useLanguage } from '../App';
+import { getAvailability, createReservation, getWhatsAppMessage } from '../lib/api';
+import 'react-day-picker/style.css';
+
+const STEPS = ['date', 'time', 'details', 'confirm', 'success'];
+
+export default function ReservationSystem({ onClose }) {
+  const { t, lang } = useLanguage();
+  const [step, setStep] = useState(0);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedTime, setSelectedTime] = useState(null);
+  const [availability, setAvailability] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [reservation, setReservation] = useState(null);
+  
+  const [form, setForm] = useState({
+    customer_name: '',
+    customer_phone: '',
+    customer_email: '',
+    guests: 2,
+    observations: '',
+    has_tasting_menu: false,
+    tasting_allergies: ''
+  });
+
+  const dateLocale = { es, pt, en: enUS }[lang] || es;
+
+  useEffect(() => {
+    if (selectedDate) {
+      loadAvailability(format(selectedDate, 'yyyy-MM-dd'));
+    }
+  }, [selectedDate]);
+
+  const loadAvailability = async (dateStr) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getAvailability(dateStr);
+      setAvailability(data);
+      if (!data.available) {
+        setError(data.reason);
+      }
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Error al cargar disponibilidad');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDateSelect = (date) => {
+    if (date) {
+      setSelectedDate(date);
+      setSelectedTime(null);
+      setStep(1);
+    }
+  };
+
+  const handleTimeSelect = (time) => {
+    setSelectedTime(time);
+    // Check if tasting is available for this time
+    if (form.has_tasting_menu && availability) {
+      const isTastingTime = availability.tasting_slots?.includes(time);
+      if (!isTastingTime) {
+        setForm(prev => ({ ...prev, has_tasting_menu: false }));
+      }
+    }
+    setStep(2);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStep(3); // Go to confirmation
+  };
+
+  const handleConfirm = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const reservationData = {
+        ...form,
+        guests: parseInt(form.guests),
+        reservation_date: format(selectedDate, 'yyyy-MM-dd'),
+        reservation_time: selectedTime
+      };
+      
+      const result = await createReservation(reservationData);
+      setReservation(result);
+      setStep(4); // Success
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Error al crear la reserva');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWhatsApp = async () => {
+    try {
+      const params = {
+        name: form.customer_name,
+        guests: form.guests,
+        date: format(selectedDate, 'yyyy-MM-dd'),
+        time: selectedTime,
+        tasting: form.has_tasting_menu,
+        observations: form.observations
+      };
+      const data = await getWhatsAppMessage(params);
+      window.open(data.whatsapp_url, '_blank');
+    } catch (err) {
+      console.error('Error generating WhatsApp message:', err);
+    }
+  };
+
+  const goBack = () => step > 0 && setStep(step - 1);
+  
+  const today = startOfDay(new Date());
+  const maxDate = addDays(today, 60);
+  
+  // Check if tasting is available for selected date/time
+  const canSelectTasting = availability?.tasting_available && 
+    (!selectedTime || availability?.tasting_slots?.includes(selectedTime));
+
+  return (
+    <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 overflow-y-auto" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="bg-kaiso-bg border border-kaiso-border w-full max-w-2xl my-8" onClick={(e) => e.stopPropagation()} data-testid="reservation-system">
+        {/* Header */}
+        <div className="border-b border-kaiso-border p-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {step > 0 && step < 4 && (
+              <button onClick={goBack} className="text-kaiso-muted hover:text-kaiso-gold transition-colors" data-testid="back-button">
+                <ArrowLeft size={20} />
+              </button>
+            )}
+            <div>
+              <h2 className="font-serif text-2xl text-kaiso-gold">{t.reservation.title}</h2>
+              <p className="text-xs text-kaiso-muted uppercase tracking-widest mt-1">
+                {STEPS[step] === 'date' && t.reservation.select_date}
+                {STEPS[step] === 'time' && t.reservation.select_time}
+                {STEPS[step] === 'details' && t.reservation.your_details}
+                {STEPS[step] === 'confirm' && 'Confirmar'}
+                {STEPS[step] === 'success' && t.reservation.success_title}
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-kaiso-muted hover:text-kaiso-text text-2xl p-2" data-testid="close-button">×</button>
+        </div>
+
+        {/* Progress */}
+        <div className="flex gap-1 p-4 border-b border-kaiso-border">
+          {STEPS.slice(0, 4).map((_, idx) => (
+            <div key={idx} className={`h-1 flex-1 transition-all ${idx <= step ? 'bg-kaiso-gold' : 'bg-kaiso-border'}`} />
+          ))}
+        </div>
+
+        {/* Hours Notice */}
+        <div className="bg-kaiso-card/50 p-4 border-b border-kaiso-border">
+          <div className="flex items-start gap-3">
+            <Info size={16} className="text-kaiso-gold flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-kaiso-muted leading-relaxed">{t.reservation.hours_notice}</p>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 min-h-[400px]">
+          {error && (
+            <div className="bg-kaiso-red/10 border border-kaiso-red/30 text-kaiso-text p-4 mb-6 flex items-center gap-3">
+              <Info size={18} className="text-kaiso-red" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Step 1: Date Selection */}
+          {STEPS[step] === 'date' && (
+            <div className="flex flex-col items-center" data-testid="step-date">
+              <DayPicker
+                mode="single"
+                selected={selectedDate}
+                onSelect={handleDateSelect}
+                locale={dateLocale}
+                disabled={[{ before: today }, { after: maxDate }, { dayOfWeek: [1] }]}
+                modifiers={{ discount: (date) => [2, 3, 4].includes(date.getDay()) }}
+                modifiersClassNames={{ discount: 'discount-day' }}
+                className="kaiso-calendar"
+              />
+              {/* Discount Notice */}
+              <div className="mt-6 p-4 border border-kaiso-gold/30 max-w-md">
+                <div className="flex items-start gap-3">
+                  <Sparkles size={16} className="text-kaiso-gold flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-kaiso-muted leading-relaxed">{t.reservation.discount_notice}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Time Selection */}
+          {STEPS[step] === 'time' && availability && (
+            <div data-testid="step-time">
+              <div className="text-center mb-8">
+                <p className="text-kaiso-gold font-serif text-lg">
+                  {format(selectedDate, "EEEE, d 'de' MMMM", { locale: dateLocale })}
+                </p>
+                {availability.has_discount && (
+                  <span className="inline-block mt-2 text-xs text-kaiso-gold bg-kaiso-gold/10 px-3 py-1">
+                    {t.reservation.discount_applied}
+                  </span>
+                )}
+                <p className="text-kaiso-muted text-sm mt-2">{availability.remaining_capacity} {t.reservation.remaining}</p>
+              </div>
+
+              {/* Lunch Slots */}
+              {availability.lunch_slots?.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-xs uppercase tracking-widest text-kaiso-muted mb-4">{t.reservation.lunch}</h3>
+                  <div className="grid grid-cols-4 gap-2">
+                    {availability.lunch_slots.map(time => (
+                      <button
+                        key={time}
+                        onClick={() => handleTimeSelect(time)}
+                        className={`p-3 border text-center text-sm transition-all ${selectedTime === time ? 'bg-kaiso-gold text-black border-kaiso-gold' : 'border-kaiso-border hover:border-kaiso-gold text-kaiso-text'}`}
+                        data-testid={`time-${time.replace(':', '')}`}
+                      >
+                        {time}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Dinner Slots */}
+              {availability.dinner_slots?.length > 0 && (
+                <div>
+                  <h3 className="text-xs uppercase tracking-widest text-kaiso-muted mb-4">{t.reservation.dinner}</h3>
+                  <div className="grid grid-cols-4 gap-2">
+                    {availability.dinner_slots.map(time => (
+                      <button
+                        key={time}
+                        onClick={() => handleTimeSelect(time)}
+                        className={`p-3 border text-center text-sm transition-all ${selectedTime === time ? 'bg-kaiso-gold text-black border-kaiso-gold' : 'border-kaiso-border hover:border-kaiso-gold text-kaiso-text'} ${availability.tasting_slots?.includes(time) ? 'ring-1 ring-kaiso-gold/30' : ''}`}
+                        data-testid={`time-${time.replace(':', '')}`}
+                      >
+                        {time}
+                        {availability.tasting_slots?.includes(time) && <Sparkles size={10} className="inline ml-1 text-kaiso-gold" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 3: Details Form */}
+          {STEPS[step] === 'details' && (
+            <form onSubmit={handleSubmit} className="space-y-5" data-testid="step-details">
+              {/* Summary */}
+              <div className="bg-kaiso-card p-4 border border-kaiso-border mb-6">
+                <div className="flex justify-between text-sm">
+                  <span className="text-kaiso-muted">{t.reservation.date}:</span>
+                  <span className="text-kaiso-gold">{format(selectedDate, 'dd/MM/yyyy')}</span>
+                </div>
+                <div className="flex justify-between text-sm mt-2">
+                  <span className="text-kaiso-muted">{t.reservation.time}:</span>
+                  <span className="text-kaiso-gold">{selectedTime}</span>
+                </div>
+                {availability?.has_discount && (
+                  <div className="flex justify-between text-sm mt-2">
+                    <span className="text-kaiso-muted">Descuento:</span>
+                    <span className="text-kaiso-gold">-10%</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-2 block">{t.reservation.guests} *</label>
+                  <select
+                    name="guests"
+                    value={form.guests}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full bg-kaiso-bg border border-kaiso-border p-3 text-kaiso-text focus:border-kaiso-gold focus:outline-none"
+                    data-testid="input-guests"
+                  >
+                    {[...Array(12)].map((_, i) => (
+                      <option key={i+1} value={i+1}>{i+1}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-2 block">{t.reservation.phone} *</label>
+                  <input
+                    type="tel"
+                    name="customer_phone"
+                    value={form.customer_phone}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full bg-transparent border-b border-kaiso-border p-3 text-kaiso-text focus:border-kaiso-gold focus:outline-none"
+                    placeholder="+34 600 000 000"
+                    data-testid="input-phone"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-2 block">{t.reservation.name} *</label>
+                <input
+                  type="text"
+                  name="customer_name"
+                  value={form.customer_name}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full bg-transparent border-b border-kaiso-border p-3 text-kaiso-text focus:border-kaiso-gold focus:outline-none"
+                  data-testid="input-name"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-2 block">{t.reservation.email}</label>
+                <input
+                  type="email"
+                  name="customer_email"
+                  value={form.customer_email}
+                  onChange={handleInputChange}
+                  className="w-full bg-transparent border-b border-kaiso-border p-3 text-kaiso-text focus:border-kaiso-gold focus:outline-none"
+                  data-testid="input-email"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-2 block">{t.reservation.observations}</label>
+                <textarea
+                  name="observations"
+                  value={form.observations}
+                  onChange={handleInputChange}
+                  rows={2}
+                  className="w-full bg-transparent border border-kaiso-border p-3 text-kaiso-text focus:border-kaiso-gold focus:outline-none resize-none"
+                  data-testid="input-observations"
+                />
+              </div>
+
+              {/* Tasting Menu Option */}
+              {canSelectTasting && (
+                <div className="border border-kaiso-gold/30 p-4 mt-4">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="has_tasting_menu"
+                      checked={form.has_tasting_menu}
+                      onChange={handleInputChange}
+                      className="mt-1 accent-kaiso-gold"
+                      data-testid="input-tasting"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <Sparkles size={14} className="text-kaiso-gold" />
+                        <span className="text-kaiso-gold font-medium">{t.reservation.tasting_title}</span>
+                      </div>
+                      <p className="text-xs text-kaiso-muted mt-1">{t.reservation.tasting_desc}</p>
+                      <p className="text-kaiso-gold text-sm mt-1">{t.reservation.tasting_price}</p>
+                      <p className="text-xs text-kaiso-muted mt-1">{t.reservation.tasting_availability}</p>
+                    </div>
+                  </label>
+                  
+                  {form.has_tasting_menu && (
+                    <div className="mt-3 pt-3 border-t border-kaiso-border">
+                      <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-2 block">{t.reservation.tasting_allergies}</label>
+                      <input
+                        type="text"
+                        name="tasting_allergies"
+                        value={form.tasting_allergies}
+                        onChange={handleInputChange}
+                        className="w-full bg-transparent border-b border-kaiso-border p-2 text-kaiso-text focus:border-kaiso-gold focus:outline-none text-sm"
+                        data-testid="input-allergies"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="w-full bg-kaiso-gold text-black py-4 uppercase tracking-widest text-xs font-bold hover:bg-kaiso-gold-light transition-colors flex items-center justify-center gap-2 mt-6"
+                data-testid="continue-button"
+              >
+                Continuar
+                <ArrowRight size={16} />
+              </button>
+            </form>
+          )}
+
+          {/* Step 4: Confirmation */}
+          {STEPS[step] === 'confirm' && (
+            <div data-testid="step-confirm">
+              <h3 className="font-serif text-xl text-kaiso-gold text-center mb-6">Confirmar Reserva</h3>
+              
+              <div className="bg-kaiso-card border border-kaiso-border p-6 space-y-4">
+                <div className="flex justify-between border-b border-kaiso-border pb-3">
+                  <span className="text-kaiso-muted">{t.reservation.name}</span>
+                  <span className="text-kaiso-text">{form.customer_name}</span>
+                </div>
+                <div className="flex justify-between border-b border-kaiso-border pb-3">
+                  <span className="text-kaiso-muted">{t.reservation.phone}</span>
+                  <span className="text-kaiso-text">{form.customer_phone}</span>
+                </div>
+                <div className="flex justify-between border-b border-kaiso-border pb-3">
+                  <span className="text-kaiso-muted">{t.reservation.date}</span>
+                  <span className="text-kaiso-gold">{format(selectedDate, 'dd/MM/yyyy')}</span>
+                </div>
+                <div className="flex justify-between border-b border-kaiso-border pb-3">
+                  <span className="text-kaiso-muted">{t.reservation.time}</span>
+                  <span className="text-kaiso-gold">{selectedTime}</span>
+                </div>
+                <div className="flex justify-between border-b border-kaiso-border pb-3">
+                  <span className="text-kaiso-muted">{t.reservation.guests}</span>
+                  <span className="text-kaiso-text">{form.guests}</span>
+                </div>
+                {form.has_tasting_menu && (
+                  <div className="flex justify-between border-b border-kaiso-border pb-3">
+                    <span className="text-kaiso-muted">{t.reservation.tasting_title}</span>
+                    <span className="text-kaiso-gold">€{(form.guests * 65.90).toFixed(2)}</span>
+                  </div>
+                )}
+                {availability?.has_discount && (
+                  <div className="flex justify-between">
+                    <span className="text-kaiso-muted">Descuento</span>
+                    <span className="text-kaiso-gold">{t.reservation.discount_applied}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-3 mt-6">
+                <button
+                  onClick={handleConfirm}
+                  disabled={loading}
+                  className="w-full bg-kaiso-gold text-black py-4 uppercase tracking-widest text-xs font-bold hover:bg-kaiso-gold-light transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  data-testid="confirm-button"
+                >
+                  {loading ? 'Procesando...' : (
+                    <>
+                      <Check size={16} />
+                      {t.reservation.confirm}
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={handleWhatsApp}
+                  className="w-full bg-[#25D366] text-white py-4 uppercase tracking-widest text-xs font-bold hover:bg-[#128C7E] transition-colors flex items-center justify-center gap-2"
+                  data-testid="whatsapp-button"
+                >
+                  <Phone size={16} />
+                  {t.reservation.confirm_whatsapp}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 5: Success */}
+          {STEPS[step] === 'success' && reservation && (
+            <div className="text-center" data-testid="step-success">
+              <div className="w-20 h-20 border-2 border-kaiso-gold rounded-full flex items-center justify-center mx-auto mb-6">
+                <Check size={40} className="text-kaiso-gold" />
+              </div>
+              
+              <h3 className="font-serif text-3xl text-kaiso-gold mb-4">{t.reservation.success_title}</h3>
+              <p className="text-kaiso-muted mb-8">{t.reservation.success_message}</p>
+
+              <div className="bg-kaiso-card border border-kaiso-border p-6 text-left max-w-sm mx-auto">
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-kaiso-muted text-sm">{t.reservation.date}</span>
+                    <span className="text-kaiso-gold">{reservation.reservation_date}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-kaiso-muted text-sm">{t.reservation.time}</span>
+                    <span className="text-kaiso-gold">{reservation.reservation_time}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-kaiso-muted text-sm">{t.reservation.guests}</span>
+                    <span className="text-kaiso-text">{reservation.guests}</span>
+                  </div>
+                  {reservation.has_tasting_menu && (
+                    <div className="flex justify-between">
+                      <span className="text-kaiso-muted text-sm">{t.reservation.tasting_title}</span>
+                      <span className="text-kaiso-gold">✓</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <button
+                onClick={handleWhatsApp}
+                className="mt-6 bg-[#25D366] text-white px-8 py-4 uppercase tracking-widest text-xs font-bold hover:bg-[#128C7E] transition-colors inline-flex items-center gap-2"
+              >
+                <Phone size={16} />
+                {t.reservation.confirm_whatsapp}
+              </button>
+
+              <button
+                onClick={onClose}
+                className="block mx-auto mt-4 text-kaiso-muted hover:text-kaiso-gold transition-colors text-sm"
+              >
+                Cerrar
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
