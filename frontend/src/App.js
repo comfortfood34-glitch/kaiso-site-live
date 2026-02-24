@@ -264,34 +264,126 @@ const HeroSection = ({ onReserve }) => {
 const AboutSection = () => {
   const { lang } = useLanguage();
   
+  const content = {
+    es: {
+      title: 'Nuestra Historia',
+      headline: 'Grupo Kaisō',
+      text1: 'El Grupo Kaisō nació en 2011 en Brasil, con una propuesta clara: construir una marca de sushi con identidad fuerte, proceso estructurado y estándar elevado de calidad.',
+      text2: 'El crecimiento se consolidó en Portugal, donde el grupo se expandió y validó su modelo de negocio. Tras años de construcción estratégica, la marca fue vendida en 2025.',
+      text3: 'La nueva fase comienza en España, bajo el liderazgo de Leandro Crispim, con un proyecto más técnico y autoral. Nuestro concepto se inspira en el estilo tradicional japonés Edomae, con referencia a casas clásicas como Sukiyabashi Jiro.',
+      details: ['Sushi madurado por 48 horas', 'Arroz preparado según técnicas tradicionales con hangiri y vinagre rojo (akazu)', 'Control riguroso de temperatura, acidez y textura', 'Proceso refinado lote a lote'],
+      slogan: 'Más que servir sushi, entregamos técnica, identidad y experiencia.'
+    },
+    pt: {
+      title: 'Nossa História',
+      headline: 'Grupo Kaisō',
+      text1: 'O Grupo Kaisō nasceu em 2011, no Brasil, com uma proposta clara: construir uma marca de sushi com identidade forte, processo estruturado e padrão elevado de qualidade.',
+      text2: 'O crescimento e consolidação aconteceram em Portugal, onde o grupo expandiu e validou seu modelo de negócio. Após anos de construção estratégica, a marca foi vendida em 2025.',
+      text3: 'A nova fase começa na Espanha, sob a liderança de Leandro Crispim, com um projeto mais técnico e autoral. Nosso conceito é inspirado no estilo tradicional japonês Edomae, com referência a casas clássicas como Sukiyabashi Jiro.',
+      details: ['Sushi maturado por 48 horas', 'Arroz preparado segundo técnicas tradicionais com hangiri e vinagre vermelho (akazu)', 'Controle rigoroso de temperatura, acidez e textura', 'Processo refinado lote a lote'],
+      slogan: 'Mais do que servir sushi, entregamos técnica, identidade e experiência.'
+    },
+    en: {
+      title: 'Our Story',
+      headline: 'Grupo Kaisō',
+      text1: 'Grupo Kaisō was born in 2011 in Brazil, with a clear mission: building a sushi brand with a strong identity, structured process, and elevated quality standard.',
+      text2: 'Growth and consolidation happened in Portugal, where the group expanded and validated its business model. After years of strategic construction, the brand was sold in 2025.',
+      text3: 'The new phase begins in Spain, led by Leandro Crispim, with a more technical and authorial project. Our concept is inspired by the traditional Japanese Edomae style, referencing classic establishments like Sukiyabashi Jiro.',
+      details: ['Sushi aged for 48 hours', 'Rice prepared with traditional techniques using hangiri and red vinegar (akazu)', 'Rigorous control of temperature, acidity and texture', 'Process refined batch by batch'],
+      slogan: 'More than serving sushi, we deliver technique, identity and experience.'
+    }
+  };
+  
+  const c = content[lang] || content.es;
+  
   return (
     <section className="relative py-24 md:py-32 px-6" data-testid="about-section">
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div>
-            <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">
-              {lang === 'es' ? 'Nuestra Historia' : lang === 'pt' ? 'Nossa História' : 'Our Story'}
-            </span>
+            <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{c.title}</span>
             <p className="text-kaiso-gold/50 text-xs tracking-[0.3em] mt-1">私たちの物語</p>
-            <h2 className="font-serif text-4xl md:text-5xl text-kaiso-text mt-4 mb-8">
-              {lang === 'es' ? 'Sushi Sofisticado' : lang === 'pt' ? 'Sushi Sofisticado' : 'Sophisticated Sushi'}
-            </h2>
-            <p className="text-kaiso-muted leading-relaxed mb-6">
-              {lang === 'es' ? 'Fundado por Leandro, el Grupo Kaisō nació de la pasión por elevar la gastronomía japonesa a nuevos estándares de excelencia. Cada pieza de sushi es una obra de arte, preparada con técnica rigurosa y los ingredientes más frescos.'
-              : lang === 'pt' ? 'Fundado por Leandro, o Grupo Kaisō nasceu da paixão por elevar a gastronomia japonesa a novos padrões de excelência. Cada peça de sushi é uma obra de arte, preparada com técnica rigorosa e os ingredientes mais frescos.'
-              : 'Founded by Leandro, Grupo Kaisō was born from the passion to elevate Japanese cuisine to new standards of excellence. Each piece of sushi is a work of art, prepared with rigorous technique and the freshest ingredients.'}
-            </p>
-            <p className="text-kaiso-muted leading-relaxed">
-              {lang === 'es' ? 'En nuestro restaurante de Córdoba, ofrecemos una experiencia gastronómica única donde la tradición japonesa se fusiona con la innovación culinaria. El sello Kaisō garantiza calidad premium en cada bocado.'
-              : lang === 'pt' ? 'Em nosso restaurante em Córdoba, oferecemos uma experiência gastronômica única onde a tradição japonesa se funde com a inovação culinária. O selo Kaisō garante qualidade premium em cada mordida.'
-              : 'In our Córdoba restaurant, we offer a unique gastronomic experience where Japanese tradition merges with culinary innovation. The Kaisō seal guarantees premium quality in every bite.'}
-            </p>
+            <h2 className="font-serif text-4xl md:text-5xl text-kaiso-text mt-4 mb-8">{c.headline}</h2>
+            <p className="text-kaiso-muted leading-relaxed mb-4">{c.text1}</p>
+            <p className="text-kaiso-muted leading-relaxed mb-4">{c.text2}</p>
+            <p className="text-kaiso-muted leading-relaxed mb-6">{c.text3}</p>
+            <ul className="space-y-2 mb-6">
+              {c.details.map((d, i) => (
+                <li key={i} className="text-kaiso-muted text-sm flex items-start gap-2">
+                  <span className="text-kaiso-gold mt-1">&#8212;</span> {d}
+                </li>
+              ))}
+            </ul>
+            <p className="text-kaiso-gold font-serif text-lg italic">{c.slogan}</p>
           </div>
-          <div className="relative">
-            {/* Foto real do salão do restaurante Kaisō */}
-            <div 
-              className="w-full h-[500px] bg-cover bg-center"
-              style={{ backgroundImage: `url('/assets/salon-kaiso.png')` }}
+          <div className="space-y-4">
+            <div className="relative h-[300px] overflow-hidden">
+              <img src="/assets/salon-kaiso.png" alt="Kaisō Restaurant" className="w-full h-full object-cover" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="h-[200px] overflow-hidden">
+                <img src="/assets/chef-kaiso.png" alt="Chef Kaisō" className="w-full h-full object-cover" />
+              </div>
+              <div className="h-[200px] overflow-hidden">
+                <img src="/assets/art-kaiso.png" alt="Kaisō Art" className="w-full h-full object-cover" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// Location / Map Section
+const LocationSection = () => {
+  const { lang } = useLanguage();
+  
+  return (
+    <section id="ubicacion" className="py-24 md:py-32 px-6 bg-kaiso-card" data-testid="location-section">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">
+            {lang === 'es' ? 'Ubicación' : lang === 'pt' ? 'Localização' : 'Location'}
+          </span>
+          <p className="text-kaiso-gold/50 text-xs tracking-[0.3em] mt-1">場所</p>
+          <h2 className="font-serif text-4xl md:text-5xl text-kaiso-text mt-4">
+            {lang === 'es' ? 'Encuéntrenos' : lang === 'pt' ? 'Encontre-nos' : 'Find Us'}
+          </h2>
+        </div>
+        <div className="grid md:grid-cols-2 gap-8 items-stretch">
+          <div className="bg-kaiso-bg border border-kaiso-border p-8 flex flex-col justify-center">
+            <h3 className="font-serif text-2xl text-kaiso-gold mb-6">Kaisō Sushi</h3>
+            <div className="space-y-4 text-kaiso-muted">
+              <p className="flex items-start gap-3">
+                <MapPin size={18} className="text-kaiso-gold mt-1 shrink-0" />
+                Av. de Barcelona, 19, 14010 Córdoba, España
+              </p>
+              <p className="flex items-start gap-3">
+                <Clock size={18} className="text-kaiso-gold mt-1 shrink-0" />
+                <span>
+                  {lang === 'es' ? 'Mar–Jue: 12:30–14:30, 19:30–22:00' : lang === 'pt' ? 'Ter–Qui: 12:30–14:30, 19:30–22:00' : 'Tue–Thu: 12:30–14:30, 19:30–22:00'}<br/>
+                  {lang === 'es' ? 'Vie–Dom: 12:30–15:00, 19:30–22:00' : lang === 'pt' ? 'Sex–Dom: 12:30–15:00, 19:30–22:00' : 'Fri–Sun: 12:30–15:00, 19:30–22:00'}<br/>
+                  <span className="text-kaiso-red">{lang === 'es' ? 'Lunes cerrado' : lang === 'pt' ? 'Segunda fechado' : 'Monday closed'}</span>
+                </span>
+              </p>
+              <p className="flex items-center gap-3">
+                <Calendar size={18} className="text-kaiso-gold shrink-0" />
+                +34 673 036 835
+              </p>
+            </div>
+          </div>
+          <div className="h-[350px] md:h-auto min-h-[300px]">
+            <iframe
+              title="Kaisō Sushi Location"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3149.5!2d-4.7885!3d37.8882!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzfCsDUzJzE3LjUiTiA0wrA0NyczMS4wIlc!5e0!3m2!1ses!2ses!4v1!5m2!1ses!2ses&q=Av.+de+Barcelona,+19,+14010+Córdoba,+España"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              className="grayscale"
             />
           </div>
         </div>
