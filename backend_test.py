@@ -86,7 +86,7 @@ class KaisoAPITester:
         )
 
     def test_get_config(self):
-        """Test get restaurant configuration"""
+        """Test get restaurant public configuration"""
         success, response = self.run_test(
             "Get Restaurant Config",
             "GET",
@@ -95,42 +95,154 @@ class KaisoAPITester:
         )
         
         if success:
-            # Validate config structure
-            required_keys = ['restaurant_name', 'capacity_per_slot', 'lunch_slots', 'dinner_slots', 'time_slots']
+            # Validate config structure based on server.py
+            required_keys = ['restaurant_name', 'phone', 'address', 'max_guests_per_reservation', 
+                           'tasting_menu_price', 'discount_percentage', 'discount_days', 'tasting_days']
             for key in required_keys:
                 if key not in response:
                     self.log(f"❌ Missing key in config: {key}", "FAIL")
                     return False
+            
+            # Validate specific values
+            if response.get('restaurant_name') != 'Kaisō Sushi':
+                self.log(f"❌ Invalid restaurant name: {response.get('restaurant_name')}", "FAIL")
+                return False
+            if response.get('discount_percentage') != 10:
+                self.log(f"❌ Invalid discount percentage: {response.get('discount_percentage')}", "FAIL")
+                return False
+                
             self.log(f"✅ Config validation passed", "PASS")
         
         return success
 
-    def test_get_availability(self):
-        """Test get availability for a future date"""
-        # Test for tomorrow
-        tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+    def test_get_availability_tuesday(self):
+        """Test get availability for Tuesday (discount day, lunch+dinner)"""
+        # Find next Tuesday
+        days_ahead = (1 - datetime.now().weekday()) % 7  # Tuesday = 1
+        if days_ahead == 0:  # Today is Tuesday
+            days_ahead = 7
+        tuesday = (datetime.now() + timedelta(days=days_ahead)).strftime('%Y-%m-%d')
+        
         success, response = self.run_test(
-            f"Get Availability for {tomorrow}",
+            f"Get Availability for Tuesday {tuesday}",
             "GET",
-            f"reservations/availability/{tomorrow}",
+            f"availability/{tuesday}",
             200
         )
         
         if success:
-            # Validate availability structure
-            required_keys = ['date', 'lunch_slots', 'dinner_slots']
+            # Validate Tuesday schedule: lunch 12:30-14:30, dinner 19:30-22:00
+            required_keys = ['available', 'date', 'weekday', 'has_discount', 'lunch_slots', 'dinner_slots', 'tasting_available']
             for key in required_keys:
                 if key not in response:
                     self.log(f"❌ Missing key in availability: {key}", "FAIL")
                     return False
             
-            # Check if slots have proper structure
-            for slot in response['lunch_slots']:
-                if not all(k in slot for k in ['time', 'available_capacity', 'is_available', 'period']):
-                    self.log(f"❌ Invalid slot structure: {slot}", "FAIL")
+            if not response.get('has_discount'):
+                self.log(f"❌ Tuesday should have discount", "FAIL")
+                return False
+                
+            if response.get('weekday') != 1:  # Tuesday = 1
+                self.log(f"❌ Wrong weekday for Tuesday: {response.get('weekday')}", "FAIL")
+                return False
+                
+            # Check lunch slots (12:30-14:30)
+            lunch_slots = response.get('lunch_slots', [])
+            if not lunch_slots:
+                self.log(f"❌ Tuesday should have lunch slots", "FAIL")
+                return False
+                
+            if '12:30' not in lunch_slots or '14:30' not in lunch_slots:
+                self.log(f"❌ Tuesday lunch times incorrect: {lunch_slots}", "FAIL")
+                return False
+                
+            # Check dinner slots (19:30-22:00)
+            dinner_slots = response.get('dinner_slots', [])
+            if not dinner_slots:
+                self.log(f"❌ Tuesday should have dinner slots", "FAIL")
+                return False
+                
+            if '19:30' not in dinner_slots or '22:00' not in dinner_slots:
+                self.log(f"❌ Tuesday dinner times incorrect: {dinner_slots}", "FAIL")
+                return False
+                
+            # Check tasting menu availability (Tue-Thu, 19:00-21:00)
+            if not response.get('tasting_available'):
+                self.log(f"❌ Tuesday should have tasting menu available", "FAIL")
+                return False
+                
+            tasting_slots = response.get('tasting_slots', [])
+            if '19:00' not in tasting_slots or '21:00' not in tasting_slots:
+                self.log(f"❌ Tuesday tasting times incorrect: {tasting_slots}", "FAIL")
+                return False
+            
+            # Check 15-minute intervals
+            first_slots = lunch_slots[:5]  # Check first 5 slots
+            for i in range(len(first_slots) - 1):
+                t1 = datetime.strptime(first_slots[i], '%H:%M')
+                t2 = datetime.strptime(first_slots[i+1], '%H:%M')
+                diff = (t2 - t1).total_seconds() / 60
+                if diff != 15:
+                    self.log(f"❌ Time slots not 15 minutes apart: {first_slots[i]} -> {first_slots[i+1]}", "FAIL")
                     return False
                     
-            self.log(f"✅ Availability validation passed", "PASS")
+            self.log(f"✅ Tuesday availability validation passed", "PASS")
+        
+        return success
+
+    def test_get_availability_monday(self):
+        """Test get availability for Monday (closed)"""
+        # Find next Monday
+        days_ahead = (0 - datetime.now().weekday()) % 7  # Monday = 0  
+        if days_ahead == 0:  # Today is Monday
+            days_ahead = 7
+        monday = (datetime.now() + timedelta(days=days_ahead)).strftime('%Y-%m-%d')
+        
+        success, response = self.run_test(
+            f"Get Availability for Monday {monday} (closed)",
+            "GET", 
+            f"availability/{monday}",
+            200
+        )
+        
+        if success:
+            if response.get('available'):
+                self.log(f"❌ Monday should not be available (restaurant closed)", "FAIL")
+                return False
+            if "Restaurante fechado" not in response.get('reason', ''):
+                self.log(f"❌ Wrong reason for Monday closure: {response.get('reason')}", "FAIL")
+                return False
+            self.log(f"✅ Monday correctly blocked", "PASS")
+        
+        return success
+
+    def test_get_availability_friday(self):
+        """Test get availability for Friday (extended lunch hours)"""
+        # Find next Friday
+        days_ahead = (4 - datetime.now().weekday()) % 7  # Friday = 4
+        if days_ahead == 0:  # Today is Friday
+            days_ahead = 7
+        friday = (datetime.now() + timedelta(days=days_ahead)).strftime('%Y-%m-%d')
+        
+        success, response = self.run_test(
+            f"Get Availability for Friday {friday}",
+            "GET",
+            f"availability/{friday}",
+            200
+        )
+        
+        if success:
+            if response.get('has_discount'):
+                self.log(f"❌ Friday should not have discount", "FAIL")
+                return False
+                
+            # Check lunch slots (12:30-15:00 on Friday)
+            lunch_slots = response.get('lunch_slots', [])
+            if '15:00' not in lunch_slots:
+                self.log(f"❌ Friday lunch should go until 15:00: {lunch_slots}", "FAIL")
+                return False
+                
+            self.log(f"✅ Friday availability validation passed", "PASS")
         
         return success
 
@@ -139,22 +251,28 @@ class KaisoAPITester:
         return self.run_test(
             "Get Availability - Invalid Date",
             "GET",
-            "reservations/availability/invalid-date",
+            "availability/invalid-date",
             400
         )
 
     def test_create_reservation_success(self):
         """Test creating a valid reservation"""
-        tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+        # Find next Tuesday for discount and tasting menu
+        days_ahead = (1 - datetime.now().weekday()) % 7
+        if days_ahead == 0:
+            days_ahead = 7
+        tuesday = (datetime.now() + timedelta(days=days_ahead)).strftime('%Y-%m-%d')
         
         reservation_data = {
-            "customer_name": "Test Customer",
-            "customer_email": "test@example.com",
-            "customer_phone": "+34600000001",
+            "customer_name": "María González",
+            "customer_email": "maria.test@example.com",
+            "customer_phone": "+34673036835",
             "guests": 2,
-            "reservation_date": tomorrow,
-            "reservation_time": "13:00",
-            "observations": "Test reservation for API testing"
+            "reservation_date": tuesday,
+            "reservation_time": "19:30",  # Valid dinner time
+            "observations": "Mesa cerca de la ventana por favor",
+            "has_tasting_menu": True,
+            "tasting_allergies": "Sin mariscos"
         }
         
         success, response = self.run_test(
@@ -166,19 +284,29 @@ class KaisoAPITester:
         )
         
         if success:
-            # Store reservation details for later tests
+            # Store reservation ID for admin tests
             self.reservation_id = response.get('id')
-            self.cancel_token = response.get('cancel_token')
             
             # Validate reservation structure
-            required_keys = ['id', 'customer_name', 'customer_email', 'status', 'cancel_token']
+            required_keys = ['id', 'customer_name', 'customer_email', 'status', 'has_discount', 'estimated_value']
             for key in required_keys:
                 if key not in response:
                     self.log(f"❌ Missing key in reservation: {key}", "FAIL")
                     return False
             
-            if response['status'] != 'confirmed':
+            if response['status'] != 'pendente':
                 self.log(f"❌ Invalid reservation status: {response['status']}", "FAIL")
+                return False
+                
+            # Validate Tuesday discount
+            if not response.get('has_discount'):
+                self.log(f"❌ Tuesday reservation should have discount", "FAIL")
+                return False
+                
+            # Validate estimated value (2 guests * €65.90 * 0.9 discount)
+            expected_value = round(2 * 65.90 * 0.9, 2)
+            if abs(response.get('estimated_value', 0) - expected_value) > 0.01:
+                self.log(f"❌ Incorrect estimated value: {response.get('estimated_value')} vs {expected_value}", "FAIL")
                 return False
                 
             self.log(f"✅ Reservation created with ID: {self.reservation_id[:8]}...", "PASS")
@@ -191,7 +319,7 @@ class KaisoAPITester:
         
         reservation_data = {
             "customer_name": "Test Customer",
-            "customer_email": "test@example.com",
+            "customer_email": "test@example.com", 
             "customer_phone": "+34600000001",
             "guests": 2,
             "reservation_date": tomorrow,
@@ -207,162 +335,213 @@ class KaisoAPITester:
             data=reservation_data
         )
 
-    def test_create_reservation_missing_data(self):
-        """Test creating reservation with missing required data"""
+    def test_create_reservation_monday(self):
+        """Test creating reservation on Monday (closed)"""
+        # Find next Monday
+        days_ahead = (0 - datetime.now().weekday()) % 7
+        if days_ahead == 0:
+            days_ahead = 7
+        monday = (datetime.now() + timedelta(days=days_ahead)).strftime('%Y-%m-%d')
+        
         reservation_data = {
             "customer_name": "Test Customer",
-            # Missing email, phone, etc.
+            "customer_email": "test@example.com",
+            "customer_phone": "+34600000001", 
             "guests": 2,
+            "reservation_date": monday,
+            "reservation_time": "13:00",
+            "observations": ""
         }
         
         return self.run_test(
-            "Create Reservation - Missing Data",
-            "POST",
+            "Create Reservation - Monday (Closed)",
+            "POST", 
             "reservations",
-            422,  # Validation error
+            400,
             data=reservation_data
         )
 
-    def test_get_reservations_admin(self):
-        """Test getting all reservations (admin endpoint)"""
+    def test_create_reservation_tasting_invalid_day(self):
+        """Test creating tasting menu reservation on Friday (not allowed)"""
+        # Find next Friday
+        days_ahead = (4 - datetime.now().weekday()) % 7
+        if days_ahead == 0:
+            days_ahead = 7
+        friday = (datetime.now() + timedelta(days=days_ahead)).strftime('%Y-%m-%d')
+        
+        reservation_data = {
+            "customer_name": "Test Customer",
+            "customer_email": "test@example.com",
+            "customer_phone": "+34600000001",
+            "guests": 2, 
+            "reservation_date": friday,
+            "reservation_time": "19:30",
+            "has_tasting_menu": True,
+            "observations": ""
+        }
+        
         return self.run_test(
-            "Get All Reservations (Admin)",
-            "GET",
-            "reservations",
-            200
+            "Create Reservation - Tasting Menu on Friday (Invalid)",
+            "POST",
+            "reservations", 
+            400,
+            data=reservation_data
         )
 
-    def test_get_reservations_with_filters(self):
-        """Test getting reservations with date filters"""
-        tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
-        
+    def test_whatsapp_message(self):
+        """Test WhatsApp message generation"""
         params = {
-            'date_from': tomorrow,
-            'date_to': tomorrow,
-            'status': 'confirmed'
+            'name': 'María González',
+            'guests': 2,
+            'date': '2024-12-17',
+            'time': '19:30',
+            'tasting': True,
+            'observations': 'Mesa cerca de la ventana'
         }
         
         success, response = self.run_test(
-            "Get Reservations with Filters",
+            "Generate WhatsApp Message",
             "GET",
-            "reservations",
+            "whatsapp-message",
             200,
             params=params
         )
         
-        if success and isinstance(response, list):
-            # Should include our test reservation
-            found_test_reservation = any(r.get('id') == self.reservation_id for r in response)
-            if found_test_reservation:
-                self.log(f"✅ Found test reservation in filtered results", "PASS")
-            else:
-                self.log(f"⚠️  Test reservation not found in filtered results", "WARN")
-        
-        return success
-
-    def test_get_reservation_by_token(self):
-        """Test getting reservation by cancel token"""
-        if not self.cancel_token:
-            self.log(f"⏭️  Skipping - no cancel token available", "SKIP")
-            return True
-            
-        success, response = self.run_test(
-            "Get Reservation by Token",
-            "GET",
-            f"reservations/by-token/{self.cancel_token}",
-            200
-        )
-        
         if success:
-            if response.get('id') != self.reservation_id:
-                self.log(f"❌ Token returned wrong reservation", "FAIL")
+            if 'whatsapp_url' not in response:
+                self.log(f"❌ Missing whatsapp_url in response", "FAIL")
                 return False
-            self.log(f"✅ Token correctly returned reservation", "PASS")
+            if 'wa.me/34673036835' not in response['whatsapp_url']:
+                self.log(f"❌ Wrong WhatsApp number in URL", "FAIL") 
+                return False
+            self.log(f"✅ WhatsApp URL generated correctly", "PASS")
         
         return success
 
-    def test_get_reservation_invalid_token(self):
-        """Test getting reservation with invalid token"""
-        return self.run_test(
-            "Get Reservation - Invalid Token",
-            "GET",
-            "reservations/by-token/invalid-token-123",
-            404
-        )
-
-    def test_get_reservation_stats(self):
-        """Test getting reservation statistics"""
+    def test_admin_login_valid(self):
+        """Test admin login with valid credentials"""
+        auth = (self.admin_user, self.admin_pass)
+        
         success, response = self.run_test(
-            "Get Reservation Stats",
+            "Admin Login - Valid Credentials",
             "GET",
-            "reservations/stats",
-            200
+            "admin/stats", 
+            200,
+            auth=auth
         )
         
         if success:
             # Validate stats structure
-            required_keys = ['total_confirmed', 'today_reservations', 'today_guests', 'week_reservations']
+            required_keys = ['today_date', 'today_reservations', 'today_guests', 'today_capacity', 'total_confirmed']
             for key in required_keys:
                 if key not in response:
-                    self.log(f"❌ Missing key in stats: {key}", "FAIL")
+                    self.log(f"❌ Missing key in admin stats: {key}", "FAIL")
                     return False
-                    
-            # Validate that values are numbers
-            for key in required_keys:
-                if not isinstance(response[key], int):
-                    self.log(f"❌ Stats value should be integer: {key}={response[key]}", "FAIL")
-                    return False
-            
-            self.log(f"✅ Stats validation passed", "PASS")
+            self.log(f"✅ Admin login successful", "PASS")
         
         return success
 
-    def test_cancel_reservation_by_token(self):
-        """Test cancelling reservation using token"""
-        if not self.cancel_token:
-            self.log(f"⏭️  Skipping - no cancel token available", "SKIP")
-            return True
-            
-        success, response = self.run_test(
-            "Cancel Reservation by Token",
-            "POST",
-            f"reservations/cancel/{self.cancel_token}",
-            200
-        )
+    def test_admin_login_invalid(self):
+        """Test admin login with invalid credentials"""
+        auth = ('wrong', 'credentials')
         
-        if success:
-            if 'message' not in response:
-                self.log(f"❌ Missing confirmation message", "FAIL")
-                return False
-            self.log(f"✅ Reservation cancelled successfully", "PASS")
-        
-        return success
-
-    def test_cancel_already_cancelled(self):
-        """Test cancelling an already cancelled reservation"""
-        if not self.cancel_token:
-            self.log(f"⏭️  Skipping - no cancel token available", "SKIP")
-            return True
-            
         return self.run_test(
-            "Cancel Already Cancelled Reservation",
-            "POST",
-            f"reservations/cancel/{self.cancel_token}",
-            400
+            "Admin Login - Invalid Credentials", 
+            "GET",
+            "admin/stats",
+            401,
+            auth=auth
         )
 
-    def test_admin_cancel_reservation(self):
-        """Test admin cancelling reservation by ID"""
+    def test_admin_get_reservations(self):
+        """Test admin getting reservations list"""
+        auth = (self.admin_user, self.admin_pass)
+        
+        success, response = self.run_test(
+            "Admin Get Reservations",
+            "GET", 
+            "admin/reservations",
+            200,
+            auth=auth
+        )
+        
+        if success and isinstance(response, list):
+            # Should include our test reservation if it exists
+            if self.reservation_id:
+                found_test_reservation = any(r.get('id') == self.reservation_id for r in response)
+                if found_test_reservation:
+                    self.log(f"✅ Found test reservation in admin list", "PASS")
+                else:
+                    self.log(f"⚠️  Test reservation not found in admin list", "WARN")
+        
+        return success
+
+    def test_admin_update_reservation(self):
+        """Test admin updating reservation status"""
         if not self.reservation_id:
             self.log(f"⏭️  Skipping - no reservation ID available", "SKIP")
             return True
             
+        auth = (self.admin_user, self.admin_pass)
+        update_data = {
+            "status": "confirmada",
+            "admin_notes": "Confirmada por API test"
+        }
+        
         return self.run_test(
-            "Admin Cancel Reservation",
-            "DELETE",
-            f"reservations/{self.reservation_id}",
-            200
+            "Admin Update Reservation Status",
+            "PATCH",
+            f"admin/reservations/{self.reservation_id}",
+            200,
+            data=update_data,
+            auth=auth
         )
+
+    def test_admin_blackout_dates(self):
+        """Test admin blackout date management"""
+        auth = (self.admin_user, self.admin_pass)
+        test_date = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')
+        
+        # Add blackout date
+        blackout_data = {
+            "date": test_date,
+            "reason": "Maintenance - API Test"
+        }
+        
+        success1 = self.run_test(
+            "Admin Add Blackout Date",
+            "POST",
+            "admin/blackout",
+            200,
+            data=blackout_data,
+            auth=auth
+        )[0]
+        
+        if not success1:
+            return False
+        
+        # Get blackout dates
+        success2 = self.run_test(
+            "Admin Get Blackout Dates", 
+            "GET",
+            "admin/blackout",
+            200,
+            auth=auth
+        )[0]
+        
+        if not success2:
+            return False
+        
+        # Remove blackout date
+        success3 = self.run_test(
+            "Admin Remove Blackout Date",
+            "DELETE", 
+            f"admin/blackout/{test_date}",
+            200,
+            auth=auth
+        )[0]
+        
+        return success3
 
     def run_all_tests(self):
         """Run all tests in logical order"""
