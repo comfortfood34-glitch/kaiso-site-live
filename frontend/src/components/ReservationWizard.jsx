@@ -4,14 +4,15 @@ import { es } from 'date-fns/locale';
 import { DayPicker } from 'react-day-picker';
 import { Calendar, Clock, Users, ChevronRight, Check, Sun, Moon, ArrowLeft } from 'lucide-react';
 import { getAvailability, createReservation, getConfig } from '../lib/api';
+import SuccessPage from './SuccessPage';
 import 'react-day-picker/style.css';
 
 const STEPS = ['date', 'period', 'time', 'details', 'confirmation'];
 
 export default function ReservationWizard({ onClose }) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedPeriod, setSelectedPeriod] = useState(null); // 'lunch' or 'dinner'
+  const [selectedDate, setSelectedDate] = useState(undefined);
+  const [selectedPeriod, setSelectedPeriod] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [availability, setAvailability] = useState(null);
   const [config, setConfig] = useState(null);
@@ -61,10 +62,12 @@ export default function ReservationWizard({ onClose }) {
   };
 
   const handleDateSelect = (date) => {
-    setSelectedDate(date);
-    setSelectedPeriod(null);
-    setSelectedTime(null);
-    setCurrentStep(1);
+    if (date) {
+      setSelectedDate(date);
+      setSelectedPeriod(null);
+      setSelectedTime(null);
+      setCurrentStep(1);
+    }
   };
 
   const handlePeriodSelect = (period) => {
@@ -127,9 +130,26 @@ export default function ReservationWizard({ onClose }) {
   const today = startOfDay(new Date());
   const maxDate = addDays(today, 60);
 
+  // Show full-screen success page
+  if (STEPS[currentStep] === 'confirmation' && reservationResult) {
+    return (
+      <SuccessPage 
+        reservation={reservationResult} 
+        onClose={onClose}
+      />
+    );
+  }
+
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-[#0A0A0A] border border-[#2A2A2A] w-full max-w-2xl my-8 relative" data-testid="reservation-wizard">
+    <div 
+      className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+      data-testid="reservation-wizard"
+    >
+      <div 
+        className="bg-[#0A0A0A] border border-[#2A2A2A] w-full max-w-2xl my-8 relative"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="border-b border-[#2A2A2A] p-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -149,13 +169,12 @@ export default function ReservationWizard({ onClose }) {
                 {STEPS[currentStep] === 'period' && 'Seleccione turno'}
                 {STEPS[currentStep] === 'time' && 'Seleccione hora'}
                 {STEPS[currentStep] === 'details' && 'Sus datos'}
-                {STEPS[currentStep] === 'confirmation' && 'Confirmación'}
               </p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="text-[#888] hover:text-[#E5E5E5] text-2xl"
+            className="text-[#888] hover:text-[#E5E5E5] text-2xl leading-none p-2"
             data-testid="close-wizard-button"
           >
             ×
@@ -164,7 +183,7 @@ export default function ReservationWizard({ onClose }) {
 
         {/* Progress */}
         <div className="flex gap-1 p-4 border-b border-[#2A2A2A]">
-          {STEPS.map((step, idx) => (
+          {STEPS.slice(0, 4).map((step, idx) => (
             <div 
               key={step}
               className={`h-1 flex-1 transition-all ${
@@ -194,23 +213,41 @@ export default function ReservationWizard({ onClose }) {
                   { before: today },
                   { after: maxDate }
                 ]}
-                className="kaiso-calendar"
-                classNames={{
-                  root: 'bg-transparent',
-                  month: 'space-y-4',
-                  caption: 'flex justify-center relative items-center h-10',
-                  caption_label: 'font-serif text-xl text-[#C9A24A]',
-                  nav: 'flex items-center gap-1',
-                  nav_button: 'h-8 w-8 bg-transparent border border-[#2A2A2A] hover:border-[#C9A24A] hover:text-[#C9A24A] flex items-center justify-center transition-colors',
-                  table: 'w-full border-collapse',
-                  head_row: 'flex',
-                  head_cell: 'text-[#888] w-10 font-normal text-xs uppercase',
-                  row: 'flex w-full mt-2',
-                  cell: 'text-center text-sm relative p-0 focus-within:relative',
-                  day: 'h-10 w-10 p-0 font-normal hover:bg-[#C9A24A] hover:text-black transition-colors',
-                  day_selected: 'bg-[#C9A24A] text-black',
-                  day_today: 'text-[#C9A24A] font-bold',
-                  day_disabled: 'text-[#444] cursor-not-allowed hover:bg-transparent hover:text-[#444]',
+                modifiersClassNames={{
+                  selected: 'rdp-selected',
+                  today: 'rdp-today'
+                }}
+                styles={{
+                  root: { '--rdp-accent-color': '#C9A24A' },
+                  months: { display: 'flex', justifyContent: 'center' },
+                  month: { margin: '0 1em' },
+                  caption: { display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '0 0 1em 0' },
+                  caption_label: { fontFamily: 'Playfair Display, serif', fontSize: '1.25rem', color: '#C9A24A' },
+                  nav: { display: 'flex', alignItems: 'center' },
+                  nav_button: { 
+                    width: '2rem', 
+                    height: '2rem', 
+                    background: 'transparent',
+                    border: '1px solid #2A2A2A',
+                    color: '#888',
+                    cursor: 'pointer'
+                  },
+                  head_cell: { color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 'normal' },
+                  day: { 
+                    width: '2.5rem', 
+                    height: '2.5rem', 
+                    fontSize: '0.875rem',
+                    borderRadius: 0,
+                    color: '#E5E5E5'
+                  },
+                  day_button: {
+                    width: '100%',
+                    height: '100%',
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    borderRadius: 0
+                  }
                 }}
               />
             </div>
@@ -403,47 +440,6 @@ export default function ReservationWizard({ onClose }) {
                 )}
               </button>
             </form>
-          )}
-
-          {/* Step 5: Confirmation */}
-          {STEPS[currentStep] === 'confirmation' && reservationResult && (
-            <div className="text-center" data-testid="confirmation-step">
-              <div className="w-20 h-20 bg-[#C9A24A] rounded-full flex items-center justify-center mx-auto mb-6">
-                <Check size={40} className="text-black" />
-              </div>
-              
-              <h3 className="font-serif text-3xl text-[#C9A24A] mb-2">¡Reserva Confirmada!</h3>
-              <p className="text-[#888] mb-8">Hemos enviado un email de confirmación a {reservationResult.customer_email}</p>
-
-              <div className="bg-[#121212] border border-[#2A2A2A] p-6 text-left max-w-md mx-auto">
-                <div className="space-y-3">
-                  <div className="flex justify-between border-b border-[#2A2A2A] pb-3">
-                    <span className="text-[#888] text-sm uppercase tracking-wider">Fecha</span>
-                    <span className="text-[#E5E5E5]">{reservationResult.reservation_date}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-[#2A2A2A] pb-3">
-                    <span className="text-[#888] text-sm uppercase tracking-wider">Hora</span>
-                    <span className="text-[#C9A24A] font-medium">{reservationResult.reservation_time}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-[#2A2A2A] pb-3">
-                    <span className="text-[#888] text-sm uppercase tracking-wider">Personas</span>
-                    <span className="text-[#E5E5E5]">{reservationResult.guests}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#888] text-sm uppercase tracking-wider">ID Reserva</span>
-                    <span className="text-[#E5E5E5] text-sm">{reservationResult.id.slice(0, 8)}...</span>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={onClose}
-                className="mt-8 bg-transparent border border-[#C9A24A] text-[#C9A24A] px-8 py-4 uppercase tracking-widest text-xs font-bold hover:bg-[#C9A24A] hover:text-black transition-colors"
-                data-testid="close-confirmation-button"
-              >
-                Cerrar
-              </button>
-            </div>
           )}
         </div>
       </div>
