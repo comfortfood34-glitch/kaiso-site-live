@@ -102,7 +102,7 @@ const Navigation = ({ onReserve }) => {
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <a href="#hero" className="flex items-center">
-          <img src="/assets/logo-kaiso.png" alt="Kaisō Sushi" className="h-10 w-auto" />
+          <img src="/assets/logo-kaiso.png" alt="Kaisō Sushi" className="h-10 md:h-12 w-auto object-contain" />
         </a>
         
         {/* Desktop Nav */}
@@ -373,7 +373,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-4 gap-12">
           {/* Brand */}
           <div>
-            <img src="/assets/logo-kaiso.png" alt="Kaisō Sushi" className="h-12 w-auto mb-4" />
+            <img src="/assets/logo-kaiso.png" alt="Kaisō Sushi" className="h-14 w-auto mb-4 object-contain" />
             <p className="text-kaiso-muted text-sm">Sushi & Japanese Cuisine</p>
             <p className="text-kaiso-gold/50 text-xs mt-1">寿司と日本料理</p>
             <p className="text-kaiso-muted text-sm mt-2">Córdoba, España</p>
