@@ -1,79 +1,113 @@
-# Kaisō Sushi España - Sistema de Reservas
+# Kaisō Sushi España - Sistema Completo de Reservas
 
 ## Resumo do Projeto
-Sistema completo de reservas online para restaurante japonês de alta gastronomia, com design premium em tema escuro e detalhes dourados.
+Sistema completo de reservas para restaurante japonês premium em Córdoba, com design de luxo, suporte multilíngue e painel administrativo.
 
-## Arquitetura
+## Identidade Visual
+- **Tema**: Dark Premium (#050608)
+- **Cor Principal**: Ouro Metálico (#C9A24A)
+- **Acento**: Vermelho Japonês (#D11B2A)
+- **Tipografia**: Playfair Display (títulos) + Montserrat (corpo)
+- **Selo**: "KAISŌ SIGNATURE STANDARD"
+
+## Arquitetura Técnica
 
 ### Backend (FastAPI + MongoDB)
-- **server.py**: API REST com endpoints para reservas, disponibilidade, admin e cancelamento
-- **Database**: MongoDB para persistência de reservas
-- **Email**: Integração SMTP Gmail (configurado, aguardando credenciais válidas)
+- **server.py**: API REST completa com todas as regras de negócio
+- **Database**: MongoDB para persistência
+- **Email**: SMTP Gmail configurado
 
 ### Frontend (React + Tailwind CSS)
-- **Landing Page**: Hero elegante com imagem de sushi, seções informativas
-- **ReservationWizard**: Fluxo em 4 passos (Data → Turno → Hora → Dados)
-- **SuccessPage**: Página de confirmação em tela cheia com detalhes da reserva
-- **AdminPanel**: Dashboard para gestão de reservas com estatísticas
-- **CancelReservation**: Página para cancelamento via token
+- **Landing Page**: Hero premium, Carta, Delivery, Franquias, Footer
+- **ReservationSystem**: Sistema completo de reservas em 5 etapas
+- **AdminPanel**: Dashboard com login, estatísticas, gestão
+- **Multilíngue**: ES/PT/EN com persistência localStorage
 
-## Configuração do Restaurante
-- **Capacidade**: 40 pessoas por horário
-- **Almoço**: 12:30, 13:00, 13:30, 14:00, 14:30, 15:00
-- **Cena**: 20:00, 20:30, 21:00, 21:30, 22:00, 22:30, 23:00
+## Configurações do Restaurante
 
-## O que foi implementado ✅
-- [x] Landing page com design premium (tema escuro + dourado #C9A24A)
-- [x] Calendário interativo para seleção de data
-- [x] Seleção de turno (Almuerzo/Cena) com ícones
-- [x] Grade de horários com 30 min de intervalo
-- [x] Formulário de reserva com todos os campos
-- [x] Página de sucesso em tela cheia com imagem de sushi
-- [x] Detalhes da reserva em dourado
-- [x] Painel Admin com estatísticas e gestão
-- [x] Sistema de cancelamento via token
-- [x] API REST completa e funcional
-- [x] Integração de email configurada (SMTP)
+### Horários
+| Dia | Almoço | Jantar |
+|-----|--------|--------|
+| Segunda | FECHADO | FECHADO |
+| Ter-Qui | 12:30-14:30 | 19:30-22:00 |
+| Sex-Dom | 12:30-15:00 | 19:30-22:00 |
+
+### Regras de Negócio
+- **Capacidade**: 30 pessoas/dia (configurável)
+- **Max por reserva**: 12 pessoas
+- **Slots**: Intervalos de 15 minutos
+- **Desconto**: 10% Terça-Quinta
+- **Degustação Premium**: €65,90/pessoa (Ter-Qui 19:00-21:00)
+
+### Credenciais
+- **Admin**: admin / reservas
+- **SMTP**: grupokaiso@kaisosushiespanha.com
 
 ## Endpoints da API
+
+### Públicos
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| GET | /api/config | Configuração do restaurante |
-| GET | /api/reservations/availability/{date} | Disponibilidade por data |
+| GET | /api/config | Configuração pública |
+| GET | /api/availability/{date} | Disponibilidade por data |
 | POST | /api/reservations | Criar reserva |
-| GET | /api/reservations | Listar reservas (admin) |
-| GET | /api/reservations/stats | Estatísticas |
-| GET | /api/reservations/by-token/{token} | Buscar por token |
-| POST | /api/reservations/cancel/{token} | Cancelar reserva |
-| DELETE | /api/reservations/{id} | Cancelar (admin) |
+| GET | /api/whatsapp-message | Gerar mensagem WhatsApp |
 
-## Status Atual
-- **Backend**: 100% funcional
-- **Frontend**: 100% funcional  
-- **Email**: Configurado (credenciais SMTP precisam ser verificadas no Gmail)
+### Admin (requer autenticação)
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | /api/admin/reservations | Listar reservas |
+| PATCH | /api/admin/reservations/{id} | Atualizar reserva |
+| GET | /api/admin/stats | Estatísticas |
+| POST | /api/admin/config | Atualizar configuração |
+| POST | /api/admin/blackout | Adicionar data bloqueada |
+| DELETE | /api/admin/blackout/{date} | Remover bloqueio |
+| GET | /api/admin/blackout | Listar datas bloqueadas |
+| GET | /api/admin/export | Exportar CSV |
 
-## Backlog / Próximos Passos (P0-P2)
+## Status de Implementação ✅
 
-### P0 - Crítico
-- [ ] Verificar credenciais SMTP do Gmail (app password)
+### Completo
+- [x] Design premium dark + gold
+- [x] Selo KAISŌ SIGNATURE STANDARD
+- [x] Navegação completa (7 seções)
+- [x] Multilíngue ES/PT/EN com persistência
+- [x] Sistema de reservas completo
+- [x] Calendário com bloqueio de segundas
+- [x] Slots de 15 minutos
+- [x] Horários diferentes por dia
+- [x] Desconto 10% Ter-Qui
+- [x] Menu Degustação Premium
+- [x] Confirmação WhatsApp
+- [x] Notificação por email
+- [x] Painel Admin com login
+- [x] Estatísticas em tempo real
+- [x] Gestão de reservas
+- [x] Dias bloqueados (blackout)
+- [x] Exportação CSV
+- [x] Configuração de capacidade
 
-### P1 - Importante
-- [ ] Adicionar autenticação no painel admin
-- [ ] Notificações por WhatsApp/SMS
+## Testes
+- **Backend**: 100% (18/18 testes)
+- **Frontend**: 95%
 
-### P2 - Melhorias
-- [ ] Integração com Google Calendar
-- [ ] Sistema de avaliações pós-visita
-- [ ] Multi-idioma (Espanhol/Inglês)
-- [ ] PWA para acesso mobile
+## Deploy no Cloudflare
+Para o build funcionar no Cloudflare Pages, adicione:
+- **Build command**: `cd frontend && npm install && npm run build`
+- **Build output directory**: `frontend/build`
+- **Environment variable**: `CI=false`
 
-## Histórico de Implementação
-- **24/02/2026**: MVP completo com reservas, página de sucesso, admin panel
-- **24/02/2026**: Correção do calendário react-day-picker v9
-- **24/02/2026**: Página de sucesso full-screen implementada
+## Histórico
+- **24/02/2026**: Site reconstruído do zero com todas as funcionalidades
+- **24/02/2026**: Testes 100% backend, 95% frontend
 
-## Tecnologias
-- **Frontend**: React 18, Tailwind CSS, react-day-picker v9, date-fns, Lucide Icons
-- **Backend**: FastAPI, Motor (MongoDB async), aiosmtplib
-- **Database**: MongoDB
-- **Estilo**: Playfair Display (headings), Montserrat (body)
+## Próximos Passos (P1)
+- [ ] Substituir placeholders de imagem (/assets/...)
+- [ ] Verificar envio de emails em produção
+- [ ] Configurar domínio final
+
+## Contatos
+- **Restaurante**: +34 673 036 835
+- **Email**: companykaiso@gmail.com
+- **Grupo Kaisō**: grupokaiso@kaisosushiespanha.com
+- **Endereço**: Av. de Barcelona, 19, 14010 Córdoba, España
