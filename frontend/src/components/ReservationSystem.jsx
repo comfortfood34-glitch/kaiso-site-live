@@ -93,7 +93,7 @@ export default function ReservationSystem({ onClose }) {
     setStep(3); // Go to confirmation
   };
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (openWhatsApp = false) => {
     setLoading(true);
     setError(null);
     
@@ -108,6 +108,24 @@ export default function ReservationSystem({ onClose }) {
       const result = await createReservation(reservationData);
       setReservation(result);
       setStep(4); // Success
+      
+      // Open WhatsApp after reservation is created
+      if (openWhatsApp) {
+        try {
+          const params = {
+            name: form.customer_name,
+            guests: form.guests,
+            date: format(selectedDate, 'yyyy-MM-dd'),
+            time: selectedTime,
+            tasting: form.has_tasting_menu,
+            observations: form.observations
+          };
+          const data = await getWhatsAppMessage(params);
+          window.open(data.whatsapp_url, '_blank');
+        } catch (waErr) {
+          console.error('WhatsApp error:', waErr);
+        }
+      }
     } catch (err) {
       setError(err.response?.data?.detail || 'Error al crear la reserva');
     } finally {
@@ -115,22 +133,7 @@ export default function ReservationSystem({ onClose }) {
     }
   };
 
-  const handleWhatsApp = async () => {
-    try {
-      const params = {
-        name: form.customer_name,
-        guests: form.guests,
-        date: format(selectedDate, 'yyyy-MM-dd'),
-        time: selectedTime,
-        tasting: form.has_tasting_menu,
-        observations: form.observations
-      };
-      const data = await getWhatsAppMessage(params);
-      window.open(data.whatsapp_url, '_blank');
-    } catch (err) {
-      console.error('Error generating WhatsApp message:', err);
-    }
-  };
+  const handleWhatsApp = () => handleConfirm(true);
 
   const goBack = () => step > 0 && setStep(step - 1);
   
