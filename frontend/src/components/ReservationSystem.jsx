@@ -93,7 +93,7 @@ export default function ReservationSystem({ onClose }) {
     setStep(3); // Go to confirmation
   };
 
-  const handleConfirm = async (openWhatsApp = false) => {
+  const handleConfirm = async () => {
     setLoading(true);
     setError(null);
     
@@ -107,25 +107,7 @@ export default function ReservationSystem({ onClose }) {
       
       const result = await createReservation(reservationData);
       setReservation(result);
-      setStep(4); // Success
-      
-      // Open WhatsApp after reservation is created
-      if (openWhatsApp) {
-        try {
-          const params = {
-            name: form.customer_name,
-            guests: form.guests,
-            date: format(selectedDate, 'yyyy-MM-dd'),
-            time: selectedTime,
-            tasting: form.has_tasting_menu,
-            observations: form.observations
-          };
-          const data = await getWhatsAppMessage(params);
-          window.open(data.whatsapp_url, '_blank');
-        } catch (waErr) {
-          console.error('WhatsApp error:', waErr);
-        }
-      }
+      setStep(4); // Success - show QR code page
     } catch (err) {
       setError(err.response?.data?.detail || 'Error al crear la reserva');
     } finally {
@@ -133,7 +115,10 @@ export default function ReservationSystem({ onClose }) {
     }
   };
 
-  const handleWhatsApp = () => handleConfirm(true);
+  const handleWhatsApp = () => {
+    const message = `Hola Kaisō! Reserva confirmada:\n\nNombre: ${form.customer_name}\nFecha: ${selectedDate ? format(selectedDate, 'dd/MM/yyyy') : ''}\nHora: ${selectedTime}\nPersonas: ${form.guests}${form.has_tasting_menu ? '\nMenú Degustación Premium' : ''}${form.observations ? `\nObs: ${form.observations}` : ''}`;
+    window.open(`https://wa.me/34673036835?text=${encodeURIComponent(message)}`, '_blank');
+  };
 
   const goBack = () => step > 0 && setStep(step - 1);
   
