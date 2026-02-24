@@ -335,12 +335,13 @@ export default function ReservationSystem({ onClose }) {
               </div>
 
               <div>
-                <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-2 block">{t.reservation.email}</label>
+                <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-2 block">{t.reservation.email} *</label>
                 <input
                   type="email"
                   name="customer_email"
                   value={form.customer_email}
                   onChange={handleInputChange}
+                  required
                   className="w-full bg-transparent border-b border-kaiso-border p-3 text-kaiso-text focus:border-kaiso-gold focus:outline-none"
                   data-testid="input-email"
                 />
