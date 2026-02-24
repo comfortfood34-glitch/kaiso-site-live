@@ -553,26 +553,28 @@ class KaisoAPITester:
         self.test_get_config()
         
         # Availability tests
-        self.test_get_availability()
+        self.test_get_availability_tuesday()
+        self.test_get_availability_monday()
+        self.test_get_availability_friday()
         self.test_invalid_date_availability()
         
         # Reservation creation tests
         self.test_create_reservation_success()
         self.test_create_reservation_invalid_time()
-        self.test_create_reservation_missing_data()
+        self.test_create_reservation_monday()
+        self.test_create_reservation_tasting_invalid_day()
         
-        # Admin endpoints
-        self.test_get_reservations_admin()
-        self.test_get_reservations_with_filters()
-        self.test_get_reservation_stats()
+        # WhatsApp integration
+        self.test_whatsapp_message()
         
-        # Token-based operations
-        self.test_get_reservation_by_token()
-        self.test_get_reservation_invalid_token()
+        # Admin authentication
+        self.test_admin_login_valid()
+        self.test_admin_login_invalid()
         
-        # Cancellation tests
-        self.test_cancel_reservation_by_token()
-        self.test_cancel_already_cancelled()
+        # Admin operations
+        self.test_admin_get_reservations()
+        self.test_admin_update_reservation()
+        self.test_admin_blackout_dates()
         
         # Print summary
         self.log("", "")
@@ -596,7 +598,7 @@ def main():
     print("Kaisō Sushi España - Backend API Test Suite")
     print("=" * 50)
     
-    tester = ReservationAPITester()
+    tester = KaisoAPITester()
     success = tester.run_all_tests()
     
     return 0 if success else 1
