@@ -495,7 +495,7 @@ const Footer = () => {
           </div>
           
           {/* Location */}
-          <div id="ubicacion">
+          <div>
             <h4 className="text-xs uppercase tracking-widest text-kaiso-text mb-4">{t.footer.location}</h4>
             <div className="flex items-start gap-3 text-kaiso-muted text-sm">
               <MapPin size={14} className="mt-1 text-kaiso-gold flex-shrink-0" />
