@@ -155,11 +155,12 @@ export default function ReservationSystem({ onClose }) {
             <div>
               <h2 className="font-serif text-2xl text-kaiso-gold">{t.reservation.title}</h2>
               <p className="text-xs text-kaiso-muted uppercase tracking-widest mt-1">
-                {STEPS[step] === 'date' && t.reservation.select_date}
-                {STEPS[step] === 'time' && t.reservation.select_time}
-                {STEPS[step] === 'details' && t.reservation.your_details}
-                {STEPS[step] === 'confirm' && 'Confirmar'}
-                {STEPS[step] === 'success' && t.reservation.success_title}
+                {STEPS[step] === 'date' ? t.reservation.select_date
+                : STEPS[step] === 'time' ? t.reservation.select_time
+                : STEPS[step] === 'details' ? t.reservation.your_details
+                : STEPS[step] === 'confirm' ? 'Confirmar'
+                : STEPS[step] === 'success' ? t.reservation.success_title
+                : ''}
               </p>
             </div>
           </div>
