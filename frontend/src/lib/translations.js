@@ -50,7 +50,7 @@ const translations = {
       // Degustação
       tasting_title: "Menú Degustación Premium",
       tasting_desc: "Más de 10 pases, bebidas incluidas y postre.",
-      tasting_price: "€65,90 por persona",
+      tasting_price: "€65,90 por pareja",
       tasting_availability: "Disponible de martes a jueves, de 19:00 a 21:00.",
       tasting_allergies: "Alergias / restricciones alimentarias"
     },
@@ -140,7 +140,7 @@ const translations = {
       discount_applied: "10% aplicado (Ter–Qui)",
       tasting_title: "Menu Degustação Premium",
       tasting_desc: "Mais de 10 etapas, bebidas inclusas e sobremesa.",
-      tasting_price: "€65,90 por pessoa",
+      tasting_price: "€65,90 por casal",
       tasting_availability: "Disponível de terça a quinta, das 19:00 às 21:00.",
       tasting_allergies: "Alergias / restrições alimentares"
     },
@@ -226,7 +226,7 @@ const translations = {
       discount_applied: "10% applied (Tue–Thu)",
       tasting_title: "Premium Tasting Menu",
       tasting_desc: "Over 10 courses, beverages included, plus dessert.",
-      tasting_price: "€65.90 per person",
+      tasting_price: "€65.90 per couple",
       tasting_availability: "Available Tuesday to Thursday, 19:00–21:00.",
       tasting_allergies: "Allergies / dietary restrictions"
     },
