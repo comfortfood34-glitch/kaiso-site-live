@@ -243,7 +243,7 @@ export default function AdminPanel() {
               <p className="text-sm text-kaiso-muted mt-1">total</p>
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Tabs */}
         <div className="flex gap-4 mb-6 border-b border-kaiso-border">
@@ -259,7 +259,7 @@ export default function AdminPanel() {
         </div>
 
         {/* Reservations Tab */}
-        {activeTab === 'reservations' && (
+        {activeTab === 'reservations' ? (
           <>
             {/* Filters */}
             <div className="flex flex-wrap items-center gap-4 mb-6">
