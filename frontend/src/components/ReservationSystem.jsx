@@ -438,7 +438,7 @@ export default function ReservationSystem({ onClose }) {
                 {form.has_tasting_menu && (
                   <div className="flex justify-between border-b border-kaiso-border pb-3">
                     <span className="text-kaiso-muted">{t.reservation.tasting_title}</span>
-                    <span className="text-kaiso-gold">€{(form.guests * 65.90).toFixed(2)}</span>
+                    <span className="text-kaiso-gold">€65,90</span>
                   </div>
                 )}
                 {availability?.has_discount && (
