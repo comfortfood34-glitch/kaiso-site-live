@@ -49,7 +49,7 @@ const translations = {
       discount_applied: "10% aplicado (Mar–Jue)",
       // Degustação
       tasting_title: "Menú Degustación Premium",
-      tasting_desc: "Más de 10 pases, bebidas incluidas y postre.",
+      tasting_desc: "Menú para pareja. Más de 10 pases, bebidas incluidas y postre.",
       tasting_price: "€65,90 por pareja",
       tasting_availability: "Disponible de martes a jueves, de 19:00 a 21:00.",
       tasting_allergies: "Alergias / restricciones alimentarias"
@@ -139,7 +139,7 @@ const translations = {
       discount_notice: "De terça a quinta, aproveite 10% de vantagem na sua reserva. Uma cortesia da casa para quem escolhe viver o Kaisō durante a semana.",
       discount_applied: "10% aplicado (Ter–Qui)",
       tasting_title: "Menu Degustação Premium",
-      tasting_desc: "Mais de 10 etapas, bebidas inclusas e sobremesa.",
+      tasting_desc: "Menu para casal. Mais de 10 etapas, bebidas inclusas e sobremesa.",
       tasting_price: "€65,90 por casal",
       tasting_availability: "Disponível de terça a quinta, das 19:00 às 21:00.",
       tasting_allergies: "Alergias / restrições alimentares"
@@ -225,7 +225,7 @@ const translations = {
       discount_notice: "Tuesday to Thursday, enjoy a 10% advantage on your reservation — a house courtesy for those who choose the Kaisō experience midweek.",
       discount_applied: "10% applied (Tue–Thu)",
       tasting_title: "Premium Tasting Menu",
-      tasting_desc: "Over 10 courses, beverages included, plus dessert.",
+      tasting_desc: "Menu for couples. Over 10 courses, beverages included, plus dessert.",
       tasting_price: "€65.90 per couple",
       tasting_availability: "Available Tuesday to Thursday, 19:00–21:00.",
       tasting_allergies: "Allergies / dietary restrictions"
