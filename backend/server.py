@@ -1,5 +1,6 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Query
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Query
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -9,100 +10,217 @@ from pathlib import Path
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from typing import List, Optional
 import uuid
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone, date, timedelta
 import aiosmtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import secrets
+import csv
+import io
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+# ========================
+# CONFIGURAÇÕES EDITÁVEIS
+# ========================
+ADMIN_USER = "admin"
+ADMIN_PASSWORD = "reservas"
 
-# Restaurant Configuration
-RESTAURANT_NAME = "Kaisō Sushi España"
-RESTAURANT_EMAIL = "grupokaiso@kaisosushiespanha.com"
-RESTAURANT_CAPACITY = 40  # Max people per time slot
-
-# Time slots configuration
-LUNCH_SLOTS = ["12:30", "13:00", "13:30", "14:00", "14:30", "15:00"]
-DINNER_SLOTS = ["20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00"]
-TIME_SLOTS = LUNCH_SLOTS + DINNER_SLOTS
-
-# SMTP Configuration
+# Email Configuration
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
 SMTP_USER = "grupokaiso@kaisosushiespanha.com"
-SMTP_PASSWORD = "qmohkrspsqdrjmc"
+SMTP_PASS = "ztxfyfdmwcsadzkm"  # App Password sem espaços
+ADMIN_EMAIL_FROM = "grupokaiso@kaisosushiespanha.com"
+NOTIFY_TO = "companykaiso@gmail.com"
+CC_TO = "grupokaiso@kaisosushiespanha.com"
+
+# Restaurant Configuration
+RESTAURANT_NAME = "Kaisō Sushi"
+RESTAURANT_PHONE = "+34 673 036 835"
+RESTAURANT_ADDRESS = "Av. de Barcelona, 19, 14010 Córdoba, Espanha"
+DEFAULT_DAILY_CAPACITY = 30
+MAX_GUESTS_PER_RESERVATION = 12
+
+# Tasting Menu
+TASTING_MENU_PRICE = 65.90
+TASTING_MENU_NAME = "Menú Degustación Premium"
+
+# ========================
+# HORÁRIOS POR DIA
+# ========================
+# 0=Segunda, 1=Terça, 2=Quarta, 3=Quinta, 4=Sexta, 5=Sábado, 6=Domingo
+SCHEDULE = {
+    0: None,  # Segunda - FECHADO
+    1: {"lunch": ("12:30", "14:30"), "dinner": ("19:30", "22:00")},  # Terça
+    2: {"lunch": ("12:30", "14:30"), "dinner": ("19:30", "22:00")},  # Quarta
+    3: {"lunch": ("12:30", "14:30"), "dinner": ("19:30", "22:00")},  # Quinta
+    4: {"lunch": ("12:30", "15:00"), "dinner": ("19:30", "22:00")},  # Sexta
+    5: {"lunch": ("12:30", "15:00"), "dinner": ("19:30", "22:00")},  # Sábado
+    6: {"lunch": ("12:30", "15:00"), "dinner": ("19:30", "22:00")},  # Domingo
+}
+
+# Dias com desconto 10% (Terça, Quarta, Quinta)
+DISCOUNT_DAYS = [1, 2, 3]
+DISCOUNT_PERCENTAGE = 10
+
+# Degustação disponível apenas Ter-Qui, 19:00-21:00
+TASTING_DAYS = [1, 2, 3]
+TASTING_START = "19:00"
+TASTING_END = "21:00"
+
+# MongoDB connection
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ.get('DB_NAME', 'kaiso_db')]
 
 # Create the main app
 app = FastAPI(title="Kaisō Sushi Reservation System")
-
-# Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
+security = HTTPBasic()
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
-# ============== MODELS ==============
-
+# ========================
+# MODELS
+# ========================
 class ReservationCreate(BaseModel):
     customer_name: str = Field(..., min_length=2, max_length=100)
-    customer_email: EmailStr
     customer_phone: str = Field(..., min_length=9, max_length=20)
-    guests: int = Field(..., ge=1, le=20)
-    reservation_date: str  # Format: YYYY-MM-DD
-    reservation_time: str  # Format: HH:MM
-    observations: Optional[str] = Field(default="", max_length=500)
+    customer_email: Optional[str] = None
+    guests: int = Field(..., ge=1, le=MAX_GUESTS_PER_RESERVATION)
+    reservation_date: str  # YYYY-MM-DD
+    reservation_time: str  # HH:MM
+    observations: Optional[str] = ""
+    has_tasting_menu: bool = False
+    tasting_allergies: Optional[str] = ""
 
 class Reservation(BaseModel):
     model_config = ConfigDict(extra="ignore")
-    
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     customer_name: str
-    customer_email: str
     customer_phone: str
+    customer_email: Optional[str] = None
     guests: int
     reservation_date: str
     reservation_time: str
     observations: str = ""
-    status: str = "confirmed"  # confirmed, cancelled
-    cancel_token: str = Field(default_factory=lambda: secrets.token_urlsafe(32))
+    has_tasting_menu: bool = False
+    tasting_allergies: str = ""
+    has_discount: bool = False
+    discount_percentage: int = 0
+    estimated_value: float = 0.0
+    status: str = "pendente"  # pendente, confirmada, cancelada, no-show
+    admin_notes: str = ""
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-class TimeSlotAvailability(BaseModel):
-    time: str
-    available_capacity: int
-    is_available: bool
-    period: str  # lunch or dinner
+class ReservationUpdate(BaseModel):
+    guests: Optional[int] = None
+    reservation_time: Optional[str] = None
+    status: Optional[str] = None
+    admin_notes: Optional[str] = None
 
-class DayAvailability(BaseModel):
+class ConfigUpdate(BaseModel):
+    daily_capacity: Optional[int] = None
+
+class BlackoutDate(BaseModel):
     date: str
-    lunch_slots: List[TimeSlotAvailability]
-    dinner_slots: List[TimeSlotAvailability]
+    reason: Optional[str] = ""
 
 
-# ============== EMAIL FUNCTIONS ==============
+# ========================
+# HELPER FUNCTIONS
+# ========================
+def generate_time_slots(start: str, end: str, interval_minutes: int = 15) -> List[str]:
+    """Gera slots de horário a cada X minutos"""
+    slots = []
+    start_h, start_m = map(int, start.split(":"))
+    end_h, end_m = map(int, end.split(":"))
+    
+    current = start_h * 60 + start_m
+    end_time = end_h * 60 + end_m
+    
+    while current <= end_time:
+        h, m = divmod(current, 60)
+        slots.append(f"{h:02d}:{m:02d}")
+        current += interval_minutes
+    
+    return slots
 
-async def send_email(to_email: str, subject: str, html_content: str):
-    """Send email using Gmail SMTP"""
+def get_day_schedule(date_str: str) -> dict:
+    """Retorna os horários disponíveis para uma data específica"""
+    dt = datetime.strptime(date_str, "%Y-%m-%d")
+    weekday = dt.weekday()
+    return SCHEDULE.get(weekday)
+
+def is_discount_day(date_str: str) -> bool:
+    """Verifica se o dia tem desconto (Ter-Qui)"""
+    dt = datetime.strptime(date_str, "%Y-%m-%d")
+    return dt.weekday() in DISCOUNT_DAYS
+
+def is_tasting_available(date_str: str, time_str: str) -> bool:
+    """Verifica se degustação está disponível para data/hora"""
+    dt = datetime.strptime(date_str, "%Y-%m-%d")
+    if dt.weekday() not in TASTING_DAYS:
+        return False
+    
+    time_minutes = int(time_str.split(":")[0]) * 60 + int(time_str.split(":")[1])
+    start_minutes = int(TASTING_START.split(":")[0]) * 60 + int(TASTING_START.split(":")[1])
+    end_minutes = int(TASTING_END.split(":")[0]) * 60 + int(TASTING_END.split(":")[1])
+    
+    return start_minutes <= time_minutes <= end_minutes
+
+def calculate_estimated_value(guests: int, has_tasting: bool, has_discount: bool) -> float:
+    """Calcula valor estimado da reserva"""
+    if has_tasting:
+        value = guests * TASTING_MENU_PRICE
+        if has_discount:
+            value = value * (1 - DISCOUNT_PERCENTAGE / 100)
+        return round(value, 2)
+    return 0.0
+
+async def get_daily_capacity() -> int:
+    """Obtém capacidade diária configurada"""
+    config = await db.config.find_one({"key": "daily_capacity"})
+    return config["value"] if config else DEFAULT_DAILY_CAPACITY
+
+async def get_current_guests(date_str: str) -> int:
+    """Conta total de comensais já reservados para uma data"""
+    reservations = await db.reservations.find({
+        "reservation_date": date_str,
+        "status": {"$nin": ["cancelada"]}
+    }).to_list(1000)
+    return sum(r.get("guests", 0) for r in reservations)
+
+async def is_blackout_date(date_str: str) -> bool:
+    """Verifica se é uma data bloqueada"""
+    blackout = await db.blackout_dates.find_one({"date": date_str})
+    return blackout is not None
+
+
+# ========================
+# EMAIL FUNCTIONS
+# ========================
+async def send_email(to_email: str, subject: str, html_content: str, cc_email: str = None):
+    """Envia email via SMTP Gmail"""
     try:
         message = MIMEMultipart("alternative")
-        message["From"] = f"{RESTAURANT_NAME} <{SMTP_USER}>"
+        message["From"] = f"{RESTAURANT_NAME} <{ADMIN_EMAIL_FROM}>"
         message["To"] = to_email
         message["Subject"] = subject
+        if cc_email:
+            message["Cc"] = cc_email
         
         html_part = MIMEText(html_content, "html")
         message.attach(html_part)
+        
+        recipients = [to_email]
+        if cc_email:
+            recipients.append(cc_email)
         
         await aiosmtplib.send(
             message,
@@ -110,174 +228,56 @@ async def send_email(to_email: str, subject: str, html_content: str):
             port=SMTP_PORT,
             start_tls=True,
             username=SMTP_USER,
-            password=SMTP_PASSWORD,
+            password=SMTP_PASS,
         )
-        logger.info(f"Email sent successfully to {to_email}")
+        logger.info(f"Email enviado para {to_email}")
         return True
     except Exception as e:
-        logger.error(f"Failed to send email to {to_email}: {str(e)}")
+        logger.error(f"Erro ao enviar email: {str(e)}")
         return False
 
-def get_customer_confirmation_email(reservation: Reservation, cancel_url: str) -> str:
-    """Generate HTML email for customer confirmation"""
+def get_reservation_email_html(reservation: Reservation, lang: str = "es") -> str:
+    """Gera HTML do email de reserva"""
+    tasting_text = {
+        "es": "Menú Degustación Premium" if reservation.has_tasting_menu else "No",
+        "pt": "Menu Degustação Premium" if reservation.has_tasting_menu else "Não",
+        "en": "Premium Tasting Menu" if reservation.has_tasting_menu else "No"
+    }
+    
+    discount_text = ""
+    if reservation.has_discount:
+        discount_text = f"<p style='color:#C9A24A;'>✓ 10% descuento aplicado (Martes-Jueves)</p>"
+    
     return f"""
     <!DOCTYPE html>
     <html>
-    <head>
-        <meta charset="UTF-8">
-        <style>
-            body {{ font-family: 'Montserrat', Arial, sans-serif; background-color: #0A0A0A; color: #E5E5E5; margin: 0; padding: 40px 20px; }}
-            .container {{ max-width: 600px; margin: 0 auto; background-color: #121212; border: 1px solid #2A2A2A; padding: 40px; }}
-            .header {{ text-align: center; border-bottom: 1px solid #C9A24A; padding-bottom: 30px; margin-bottom: 30px; }}
-            .logo {{ font-family: 'Playfair Display', Georgia, serif; font-size: 32px; color: #C9A24A; margin: 0; }}
-            .subtitle {{ color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; margin-top: 10px; }}
-            h2 {{ font-family: 'Playfair Display', Georgia, serif; color: #C9A24A; font-weight: 400; }}
-            .details {{ background-color: #1A1A1A; padding: 25px; margin: 20px 0; border-left: 3px solid #C9A24A; }}
-            .detail-row {{ display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #2A2A2A; }}
-            .detail-row:last-child {{ border-bottom: none; }}
-            .label {{ color: #888; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; }}
-            .value {{ color: #E5E5E5; font-weight: 500; }}
-            .cancel-btn {{ display: inline-block; background-color: transparent; border: 1px solid #7F1D1D; color: #E5E5E5; padding: 15px 30px; text-decoration: none; text-transform: uppercase; font-size: 11px; letter-spacing: 2px; margin-top: 30px; }}
-            .cancel-btn:hover {{ background-color: #7F1D1D; }}
-            .footer {{ text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid #2A2A2A; color: #666; font-size: 12px; }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1 class="logo">Kaisō</h1>
-                <p class="subtitle">Sushi & Japanese Cuisine</p>
+    <head><meta charset="UTF-8"></head>
+    <body style="font-family: 'Montserrat', Arial, sans-serif; background-color: #050608; color: #E5E5E5; margin: 0; padding: 40px 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #0D0D0D; border: 1px solid #1A1A1A; padding: 40px;">
+            <div style="text-align: center; border-bottom: 1px solid #C9A24A; padding-bottom: 30px; margin-bottom: 30px;">
+                <h1 style="font-family: 'Playfair Display', Georgia, serif; font-size: 32px; color: #C9A24A; margin: 0;">Kaisō</h1>
+                <p style="color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; margin-top: 10px;">Nueva Reserva</p>
             </div>
             
-            <h2>Reserva Confirmada</h2>
-            <p>Estimado/a {reservation.customer_name},</p>
-            <p>Su reserva ha sido confirmada con éxito. A continuación, los detalles:</p>
-            
-            <div class="details">
-                <div class="detail-row">
-                    <span class="label">Fecha</span>
-                    <span class="value">{reservation.reservation_date}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="label">Hora</span>
-                    <span class="value">{reservation.reservation_time}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="label">Personas</span>
-                    <span class="value">{reservation.guests}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="label">Teléfono</span>
-                    <span class="value">{reservation.customer_phone}</span>
-                </div>
-                {f'<div class="detail-row"><span class="label">Observaciones</span><span class="value">{reservation.observations}</span></div>' if reservation.observations else ''}
-            </div>
-            
-            <p>Si necesita cancelar su reserva, haga clic en el siguiente enlace:</p>
-            <a href="{cancel_url}" class="cancel-btn">Cancelar Reserva</a>
-            
-            <div class="footer">
-                <p>{RESTAURANT_NAME}</p>
-                <p>Le esperamos con mucho gusto</p>
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-
-def get_restaurant_notification_email(reservation: Reservation) -> str:
-    """Generate HTML email for restaurant notification"""
-    return f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <style>
-            body {{ font-family: Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; }}
-            .container {{ max-width: 600px; margin: 0 auto; background-color: #fff; padding: 30px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
-            h1 {{ color: #C9A24A; border-bottom: 2px solid #C9A24A; padding-bottom: 15px; }}
-            .alert {{ background-color: #C9A24A; color: #000; padding: 15px; font-weight: bold; text-align: center; margin-bottom: 20px; }}
-            table {{ width: 100%; border-collapse: collapse; }}
-            th, td {{ padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }}
-            th {{ background-color: #f8f8f8; color: #333; width: 40%; }}
-            .observations {{ background-color: #fff3cd; padding: 15px; margin-top: 20px; border-left: 4px solid #ffc107; }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="alert">NUEVA RESERVA</div>
-            <h1>Detalles de la Reserva</h1>
-            
-            <table>
-                <tr>
-                    <th>Cliente</th>
-                    <td><strong>{reservation.customer_name}</strong></td>
-                </tr>
-                <tr>
-                    <th>Email</th>
-                    <td>{reservation.customer_email}</td>
-                </tr>
-                <tr>
-                    <th>Teléfono</th>
-                    <td>{reservation.customer_phone}</td>
-                </tr>
-                <tr>
-                    <th>Fecha</th>
-                    <td><strong>{reservation.reservation_date}</strong></td>
-                </tr>
-                <tr>
-                    <th>Hora</th>
-                    <td><strong>{reservation.reservation_time}</strong></td>
-                </tr>
-                <tr>
-                    <th>Personas</th>
-                    <td><strong>{reservation.guests}</strong></td>
-                </tr>
-                <tr>
-                    <th>ID Reserva</th>
-                    <td>{reservation.id}</td>
-                </tr>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Nombre</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{reservation.customer_name}</td></tr>
+                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Teléfono</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{reservation.customer_phone}</td></tr>
+                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Email</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{reservation.customer_email or '-'}</td></tr>
+                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Fecha</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #C9A24A; text-align: right; font-weight: bold;">{reservation.reservation_date}</td></tr>
+                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Hora</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #C9A24A; text-align: right; font-weight: bold;">{reservation.reservation_time}</td></tr>
+                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Personas</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{reservation.guests}</td></tr>
+                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Degustación</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{tasting_text.get(lang, tasting_text['es'])}</td></tr>
+                {f'<tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Valor Estimado</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #C9A24A; text-align: right;">€{reservation.estimated_value:.2f}</td></tr>' if reservation.estimated_value > 0 else ''}
             </table>
             
-            {f'<div class="observations"><strong>Observaciones:</strong><br>{reservation.observations}</div>' if reservation.observations else ''}
-        </div>
-    </body>
-    </html>
-    """
-
-def get_cancellation_email(reservation: Reservation) -> str:
-    """Generate HTML email for cancellation confirmation"""
-    return f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <style>
-            body {{ font-family: 'Montserrat', Arial, sans-serif; background-color: #0A0A0A; color: #E5E5E5; margin: 0; padding: 40px 20px; }}
-            .container {{ max-width: 600px; margin: 0 auto; background-color: #121212; border: 1px solid #2A2A2A; padding: 40px; }}
-            .header {{ text-align: center; border-bottom: 1px solid #7F1D1D; padding-bottom: 30px; margin-bottom: 30px; }}
-            .logo {{ font-family: 'Playfair Display', Georgia, serif; font-size: 32px; color: #C9A24A; margin: 0; }}
-            h2 {{ color: #7F1D1D; }}
-            .details {{ background-color: #1A1A1A; padding: 25px; margin: 20px 0; border-left: 3px solid #7F1D1D; }}
-            .footer {{ text-align: center; margin-top: 40px; color: #666; font-size: 12px; }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1 class="logo">Kaisō</h1>
-            </div>
-            <h2>Reserva Cancelada</h2>
-            <p>Estimado/a {reservation.customer_name},</p>
-            <p>Su reserva ha sido cancelada exitosamente.</p>
-            <div class="details">
-                <p><strong>Fecha:</strong> {reservation.reservation_date}</p>
-                <p><strong>Hora:</strong> {reservation.reservation_time}</p>
-                <p><strong>Personas:</strong> {reservation.guests}</p>
-            </div>
-            <p>Si desea hacer una nueva reserva, visite nuestro sitio web.</p>
-            <div class="footer">
-                <p>Esperamos verle pronto en {RESTAURANT_NAME}</p>
+            {discount_text}
+            
+            {f'<div style="background-color: #1A1A1A; padding: 15px; margin-top: 20px;"><p style="color: #888; margin: 0; font-size: 14px;"><strong>Observaciones:</strong> {reservation.observations}</p></div>' if reservation.observations else ''}
+            {f'<div style="background-color: #1A1A1A; padding: 15px; margin-top: 10px;"><p style="color: #D11B2A; margin: 0; font-size: 14px;"><strong>Alergias:</strong> {reservation.tasting_allergies}</p></div>' if reservation.tasting_allergies else ''}
+            
+            <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid #1A1A1A; color: #666; font-size: 12px;">
+                <p>{RESTAURANT_NAME} · {RESTAURANT_ADDRESS}</p>
+                <p>{RESTAURANT_PHONE}</p>
             </div>
         </div>
     </body>
@@ -285,136 +285,181 @@ def get_cancellation_email(reservation: Reservation) -> str:
     """
 
 
-# ============== API ROUTES ==============
+# ========================
+# AUTH
+# ========================
+def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
+    if credentials.username != ADMIN_USER or credentials.password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="Credenciales inválidas", headers={"WWW-Authenticate": "Basic"})
+    return credentials.username
 
+
+# ========================
+# API ROUTES - PUBLIC
+# ========================
 @api_router.get("/")
 async def root():
     return {"message": "Kaisō Sushi Reservation API", "status": "online"}
 
 @api_router.get("/config")
-async def get_config():
-    """Get restaurant configuration"""
+async def get_public_config():
+    """Configuração pública do restaurante"""
     return {
         "restaurant_name": RESTAURANT_NAME,
-        "capacity_per_slot": RESTAURANT_CAPACITY,
-        "lunch_slots": LUNCH_SLOTS,
-        "dinner_slots": DINNER_SLOTS,
-        "time_slots": TIME_SLOTS
+        "phone": RESTAURANT_PHONE,
+        "address": RESTAURANT_ADDRESS,
+        "max_guests_per_reservation": MAX_GUESTS_PER_RESERVATION,
+        "tasting_menu_price": TASTING_MENU_PRICE,
+        "discount_percentage": DISCOUNT_PERCENTAGE,
+        "discount_days": DISCOUNT_DAYS,
+        "tasting_days": TASTING_DAYS,
+        "tasting_hours": {"start": TASTING_START, "end": TASTING_END}
     }
 
-@api_router.get("/reservations/availability/{date_str}", response_model=DayAvailability)
+@api_router.get("/availability/{date_str}")
 async def get_availability(date_str: str):
-    """Get availability for a specific date"""
+    """Retorna disponibilidade para uma data"""
+    # Validar formato
     try:
-        # Validate date format
-        datetime.strptime(date_str, "%Y-%m-%d")
+        dt = datetime.strptime(date_str, "%Y-%m-%d")
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+        raise HTTPException(status_code=400, detail="Formato de data inválido. Use YYYY-MM-DD")
     
-    # Get all confirmed reservations for this date
-    reservations = await db.reservations.find({
-        "reservation_date": date_str,
-        "status": "confirmed"
-    }, {"_id": 0}).to_list(1000)
+    # Verificar se não é data passada
+    if dt.date() < datetime.now().date():
+        raise HTTPException(status_code=400, detail="Não é possível reservar datas passadas")
     
-    # Calculate capacity used per time slot
-    capacity_used = {}
-    for res in reservations:
-        time = res["reservation_time"]
-        capacity_used[time] = capacity_used.get(time, 0) + res["guests"]
+    # Verificar blackout
+    if await is_blackout_date(date_str):
+        return {"available": False, "reason": "Data bloqueada pelo restaurante", "slots": []}
     
-    # Build availability response
-    lunch_slots = []
-    dinner_slots = []
+    # Verificar se é segunda (fechado)
+    schedule = get_day_schedule(date_str)
+    if not schedule:
+        return {"available": False, "reason": "Restaurante fechado às segundas-feiras", "slots": []}
     
-    for time in LUNCH_SLOTS:
-        used = capacity_used.get(time, 0)
-        available = RESTAURANT_CAPACITY - used
-        lunch_slots.append(TimeSlotAvailability(
-            time=time,
-            available_capacity=available,
-            is_available=available > 0,
-            period="lunch"
-        ))
+    # Verificar capacidade
+    capacity = await get_daily_capacity()
+    current_guests = await get_current_guests(date_str)
+    remaining = capacity - current_guests
     
-    for time in DINNER_SLOTS:
-        used = capacity_used.get(time, 0)
-        available = RESTAURANT_CAPACITY - used
-        dinner_slots.append(TimeSlotAvailability(
-            time=time,
-            available_capacity=available,
-            is_available=available > 0,
-            period="dinner"
-        ))
+    if remaining <= 0:
+        return {"available": False, "reason": "Capacidade esgotada para esta data", "remaining_capacity": 0, "slots": []}
     
-    return DayAvailability(
-        date=date_str,
-        lunch_slots=lunch_slots,
-        dinner_slots=dinner_slots
-    )
+    # Gerar slots
+    lunch_slots = generate_time_slots(schedule["lunch"][0], schedule["lunch"][1])
+    dinner_slots = generate_time_slots(schedule["dinner"][0], schedule["dinner"][1])
+    
+    # Verificar desconto
+    has_discount = is_discount_day(date_str)
+    
+    return {
+        "available": True,
+        "date": date_str,
+        "weekday": dt.weekday(),
+        "remaining_capacity": remaining,
+        "has_discount": has_discount,
+        "discount_percentage": DISCOUNT_PERCENTAGE if has_discount else 0,
+        "lunch_slots": lunch_slots,
+        "dinner_slots": dinner_slots,
+        "tasting_available": dt.weekday() in TASTING_DAYS,
+        "tasting_slots": generate_time_slots(TASTING_START, TASTING_END) if dt.weekday() in TASTING_DAYS else []
+    }
 
-@api_router.post("/reservations", response_model=Reservation)
+@api_router.post("/reservations")
 async def create_reservation(input: ReservationCreate):
-    """Create a new reservation"""
-    # Validate time slot
-    if input.reservation_time not in TIME_SLOTS:
-        raise HTTPException(status_code=400, detail=f"Invalid time slot. Available slots: {TIME_SLOTS}")
+    """Criar nova reserva"""
+    # Validar data
+    schedule = get_day_schedule(input.reservation_date)
+    if not schedule:
+        raise HTTPException(status_code=400, detail="Restaurante cerrado los lunes")
     
-    # Check availability
-    existing = await db.reservations.find({
-        "reservation_date": input.reservation_date,
-        "reservation_time": input.reservation_time,
-        "status": "confirmed"
-    }, {"_id": 0}).to_list(1000)
+    # Verificar blackout
+    if await is_blackout_date(input.reservation_date):
+        raise HTTPException(status_code=400, detail="Esta fecha no está disponible para reservas")
     
-    current_capacity = sum(r["guests"] for r in existing)
+    # Verificar capacidade
+    capacity = await get_daily_capacity()
+    current_guests = await get_current_guests(input.reservation_date)
     
-    if current_capacity + input.guests > RESTAURANT_CAPACITY:
-        available = RESTAURANT_CAPACITY - current_capacity
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Not enough capacity. Available: {available} people for this time slot"
-        )
+    if current_guests + input.guests > capacity:
+        remaining = capacity - current_guests
+        raise HTTPException(status_code=400, detail=f"Capacidad agotada para esta fecha. Plazas disponibles: {remaining}")
     
-    # Create reservation
-    reservation = Reservation(**input.model_dump())
+    # Validar horário
+    lunch_slots = generate_time_slots(schedule["lunch"][0], schedule["lunch"][1])
+    dinner_slots = generate_time_slots(schedule["dinner"][0], schedule["dinner"][1])
+    all_slots = lunch_slots + dinner_slots
     
-    # Save to database
+    if input.reservation_time not in all_slots:
+        raise HTTPException(status_code=400, detail=f"Horario no disponible. Horarios válidos: {all_slots}")
+    
+    # Validar degustação
+    if input.has_tasting_menu:
+        if not is_tasting_available(input.reservation_date, input.reservation_time):
+            raise HTTPException(status_code=400, detail="Menú Degustación solo disponible Martes-Jueves, 19:00-21:00")
+    
+    # Calcular desconto e valor
+    has_discount = is_discount_day(input.reservation_date)
+    estimated_value = calculate_estimated_value(input.guests, input.has_tasting_menu, has_discount)
+    
+    # Criar reserva
+    reservation = Reservation(
+        **input.model_dump(),
+        has_discount=has_discount,
+        discount_percentage=DISCOUNT_PERCENTAGE if has_discount else 0,
+        estimated_value=estimated_value
+    )
+    
+    # Salvar no banco
     doc = reservation.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     await db.reservations.insert_one(doc)
     
-    # Generate cancel URL (use frontend URL)
-    frontend_url = os.environ.get('FRONTEND_URL', 'https://server-bridge-3.preview.emergentagent.com')
-    cancel_url = f"{frontend_url}/cancel/{reservation.cancel_token}"
-    
-    # Send emails (don't block on failures)
+    # Enviar emails
     try:
-        # Email to customer
-        await send_email(
-            reservation.customer_email,
-            f"Confirmación de Reserva - {RESTAURANT_NAME}",
-            get_customer_confirmation_email(reservation, cancel_url)
-        )
-        
-        # Email to restaurant
-        await send_email(
-            RESTAURANT_EMAIL,
-            f"Nueva Reserva: {reservation.customer_name} - {reservation.reservation_date} {reservation.reservation_time}",
-            get_restaurant_notification_email(reservation)
-        )
+        email_html = get_reservation_email_html(reservation)
+        await send_email(NOTIFY_TO, f"Nueva Reserva: {reservation.customer_name} - {reservation.reservation_date}", email_html, CC_TO)
     except Exception as e:
-        logger.error(f"Email sending failed: {str(e)}")
+        logger.error(f"Erro ao enviar email: {e}")
     
     return reservation
 
-@api_router.get("/reservations", response_model=List[Reservation])
-async def get_reservations(
+@api_router.get("/whatsapp-message")
+async def generate_whatsapp_message(
+    name: str, guests: int, date: str, time: str, 
+    tasting: bool = False, observations: str = ""
+):
+    """Gera mensagem formatada para WhatsApp"""
+    tasting_text = "✓ Menú Degustación Premium" if tasting else ""
+    obs_text = f"\nObservaciones: {observations}" if observations else ""
+    
+    message = f"""🍣 *RESERVA KAISŌ SUSHI*
+
+👤 Nombre: {name}
+👥 Personas: {guests}
+📅 Fecha: {date}
+🕐 Hora: {time}
+{tasting_text}{obs_text}
+
+_Enviado desde kaisosushi.es_"""
+    
+    import urllib.parse
+    encoded = urllib.parse.quote(message)
+    return {"whatsapp_url": f"https://wa.me/34673036835?text={encoded}"}
+
+
+# ========================
+# API ROUTES - ADMIN
+# ========================
+@api_router.get("/admin/reservations")
+async def admin_get_reservations(
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
-    status: Optional[str] = None
+    status: Optional[str] = None,
+    credentials: HTTPBasicCredentials = Depends(verify_admin)
 ):
-    """Get all reservations (admin endpoint)"""
+    """Lista reservas (admin)"""
     query = {}
     
     if date_from and date_to:
@@ -429,120 +474,145 @@ async def get_reservations(
     
     reservations = await db.reservations.find(query, {"_id": 0}).to_list(1000)
     
-    # Convert datetime strings back to datetime objects
     for res in reservations:
         if isinstance(res.get('created_at'), str):
             res['created_at'] = datetime.fromisoformat(res['created_at'])
     
-    # Sort by date and time
     reservations.sort(key=lambda x: (x['reservation_date'], x['reservation_time']))
-    
     return reservations
 
-@api_router.get("/reservations/by-token/{cancel_token}", response_model=Reservation)
-async def get_reservation_by_token(cancel_token: str):
-    """Get reservation by cancel token"""
-    reservation = await db.reservations.find_one({"cancel_token": cancel_token}, {"_id": 0})
+@api_router.patch("/admin/reservations/{reservation_id}")
+async def admin_update_reservation(
+    reservation_id: str,
+    update: ReservationUpdate,
+    credentials: HTTPBasicCredentials = Depends(verify_admin)
+):
+    """Atualiza reserva (admin)"""
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
     
-    if not reservation:
-        raise HTTPException(status_code=404, detail="Reservation not found")
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Nenhum dado para atualizar")
     
-    if isinstance(reservation.get('created_at'), str):
-        reservation['created_at'] = datetime.fromisoformat(reservation['created_at'])
-    
-    return reservation
-
-@api_router.post("/reservations/cancel/{cancel_token}")
-async def cancel_reservation(cancel_token: str):
-    """Cancel a reservation using the cancel token"""
-    reservation = await db.reservations.find_one({"cancel_token": cancel_token}, {"_id": 0})
-    
-    if not reservation:
-        raise HTTPException(status_code=404, detail="Reservation not found")
-    
-    if reservation["status"] == "cancelled":
-        raise HTTPException(status_code=400, detail="Reservation already cancelled")
-    
-    # Update status
-    await db.reservations.update_one(
-        {"cancel_token": cancel_token},
-        {"$set": {"status": "cancelled"}}
-    )
-    
-    # Send cancellation email to customer
-    reservation_obj = Reservation(**reservation)
-    try:
-        await send_email(
-            reservation_obj.customer_email,
-            f"Reserva Cancelada - {RESTAURANT_NAME}",
-            get_cancellation_email(reservation_obj)
-        )
-    except Exception as e:
-        logger.error(f"Cancellation email failed: {str(e)}")
-    
-    return {"message": "Reservation cancelled successfully", "id": reservation["id"]}
-
-@api_router.delete("/reservations/{reservation_id}")
-async def admin_cancel_reservation(reservation_id: str):
-    """Admin: Cancel a reservation by ID"""
     result = await db.reservations.update_one(
         {"id": reservation_id},
-        {"$set": {"status": "cancelled"}}
+        {"$set": update_data}
     )
     
     if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Reservation not found")
+        raise HTTPException(status_code=404, detail="Reserva não encontrada")
     
-    return {"message": "Reservation cancelled", "id": reservation_id}
+    return {"message": "Reserva atualizada", "id": reservation_id}
 
-@api_router.get("/reservations/stats")
-async def get_reservation_stats():
-    """Get reservation statistics"""
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+@api_router.get("/admin/stats")
+async def admin_get_stats(credentials: HTTPBasicCredentials = Depends(verify_admin)):
+    """Estatísticas do admin"""
+    today = datetime.now().strftime("%Y-%m-%d")
     
-    # Total confirmed reservations
-    total_confirmed = await db.reservations.count_documents({"status": "confirmed"})
-    
-    # Today's reservations
-    today_reservations = await db.reservations.count_documents({
+    # Reservas de hoje
+    today_reservations = await db.reservations.find({
         "reservation_date": today,
-        "status": "confirmed"
-    })
+        "status": {"$nin": ["cancelada"]}
+    }).to_list(1000)
     
-    # Today's guests
-    today_guests_cursor = db.reservations.aggregate([
-        {"$match": {"reservation_date": today, "status": "confirmed"}},
-        {"$group": {"_id": None, "total": {"$sum": "$guests"}}}
-    ])
-    today_guests_result = await today_guests_cursor.to_list(1)
-    today_guests = today_guests_result[0]["total"] if today_guests_result else 0
+    today_guests = sum(r.get("guests", 0) for r in today_reservations)
     
-    # This week's reservations
-    from datetime import timedelta
-    week_start = (datetime.now(timezone.utc) - timedelta(days=datetime.now(timezone.utc).weekday())).strftime("%Y-%m-%d")
-    week_end = (datetime.now(timezone.utc) + timedelta(days=6-datetime.now(timezone.utc).weekday())).strftime("%Y-%m-%d")
+    # Total confirmadas
+    total_confirmed = await db.reservations.count_documents({"status": "confirmada"})
+    total_pending = await db.reservations.count_documents({"status": "pendente"})
     
-    week_reservations = await db.reservations.count_documents({
-        "reservation_date": {"$gte": week_start, "$lte": week_end},
-        "status": "confirmed"
-    })
+    # Capacidade
+    capacity = await get_daily_capacity()
     
     return {
-        "total_confirmed": total_confirmed,
-        "today_reservations": today_reservations,
+        "today_date": today,
+        "today_reservations": len(today_reservations),
         "today_guests": today_guests,
-        "week_reservations": week_reservations,
-        "today_date": today
+        "today_capacity": capacity,
+        "today_remaining": capacity - today_guests,
+        "total_confirmed": total_confirmed,
+        "total_pending": total_pending
     }
 
+@api_router.post("/admin/config")
+async def admin_update_config(
+    config: ConfigUpdate,
+    credentials: HTTPBasicCredentials = Depends(verify_admin)
+):
+    """Atualiza configurações (admin)"""
+    if config.daily_capacity:
+        await db.config.update_one(
+            {"key": "daily_capacity"},
+            {"$set": {"value": config.daily_capacity}},
+            upsert=True
+        )
+    return {"message": "Configuração atualizada"}
 
-# Include the router in the main app
+@api_router.post("/admin/blackout")
+async def admin_add_blackout(
+    blackout: BlackoutDate,
+    credentials: HTTPBasicCredentials = Depends(verify_admin)
+):
+    """Adiciona data bloqueada"""
+    await db.blackout_dates.update_one(
+        {"date": blackout.date},
+        {"$set": {"date": blackout.date, "reason": blackout.reason}},
+        upsert=True
+    )
+    return {"message": "Data bloqueada", "date": blackout.date}
+
+@api_router.delete("/admin/blackout/{date_str}")
+async def admin_remove_blackout(
+    date_str: str,
+    credentials: HTTPBasicCredentials = Depends(verify_admin)
+):
+    """Remove data bloqueada"""
+    await db.blackout_dates.delete_one({"date": date_str})
+    return {"message": "Bloqueio removido", "date": date_str}
+
+@api_router.get("/admin/blackout")
+async def admin_get_blackouts(credentials: HTTPBasicCredentials = Depends(verify_admin)):
+    """Lista datas bloqueadas"""
+    blackouts = await db.blackout_dates.find({}, {"_id": 0}).to_list(100)
+    return blackouts
+
+@api_router.get("/admin/export")
+async def admin_export_csv(
+    date_from: str,
+    date_to: str,
+    credentials: HTTPBasicCredentials = Depends(verify_admin)
+):
+    """Exporta reservas em CSV"""
+    reservations = await db.reservations.find({
+        "reservation_date": {"$gte": date_from, "$lte": date_to}
+    }, {"_id": 0}).to_list(1000)
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Nome", "Telefone", "Email", "Data", "Hora", "Pessoas", "Degustação", "Valor", "Status", "Observações"])
+    
+    for r in reservations:
+        writer.writerow([
+            r.get("id"), r.get("customer_name"), r.get("customer_phone"),
+            r.get("customer_email", ""), r.get("reservation_date"), r.get("reservation_time"),
+            r.get("guests"), "Sim" if r.get("has_tasting_menu") else "Não",
+            r.get("estimated_value", 0), r.get("status"), r.get("observations", "")
+        ])
+    
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=reservas_{date_from}_{date_to}.csv"}
+    )
+
+
+# Include router
 app.include_router(api_router)
 
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
