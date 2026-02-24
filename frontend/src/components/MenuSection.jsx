@@ -129,9 +129,9 @@ export default function MenuSection() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-baseline gap-2">
                     <span className="text-kaiso-gold font-serif text-xl">€{item.price.toFixed(2)}</span>
-                    {item.originalPrice && (
+                    {item.originalPrice ? (
                       <span className="text-kaiso-muted text-sm line-through">€{item.originalPrice.toFixed(2)}</span>
-                    )}
+                    ) : null}
                   </div>
                   
                   {/* Two buttons: WhatsApp + Website */}
@@ -181,7 +181,7 @@ export default function MenuSection() {
       </div>
 
       {/* Item Detail Modal */}
-      {selectedItem && (
+      {selectedItem ? (
         <div 
           className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
           onClick={() => setSelectedItem(null)}
@@ -198,12 +198,12 @@ export default function MenuSection() {
             
             <div className="p-6">
               <h3 className="font-serif text-2xl text-kaiso-gold mb-2">{selectedItem.name}</h3>
-              {selectedItem.description && (
+              {selectedItem.description ? (
                 <p className="text-kaiso-muted mb-4">{getText(selectedItem.description)}</p>
-              )}
+              ) : null}
               
               {/* Allergens */}
-              {selectedItem.allergens && selectedItem.allergens.length > 0 && (
+              {(selectedItem.allergens && selectedItem.allergens.length > 0) ? (
                 <div className="mb-4">
                   <p className="text-kaiso-muted text-xs uppercase tracking-wider mb-2">
                     {lang === 'es' ? 'Alérgenos' : lang === 'pt' ? 'Alérgenos' : 'Allergens'}
@@ -216,7 +216,7 @@ export default function MenuSection() {
                     ))}
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* Price & CTAs */}
               <div className="pt-4 border-t border-kaiso-border">
