@@ -432,12 +432,20 @@ async def create_reservation(input: ReservationCreate):
     doc['created_at'] = doc['created_at'].isoformat()
     await db.reservations.insert_one(doc)
     
-    # Enviar emails
+    # Enviar emails - notificação para empresa
     try:
         email_html = get_reservation_email_html(reservation)
         await send_email(NOTIFY_TO, f"Nueva Reserva: {reservation.customer_name} - {reservation.reservation_date}", email_html, CC_TO)
     except Exception as e:
-        logger.error(f"Erro ao enviar email: {e}")
+        logger.error(f"Erro ao enviar email empresa: {e}")
+    
+    # Enviar email de confirmação para o cliente
+    if reservation.customer_email:
+        try:
+            client_html = get_client_confirmation_email(reservation)
+            await send_email(reservation.customer_email, "Confirmación de Reserva - Kaisō Sushi", client_html)
+        except Exception as e:
+            logger.error(f"Erro ao enviar email cliente: {e}")
     
     return reservation
 
