@@ -206,13 +206,13 @@ const HeroSection = ({ onReserve }) => {
   
   return (
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden" data-testid="hero-section">
-      {/* Background - Placeholder para imagem real */}
+      {/* Background - Foto real do salão do restaurante */}
       <div className="absolute inset-0 bg-kaiso-bg">
         <div 
-          className="absolute inset-0 bg-cover bg-center opacity-40"
-          style={{ backgroundImage: `url('/assets/hero-bg.jpg')` }}
+          className="absolute inset-0 bg-cover bg-center opacity-20 blur-[2px]"
+          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1756027914396-de5b664b6f02?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjV8MHwxfHNlYXJjaHwyfHxqYXBhbmVzZSUyMHN1c2hpJTIwcmVzdGF1cmFudCUyMGludGVyaW9yJTIwZGFyayUyMGFtYmllbnR8ZW58MHx8fHwxNzcxOTQ1NjgxfDA&ixlib=rb-4.1.0&q=85')` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-kaiso-bg via-transparent to-kaiso-bg" />
+        <div className="absolute inset-0 bg-gradient-to-b from-kaiso-bg via-kaiso-bg/60 to-kaiso-bg" />
       </div>
       
       {/* Content */}
@@ -226,9 +226,10 @@ const HeroSection = ({ onReserve }) => {
           </div>
         </div>
         
-        <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl text-kaiso-text mb-6 leading-tight">
+        <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl text-kaiso-text mb-4 leading-tight">
           {t.hero.headline}
         </h1>
+        <p className="text-kaiso-gold/60 text-sm tracking-[0.4em] uppercase mb-6">精密と味の出会い</p>
         
         <p className="text-kaiso-muted text-lg md:text-xl mb-12 max-w-2xl mx-auto">
           {t.hero.subheadline}
@@ -264,13 +265,14 @@ const AboutSection = () => {
   const { lang } = useLanguage();
   
   return (
-    <section className="py-24 md:py-32 px-6" data-testid="about-section">
+    <section className="relative py-24 md:py-32 px-6" data-testid="about-section">
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div>
             <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">
               {lang === 'es' ? 'Nuestra Historia' : lang === 'pt' ? 'Nossa História' : 'Our Story'}
             </span>
+            <p className="text-kaiso-gold/50 text-xs tracking-[0.3em] mt-1">私たちの物語</p>
             <h2 className="font-serif text-4xl md:text-5xl text-kaiso-text mt-4 mb-8">
               {lang === 'es' ? 'Sushi Sofisticado' : lang === 'pt' ? 'Sushi Sofisticado' : 'Sophisticated Sushi'}
             </h2>
