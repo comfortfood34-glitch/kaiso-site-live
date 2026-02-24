@@ -24,10 +24,19 @@ class KaisoAPITester:
     def log(self, message, test_type="INFO"):
         print(f"[{test_type}] {message}")
 
-    def run_test(self, name, method, endpoint, expected_status, data=None, params=None):
+    def run_test(self, name, method, endpoint, expected_status, data=None, params=None, auth=None):
         """Run a single API test"""
         url = f"{self.base_url}/{endpoint}"
         headers = {'Content-Type': 'application/json'}
+        
+        # Add basic auth if provided
+        kwargs = {'headers': headers, 'timeout': 10}
+        if auth:
+            kwargs['auth'] = auth
+        if params:
+            kwargs['params'] = params
+        if data and method in ['POST', 'PATCH']:
+            kwargs['json'] = data
 
         self.tests_run += 1
         self.log(f"🔍 Testing {name}...")
@@ -35,11 +44,13 @@ class KaisoAPITester:
         
         try:
             if method == 'GET':
-                response = requests.get(url, headers=headers, params=params, timeout=10)
+                response = requests.get(url, **kwargs)
             elif method == 'POST':
-                response = requests.post(url, json=data, headers=headers, timeout=10)
+                response = requests.post(url, **kwargs)
+            elif method == 'PATCH':
+                response = requests.patch(url, **kwargs)
             elif method == 'DELETE':
-                response = requests.delete(url, headers=headers, timeout=10)
+                response = requests.delete(url, **kwargs)
 
             success = response.status_code == expected_status
             if success:
