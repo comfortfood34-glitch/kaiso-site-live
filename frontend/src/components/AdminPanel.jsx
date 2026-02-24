@@ -220,7 +220,7 @@ export default function AdminPanel() {
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats */}
-        {stats && (
+        {stats ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-kaiso-card border border-kaiso-border p-6">
               <p className="text-kaiso-muted text-xs uppercase tracking-wider mb-2">Hoy</p>
