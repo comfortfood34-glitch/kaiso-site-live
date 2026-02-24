@@ -6,61 +6,60 @@ const API_BASE_URL = process.env.REACT_APP_BACKEND_URL
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Get restaurant configuration
-export const getConfig = async () => {
-  const response = await api.get('/config');
-  return response.data;
+// Public endpoints
+export const getConfig = async () => (await api.get('/config')).data;
+export const getAvailability = async (date) => (await api.get(`/availability/${date}`)).data;
+export const createReservation = async (data) => (await api.post('/reservations', data)).data;
+export const getWhatsAppMessage = async (params) => {
+  const query = new URLSearchParams(params).toString();
+  return (await api.get(`/whatsapp-message?${query}`)).data;
 };
 
-// Get availability for a specific date
-export const getAvailability = async (date) => {
-  const response = await api.get(`/reservations/availability/${date}`);
-  return response.data;
-};
+// Admin endpoints (with basic auth)
+const adminAuth = (username, password) => ({
+  auth: { username, password }
+});
 
-// Create a new reservation
-export const createReservation = async (reservationData) => {
-  const response = await api.post('/reservations', reservationData);
-  return response.data;
-};
-
-// Get all reservations (admin)
-export const getReservations = async (filters = {}) => {
+export const adminGetReservations = async (filters, username, password) => {
   const params = new URLSearchParams();
   if (filters.date_from) params.append('date_from', filters.date_from);
   if (filters.date_to) params.append('date_to', filters.date_to);
   if (filters.status) params.append('status', filters.status);
-  
-  const response = await api.get(`/reservations?${params.toString()}`);
-  return response.data;
+  return (await api.get(`/admin/reservations?${params.toString()}`, adminAuth(username, password))).data;
 };
 
-// Get reservation by cancel token
-export const getReservationByToken = async (token) => {
-  const response = await api.get(`/reservations/by-token/${token}`);
-  return response.data;
+export const adminUpdateReservation = async (id, data, username, password) => {
+  return (await api.patch(`/admin/reservations/${id}`, data, adminAuth(username, password))).data;
 };
 
-// Cancel reservation by token
-export const cancelReservation = async (token) => {
-  const response = await api.post(`/reservations/cancel/${token}`);
-  return response.data;
+export const adminGetStats = async (username, password) => {
+  return (await api.get('/admin/stats', adminAuth(username, password))).data;
 };
 
-// Admin cancel reservation by ID
-export const adminCancelReservation = async (reservationId) => {
-  const response = await api.delete(`/reservations/${reservationId}`);
-  return response.data;
+export const adminUpdateConfig = async (data, username, password) => {
+  return (await api.post('/admin/config', data, adminAuth(username, password))).data;
 };
 
-// Get reservation stats
-export const getReservationStats = async () => {
-  const response = await api.get('/reservations/stats');
+export const adminAddBlackout = async (data, username, password) => {
+  return (await api.post('/admin/blackout', data, adminAuth(username, password))).data;
+};
+
+export const adminRemoveBlackout = async (date, username, password) => {
+  return (await api.delete(`/admin/blackout/${date}`, adminAuth(username, password))).data;
+};
+
+export const adminGetBlackouts = async (username, password) => {
+  return (await api.get('/admin/blackout', adminAuth(username, password))).data;
+};
+
+export const adminExportCSV = async (dateFrom, dateTo, username, password) => {
+  const response = await api.get(`/admin/export?date_from=${dateFrom}&date_to=${dateTo}`, {
+    ...adminAuth(username, password),
+    responseType: 'blob'
+  });
   return response.data;
 };
 
