@@ -1,44 +1,66 @@
 import React, { useState, useEffect } from 'react';
-import { format, startOfWeek, endOfWeek, addDays } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { Calendar, Users, Clock, Trash2, Filter, RefreshCw, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getReservations, adminCancelReservation, getReservationStats } from '../lib/api';
+import { format, addDays } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
+import { Calendar, Users, Clock, Download, Plus, Trash2, RefreshCw, LogOut, Settings, BarChart3, Lock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { adminGetReservations, adminUpdateReservation, adminGetStats, adminUpdateConfig, adminAddBlackout, adminRemoveBlackout, adminGetBlackouts, adminExportCSV } from '../lib/api';
 
-export default function AdminPanel({ onClose }) {
+export default function AdminPanel() {
+  const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [loginError, setLoginError] = useState('');
+  
   const [reservations, setReservations] = useState([]);
   const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [blackouts, setBlackouts] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [filterDate, setFilterDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [filterStatus, setFilterStatus] = useState('confirmed');
-  const [viewMode, setViewMode] = useState('day'); // 'day' or 'week'
+  const [filterStatus, setFilterStatus] = useState('');
+  const [activeTab, setActiveTab] = useState('reservations');
+  
+  const [newBlackout, setNewBlackout] = useState({ date: '', reason: '' });
+  const [dailyCapacity, setDailyCapacity] = useState(30);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoginError('');
+    try {
+      await adminGetStats(credentials.username, credentials.password);
+      setIsLoggedIn(true);
+      localStorage.setItem('kaiso_admin', JSON.stringify(credentials));
+    } catch (err) {
+      setLoginError('Credenciales inválidas');
+    }
+  };
 
   useEffect(() => {
-    loadData();
+    const saved = localStorage.getItem('kaiso_admin');
+    if (saved) {
+      const creds = JSON.parse(saved);
+      setCredentials(creds);
+      setIsLoggedIn(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      loadData();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterDate, filterStatus, viewMode]);
+  }, [isLoggedIn, filterDate, filterStatus]);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      let filters = { status: filterStatus || undefined };
-      
-      if (viewMode === 'day') {
-        filters.date_from = filterDate;
-        filters.date_to = filterDate;
-      } else {
-        const start = startOfWeek(new Date(filterDate), { weekStartsOn: 1 });
-        const end = endOfWeek(new Date(filterDate), { weekStartsOn: 1 });
-        filters.date_from = format(start, 'yyyy-MM-dd');
-        filters.date_to = format(end, 'yyyy-MM-dd');
-      }
-
-      const [reservationsData, statsData] = await Promise.all([
-        getReservations(filters),
-        getReservationStats()
+      const [reservationsData, statsData, blackoutsData] = await Promise.all([
+        adminGetReservations({ date_from: filterDate, date_to: filterDate, status: filterStatus || undefined }, credentials.username, credentials.password),
+        adminGetStats(credentials.username, credentials.password),
+        adminGetBlackouts(credentials.username, credentials.password)
       ]);
-      
       setReservations(reservationsData);
       setStats(statsData);
+      setBlackouts(blackoutsData);
+      setDailyCapacity(statsData.today_capacity);
     } catch (err) {
       console.error('Error loading data:', err);
     } finally {
@@ -46,250 +68,388 @@ export default function AdminPanel({ onClose }) {
     }
   };
 
-  const handleCancel = async (reservationId) => {
-    if (!window.confirm('¿Está seguro de que desea cancelar esta reserva?')) return;
-    
+  const handleStatusChange = async (id, newStatus) => {
     try {
-      await adminCancelReservation(reservationId);
+      await adminUpdateReservation(id, { status: newStatus }, credentials.username, credentials.password);
       loadData();
     } catch (err) {
-      console.error('Error cancelling reservation:', err);
-      alert('Error al cancelar la reserva');
+      alert('Error al actualizar estado');
     }
   };
 
-  const navigateDate = (direction) => {
-    const current = new Date(filterDate);
-    const newDate = addDays(current, direction === 'next' ? (viewMode === 'week' ? 7 : 1) : (viewMode === 'week' ? -7 : -1));
+  const handleAddBlackout = async (e) => {
+    e.preventDefault();
+    if (!newBlackout.date) return;
+    try {
+      await adminAddBlackout(newBlackout, credentials.username, credentials.password);
+      setNewBlackout({ date: '', reason: '' });
+      loadData();
+    } catch (err) {
+      alert('Error al bloquear fecha');
+    }
+  };
+
+  const handleRemoveBlackout = async (date) => {
+    try {
+      await adminRemoveBlackout(date, credentials.username, credentials.password);
+      loadData();
+    } catch (err) {
+      alert('Error al desbloquear fecha');
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const endDate = format(addDays(new Date(filterDate), 30), 'yyyy-MM-dd');
+      const blob = await adminExportCSV(filterDate, endDate, credentials.username, credentials.password);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `reservas_${filterDate}.csv`;
+      a.click();
+    } catch (err) {
+      alert('Error al exportar');
+    }
+  };
+
+  const handleUpdateCapacity = async () => {
+    try {
+      await adminUpdateConfig({ daily_capacity: dailyCapacity }, credentials.username, credentials.password);
+      alert('Capacidad actualizada');
+      loadData();
+    } catch (err) {
+      alert('Error al actualizar capacidad');
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('kaiso_admin');
+    setIsLoggedIn(false);
+    setCredentials({ username: '', password: '' });
+  };
+
+  const navigateDate = (days) => {
+    const newDate = addDays(new Date(filterDate), days);
     setFilterDate(format(newDate, 'yyyy-MM-dd'));
   };
 
-  const getTotalGuests = () => {
-    return reservations.reduce((sum, r) => sum + r.guests, 0);
-  };
+  // Login Screen
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-kaiso-bg flex items-center justify-center p-4">
+        <div className="w-full max-w-sm">
+          <div className="text-center mb-8">
+            <h1 className="font-serif text-3xl text-kaiso-gold">Kaisō Admin</h1>
+            <p className="text-kaiso-muted text-sm mt-2">Panel de Administración</p>
+          </div>
+          
+          <form onSubmit={handleLogin} className="bg-kaiso-card border border-kaiso-border p-8 space-y-6">
+            <div>
+              <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-2 block">Usuario</label>
+              <input
+                type="text"
+                value={credentials.username}
+                onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
+                className="w-full bg-transparent border-b border-kaiso-border p-3 text-kaiso-text focus:border-kaiso-gold focus:outline-none"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-2 block">Contraseña</label>
+              <input
+                type="password"
+                value={credentials.password}
+                onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
+                className="w-full bg-transparent border-b border-kaiso-border p-3 text-kaiso-text focus:border-kaiso-gold focus:outline-none"
+                required
+              />
+            </div>
+            
+            {loginError && (
+              <p className="text-kaiso-red text-sm text-center">{loginError}</p>
+            )}
+            
+            <button
+              type="submit"
+              className="w-full bg-kaiso-gold text-black py-4 uppercase tracking-widest text-xs font-bold hover:bg-kaiso-gold-light transition-colors flex items-center justify-center gap-2"
+            >
+              <Lock size={16} />
+              Entrar
+            </button>
+          </form>
+          
+          <button
+            onClick={() => navigate('/')}
+            className="block mx-auto mt-6 text-kaiso-muted hover:text-kaiso-gold transition-colors text-sm"
+          >
+            ← Volver al sitio
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  const groupByTime = () => {
-    const groups = {};
-    reservations.forEach(r => {
-      const key = r.reservation_time;
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(r);
-    });
-    return groups;
+  const statusColors = {
+    pendente: 'bg-yellow-500/20 text-yellow-400',
+    confirmada: 'bg-green-500/20 text-green-400',
+    cancelada: 'bg-red-500/20 text-red-400',
+    'no-show': 'bg-gray-500/20 text-gray-400'
   };
 
   return (
-    <div className="fixed inset-0 bg-black/95 z-50 overflow-auto" data-testid="admin-panel">
+    <div className="min-h-screen bg-kaiso-bg text-kaiso-text">
       {/* Header */}
-      <div className="sticky top-0 bg-[#0A0A0A] border-b border-[#2A2A2A] z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="font-serif text-2xl text-[#C9A24A]">Panel de Administración</h1>
-              <p className="text-xs text-[#888] uppercase tracking-widest mt-1">Gestión de Reservas</p>
-            </div>
-            <button 
-              onClick={onClose}
-              className="text-[#888] hover:text-[#E5E5E5] p-2"
-              data-testid="close-admin-button"
-            >
-              <X size={24} />
+      <header className="bg-kaiso-card border-b border-kaiso-border sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="font-serif text-xl text-kaiso-gold">Kaisō Admin</h1>
+          </div>
+          <div className="flex items-center gap-4">
+            <button onClick={loadData} className="p-2 text-kaiso-muted hover:text-kaiso-gold transition-colors">
+              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+            </button>
+            <button onClick={() => navigate('/')} className="text-kaiso-muted hover:text-kaiso-gold transition-colors text-sm">
+              Ver sitio
+            </button>
+            <button onClick={logout} className="p-2 text-kaiso-muted hover:text-kaiso-red transition-colors">
+              <LogOut size={18} />
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Stats Cards */}
+        {/* Stats */}
         {stats && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-[#121212] border border-[#2A2A2A] p-6" data-testid="stat-today-reservations">
-              <p className="text-[#888] text-xs uppercase tracking-wider mb-2">Hoy</p>
-              <p className="text-3xl font-serif text-[#C9A24A]">{stats.today_reservations}</p>
-              <p className="text-sm text-[#888] mt-1">reservas</p>
+            <div className="bg-kaiso-card border border-kaiso-border p-6">
+              <p className="text-kaiso-muted text-xs uppercase tracking-wider mb-2">Hoy</p>
+              <p className="text-3xl font-serif text-kaiso-gold">{stats.today_reservations}</p>
+              <p className="text-sm text-kaiso-muted mt-1">reservas</p>
             </div>
-            <div className="bg-[#121212] border border-[#2A2A2A] p-6" data-testid="stat-today-guests">
-              <p className="text-[#888] text-xs uppercase tracking-wider mb-2">Comensales Hoy</p>
-              <p className="text-3xl font-serif text-[#C9A24A]">{stats.today_guests}</p>
-              <p className="text-sm text-[#888] mt-1">personas</p>
+            <div className="bg-kaiso-card border border-kaiso-border p-6">
+              <p className="text-kaiso-muted text-xs uppercase tracking-wider mb-2">Comensales Hoy</p>
+              <p className="text-3xl font-serif text-kaiso-gold">{stats.today_guests}</p>
+              <p className="text-sm text-kaiso-muted mt-1">de {stats.today_capacity}</p>
             </div>
-            <div className="bg-[#121212] border border-[#2A2A2A] p-6" data-testid="stat-week-reservations">
-              <p className="text-[#888] text-xs uppercase tracking-wider mb-2">Esta Semana</p>
-              <p className="text-3xl font-serif text-[#C9A24A]">{stats.week_reservations}</p>
-              <p className="text-sm text-[#888] mt-1">reservas</p>
+            <div className="bg-kaiso-card border border-kaiso-border p-6">
+              <p className="text-kaiso-muted text-xs uppercase tracking-wider mb-2">Pendientes</p>
+              <p className="text-3xl font-serif text-yellow-400">{stats.total_pending}</p>
+              <p className="text-sm text-kaiso-muted mt-1">por confirmar</p>
             </div>
-            <div className="bg-[#121212] border border-[#2A2A2A] p-6" data-testid="stat-total">
-              <p className="text-[#888] text-xs uppercase tracking-wider mb-2">Total Confirmadas</p>
-              <p className="text-3xl font-serif text-[#C9A24A]">{stats.total_confirmed}</p>
-              <p className="text-sm text-[#888] mt-1">reservas</p>
+            <div className="bg-kaiso-card border border-kaiso-border p-6">
+              <p className="text-kaiso-muted text-xs uppercase tracking-wider mb-2">Confirmadas</p>
+              <p className="text-3xl font-serif text-green-400">{stats.total_confirmed}</p>
+              <p className="text-sm text-kaiso-muted mt-1">total</p>
             </div>
           </div>
         )}
 
-        {/* Filters */}
-        <div className="bg-[#121212] border border-[#2A2A2A] p-4 mb-6">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => navigateDate('prev')}
-                className="p-2 border border-[#2A2A2A] hover:border-[#C9A24A] transition-colors"
-                data-testid="prev-date-button"
-              >
-                <ChevronLeft size={18} className="text-[#888]" />
-              </button>
-              <input
-                type="date"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-                className="bg-[#0A0A0A] border border-[#2A2A2A] px-4 py-2 text-[#E5E5E5] focus:border-[#C9A24A] focus:outline-none"
-                data-testid="date-filter"
-              />
-              <button
-                onClick={() => navigateDate('next')}
-                className="p-2 border border-[#2A2A2A] hover:border-[#C9A24A] transition-colors"
-                data-testid="next-date-button"
-              >
-                <ChevronRight size={18} className="text-[#888]" />
-              </button>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => setViewMode('day')}
-                className={`px-4 py-2 text-xs uppercase tracking-wider transition-colors ${
-                  viewMode === 'day' 
-                    ? 'bg-[#C9A24A] text-black' 
-                    : 'border border-[#2A2A2A] text-[#888] hover:border-[#C9A24A]'
-                }`}
-                data-testid="view-day-button"
-              >
-                Día
-              </button>
-              <button
-                onClick={() => setViewMode('week')}
-                className={`px-4 py-2 text-xs uppercase tracking-wider transition-colors ${
-                  viewMode === 'week' 
-                    ? 'bg-[#C9A24A] text-black' 
-                    : 'border border-[#2A2A2A] text-[#888] hover:border-[#C9A24A]'
-                }`}
-                data-testid="view-week-button"
-              >
-                Semana
-              </button>
-            </div>
-
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="bg-[#0A0A0A] border border-[#2A2A2A] px-4 py-2 text-[#E5E5E5] focus:border-[#C9A24A] focus:outline-none"
-              data-testid="status-filter"
-            >
-              <option value="">Todos</option>
-              <option value="confirmed">Confirmadas</option>
-              <option value="cancelled">Canceladas</option>
-            </select>
-
+        {/* Tabs */}
+        <div className="flex gap-4 mb-6 border-b border-kaiso-border">
+          {['reservations', 'settings'].map(tab => (
             <button
-              onClick={loadData}
-              className="p-2 border border-[#2A2A2A] hover:border-[#C9A24A] transition-colors ml-auto"
-              data-testid="refresh-button"
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`pb-3 px-2 text-sm uppercase tracking-wider transition-colors ${activeTab === tab ? 'text-kaiso-gold border-b-2 border-kaiso-gold' : 'text-kaiso-muted hover:text-kaiso-text'}`}
             >
-              <RefreshCw size={18} className={`text-[#888] ${loading ? 'animate-spin' : ''}`} />
+              {tab === 'reservations' ? 'Reservas' : 'Configuración'}
             </button>
-          </div>
+          ))}
         </div>
 
-        {/* Summary */}
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-[#888]">
-            {reservations.length} reserva{reservations.length !== 1 ? 's' : ''} · {getTotalGuests()} comensal{getTotalGuests() !== 1 ? 'es' : ''}
-          </p>
-          <p className="text-xs text-[#888] uppercase tracking-wider">
-            {format(new Date(filterDate), "EEEE, d 'de' MMMM", { locale: es })}
-          </p>
-        </div>
+        {/* Reservations Tab */}
+        {activeTab === 'reservations' && (
+          <>
+            {/* Filters */}
+            <div className="flex flex-wrap items-center gap-4 mb-6">
+              <div className="flex items-center gap-2">
+                <button onClick={() => navigateDate(-1)} className="p-2 border border-kaiso-border hover:border-kaiso-gold transition-colors">
+                  <ChevronLeft size={18} />
+                </button>
+                <input
+                  type="date"
+                  value={filterDate}
+                  onChange={(e) => setFilterDate(e.target.value)}
+                  className="bg-kaiso-bg border border-kaiso-border px-4 py-2 text-kaiso-text focus:border-kaiso-gold focus:outline-none"
+                />
+                <button onClick={() => navigateDate(1)} className="p-2 border border-kaiso-border hover:border-kaiso-gold transition-colors">
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+              
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="bg-kaiso-bg border border-kaiso-border px-4 py-2 text-kaiso-text focus:border-kaiso-gold focus:outline-none"
+              >
+                <option value="">Todos los estados</option>
+                <option value="pendente">Pendiente</option>
+                <option value="confirmada">Confirmada</option>
+                <option value="cancelada">Cancelada</option>
+                <option value="no-show">No-show</option>
+              </select>
 
-        {/* Reservations Table */}
-        {loading ? (
-          <div className="text-center py-20 text-[#888]">Cargando...</div>
-        ) : reservations.length === 0 ? (
-          <div className="text-center py-20 border border-[#2A2A2A] bg-[#121212]">
-            <Calendar size={48} className="mx-auto text-[#2A2A2A] mb-4" />
-            <p className="text-[#888]">No hay reservas para esta fecha</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full" data-testid="reservations-table">
-              <thead>
-                <tr className="border-b border-[#2A2A2A]">
-                  <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-[#888] font-normal">Hora</th>
-                  <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-[#888] font-normal">Cliente</th>
-                  <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-[#888] font-normal">Contacto</th>
-                  <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-[#888] font-normal">Personas</th>
-                  <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-[#888] font-normal">Estado</th>
-                  <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-[#888] font-normal">Observaciones</th>
-                  <th className="text-right py-4 px-4 text-xs uppercase tracking-wider text-[#888] font-normal">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reservations.map((reservation) => (
-                  <tr 
-                    key={reservation.id} 
-                    className={`border-b border-[#2A2A2A] hover:bg-[#121212] transition-colors ${
-                      reservation.status === 'cancelled' ? 'opacity-50' : ''
-                    }`}
-                    data-testid={`reservation-row-${reservation.id}`}
-                  >
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-2">
-                        <Clock size={14} className="text-[#C9A24A]" />
-                        <span className="text-[#E5E5E5] font-medium">{reservation.reservation_time}</span>
+              <button onClick={handleExport} className="ml-auto flex items-center gap-2 bg-kaiso-gold text-black px-4 py-2 text-xs uppercase tracking-wider font-bold hover:bg-kaiso-gold-light transition-colors">
+                <Download size={14} />
+                Exportar CSV
+              </button>
+            </div>
+
+            {/* Reservations Table */}
+            {loading ? (
+              <div className="text-center py-20 text-kaiso-muted">Cargando...</div>
+            ) : reservations.length === 0 ? (
+              <div className="text-center py-20 bg-kaiso-card border border-kaiso-border">
+                <Calendar size={48} className="mx-auto text-kaiso-border mb-4" />
+                <p className="text-kaiso-muted">No hay reservas para esta fecha</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-kaiso-border">
+                      <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-kaiso-muted font-normal">Hora</th>
+                      <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-kaiso-muted font-normal">Cliente</th>
+                      <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-kaiso-muted font-normal">Teléfono</th>
+                      <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-kaiso-muted font-normal">Personas</th>
+                      <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-kaiso-muted font-normal">Degustación</th>
+                      <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-kaiso-muted font-normal">Valor</th>
+                      <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-kaiso-muted font-normal">Estado</th>
+                      <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-kaiso-muted font-normal">Obs.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reservations.map((res) => (
+                      <tr key={res.id} className="border-b border-kaiso-border hover:bg-kaiso-card/50 transition-colors">
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2">
+                            <Clock size={14} className="text-kaiso-gold" />
+                            <span className="text-kaiso-text font-medium">{res.reservation_time}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-kaiso-text">{res.customer_name}</td>
+                        <td className="py-4 px-4">
+                          <a href={`tel:${res.customer_phone}`} className="text-kaiso-muted hover:text-kaiso-gold transition-colors">
+                            {res.customer_phone}
+                          </a>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2">
+                            <Users size={14} className="text-kaiso-gold" />
+                            <span>{res.guests}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4">
+                          {res.has_tasting_menu ? (
+                            <span className="text-kaiso-gold text-xs">✓ Premium</span>
+                          ) : (
+                            <span className="text-kaiso-muted text-xs">-</span>
+                          )}
+                        </td>
+                        <td className="py-4 px-4 text-kaiso-gold">
+                          {res.estimated_value > 0 ? `€${res.estimated_value.toFixed(2)}` : '-'}
+                        </td>
+                        <td className="py-4 px-4">
+                          <select
+                            value={res.status}
+                            onChange={(e) => handleStatusChange(res.id, e.target.value)}
+                            className={`px-3 py-1 text-xs uppercase tracking-wider border-0 cursor-pointer ${statusColors[res.status] || ''}`}
+                          >
+                            <option value="pendente">Pendiente</option>
+                            <option value="confirmada">Confirmada</option>
+                            <option value="cancelada">Cancelada</option>
+                            <option value="no-show">No-show</option>
+                          </select>
+                        </td>
+                        <td className="py-4 px-4 text-kaiso-muted text-sm max-w-[150px] truncate" title={res.observations}>
+                          {res.observations || '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Settings Tab */}
+        {activeTab === 'settings' && (
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Capacity */}
+            <div className="bg-kaiso-card border border-kaiso-border p-6">
+              <h3 className="text-kaiso-gold font-serif text-lg mb-4 flex items-center gap-2">
+                <Settings size={18} />
+                Capacidad Diaria
+              </h3>
+              <div className="flex gap-4">
+                <input
+                  type="number"
+                  value={dailyCapacity}
+                  onChange={(e) => setDailyCapacity(parseInt(e.target.value))}
+                  min={1}
+                  max={100}
+                  className="flex-1 bg-kaiso-bg border border-kaiso-border px-4 py-3 text-kaiso-text focus:border-kaiso-gold focus:outline-none"
+                />
+                <button
+                  onClick={handleUpdateCapacity}
+                  className="bg-kaiso-gold text-black px-6 py-3 text-xs uppercase tracking-wider font-bold hover:bg-kaiso-gold-light transition-colors"
+                >
+                  Guardar
+                </button>
+              </div>
+              <p className="text-kaiso-muted text-xs mt-2">Máximo de comensales permitidos por día</p>
+            </div>
+
+            {/* Blackout Dates */}
+            <div className="bg-kaiso-card border border-kaiso-border p-6">
+              <h3 className="text-kaiso-gold font-serif text-lg mb-4 flex items-center gap-2">
+                <Calendar size={18} />
+                Días Bloqueados
+              </h3>
+              
+              <form onSubmit={handleAddBlackout} className="flex gap-2 mb-4">
+                <input
+                  type="date"
+                  value={newBlackout.date}
+                  onChange={(e) => setNewBlackout(prev => ({ ...prev, date: e.target.value }))}
+                  className="flex-1 bg-kaiso-bg border border-kaiso-border px-3 py-2 text-kaiso-text focus:border-kaiso-gold focus:outline-none text-sm"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Motivo"
+                  value={newBlackout.reason}
+                  onChange={(e) => setNewBlackout(prev => ({ ...prev, reason: e.target.value }))}
+                  className="flex-1 bg-kaiso-bg border border-kaiso-border px-3 py-2 text-kaiso-text focus:border-kaiso-gold focus:outline-none text-sm"
+                />
+                <button type="submit" className="bg-kaiso-gold text-black p-2 hover:bg-kaiso-gold-light transition-colors">
+                  <Plus size={18} />
+                </button>
+              </form>
+
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {blackouts.length === 0 ? (
+                  <p className="text-kaiso-muted text-sm">No hay días bloqueados</p>
+                ) : (
+                  blackouts.map((b) => (
+                    <div key={b.date} className="flex items-center justify-between bg-kaiso-bg p-3 border border-kaiso-border">
+                      <div>
+                        <span className="text-kaiso-text text-sm">{b.date}</span>
+                        {b.reason && <span className="text-kaiso-muted text-xs ml-2">({b.reason})</span>}
                       </div>
-                      {viewMode === 'week' && (
-                        <p className="text-xs text-[#888] mt-1">{reservation.reservation_date}</p>
-                      )}
-                    </td>
-                    <td className="py-4 px-4">
-                      <p className="text-[#E5E5E5] font-medium">{reservation.customer_name}</p>
-                    </td>
-                    <td className="py-4 px-4">
-                      <p className="text-[#888] text-sm">{reservation.customer_email}</p>
-                      <p className="text-[#888] text-sm">{reservation.customer_phone}</p>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-2">
-                        <Users size={14} className="text-[#C9A24A]" />
-                        <span className="text-[#E5E5E5]">{reservation.guests}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <span className={`px-3 py-1 text-xs uppercase tracking-wider ${
-                        reservation.status === 'confirmed' 
-                          ? 'bg-[#C9A24A]/20 text-[#C9A24A]' 
-                          : 'bg-[#7F1D1D]/20 text-[#E5E5E5]'
-                      }`}>
-                        {reservation.status === 'confirmed' ? 'Confirmada' : 'Cancelada'}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4">
-                      <p className="text-[#888] text-sm max-w-xs truncate">{reservation.observations || '-'}</p>
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      {reservation.status === 'confirmed' && (
-                        <button
-                          onClick={() => handleCancel(reservation.id)}
-                          className="p-2 text-[#7F1D1D] hover:bg-[#7F1D1D] hover:text-white transition-colors"
-                          title="Cancelar reserva"
-                          data-testid={`cancel-button-${reservation.id}`}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <button
+                        onClick={() => handleRemoveBlackout(b.date)}
+                        className="text-kaiso-red hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
