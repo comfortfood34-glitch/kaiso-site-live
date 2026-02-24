@@ -240,14 +240,17 @@ async def send_email(to_email: str, subject: str, html_content: str, cc_email: s
 def get_reservation_email_html(reservation: Reservation, lang: str = "es") -> str:
     """Gera HTML do email de reserva"""
     tasting_text = {
-        "es": "Menú Degustación Premium" if reservation.has_tasting_menu else "No",
-        "pt": "Menu Degustação Premium" if reservation.has_tasting_menu else "Não",
-        "en": "Premium Tasting Menu" if reservation.has_tasting_menu else "No"
+        "es": "Menú Degustación Premium (Pareja)" if reservation.has_tasting_menu else "No",
+        "pt": "Menu Degustação Premium (Casal)" if reservation.has_tasting_menu else "Não",
+        "en": "Premium Tasting Menu (Couple)" if reservation.has_tasting_menu else "No"
     }
     
     discount_text = ""
     if reservation.has_discount:
-        discount_text = f"<p style='color:#C9A24A;'>✓ 10% descuento aplicado (Martes-Jueves)</p>"
+        discount_text = f"<p style='color:#C9A24A;'>&#10003; 10% descuento aplicado (Martes-Jueves)</p>"
+    
+    base_url = os.environ.get("BASE_URL", "https://kaiso-reservas.preview.emergentagent.com")
+    logo_url = f"{base_url}/assets/logo-kaiso.png"
     
     return f"""
     <!DOCTYPE html>
@@ -256,19 +259,19 @@ def get_reservation_email_html(reservation: Reservation, lang: str = "es") -> st
     <body style="font-family: 'Montserrat', Arial, sans-serif; background-color: #050608; color: #E5E5E5; margin: 0; padding: 40px 20px;">
         <div style="max-width: 600px; margin: 0 auto; background-color: #0D0D0D; border: 1px solid #1A1A1A; padding: 40px;">
             <div style="text-align: center; border-bottom: 1px solid #C9A24A; padding-bottom: 30px; margin-bottom: 30px;">
-                <h1 style="font-family: 'Playfair Display', Georgia, serif; font-size: 32px; color: #C9A24A; margin: 0;">Kaisō</h1>
+                <img src="{logo_url}" alt="Kaiso Sushi" style="max-height: 60px; width: auto; margin-bottom: 15px;" />
                 <p style="color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; margin-top: 10px;">Nueva Reserva</p>
             </div>
             
             <table style="width: 100%; border-collapse: collapse;">
                 <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Nombre</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{reservation.customer_name}</td></tr>
-                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Teléfono</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{reservation.customer_phone}</td></tr>
+                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Telefono</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{reservation.customer_phone}</td></tr>
                 <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Email</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{reservation.customer_email or '-'}</td></tr>
                 <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Fecha</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #C9A24A; text-align: right; font-weight: bold;">{reservation.reservation_date}</td></tr>
                 <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Hora</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #C9A24A; text-align: right; font-weight: bold;">{reservation.reservation_time}</td></tr>
                 <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Personas</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{reservation.guests}</td></tr>
-                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Degustación</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{tasting_text.get(lang, tasting_text['es'])}</td></tr>
-                {f'<tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Valor Estimado</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #C9A24A; text-align: right;">€{reservation.estimated_value:.2f}</td></tr>' if reservation.estimated_value > 0 else ''}
+                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Degustacion</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{tasting_text.get(lang, tasting_text['es'])}</td></tr>
+                {f'<tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Valor Estimado</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #C9A24A; text-align: right;">EUR {reservation.estimated_value:.2f}</td></tr>' if reservation.estimated_value > 0 else ''}
             </table>
             
             {discount_text}
@@ -276,8 +279,19 @@ def get_reservation_email_html(reservation: Reservation, lang: str = "es") -> st
             {f'<div style="background-color: #1A1A1A; padding: 15px; margin-top: 20px;"><p style="color: #888; margin: 0; font-size: 14px;"><strong>Observaciones:</strong> {reservation.observations}</p></div>' if reservation.observations else ''}
             {f'<div style="background-color: #1A1A1A; padding: 15px; margin-top: 10px;"><p style="color: #D11B2A; margin: 0; font-size: 14px;"><strong>Alergias:</strong> {reservation.tasting_allergies}</p></div>' if reservation.tasting_allergies else ''}
             
+            <!-- QR Code Promotion -->
+            <div style="background: linear-gradient(135deg, #1A1A1A 0%, #0D0D0D 100%); border: 1px solid #C9A24A; padding: 25px; margin-top: 30px; text-align: center;">
+                <p style="color: #C9A24A; font-size: 16px; font-weight: bold; margin: 0 0 10px 0;">Haga su pedido por el QR Code en la mesa</p>
+                <p style="color: #E5E5E5; font-size: 14px; margin: 0 0 15px 0;">
+                    Acumule puntos que se convierten en dinero y descuentos para comprar en la mesa o por delivery.
+                </p>
+                <p style="color: #C9A24A; font-size: 13px; margin: 0;">
+                    Todo automatico y online
+                </p>
+            </div>
+            
             <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid #1A1A1A; color: #666; font-size: 12px;">
-                <p>{RESTAURANT_NAME} · {RESTAURANT_ADDRESS}</p>
+                <p>{RESTAURANT_NAME} &middot; {RESTAURANT_ADDRESS}</p>
                 <p>{RESTAURANT_PHONE}</p>
             </div>
         </div>
