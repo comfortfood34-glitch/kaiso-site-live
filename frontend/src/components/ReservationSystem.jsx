@@ -145,8 +145,8 @@ export default function ReservationSystem({ onClose }) {
     (!selectedTime || availability?.tasting_slots?.includes(selectedTime));
 
   return (
-    <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 overflow-y-auto" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="bg-kaiso-bg border border-kaiso-border w-full max-w-2xl my-8" onClick={(e) => e.stopPropagation()} data-testid="reservation-system">
+    <div className="fixed inset-0 bg-black/95 z-50 flex items-start justify-center overflow-y-auto" onClick={(e) => e.target === e.currentTarget && step < 4 && onClose()}>
+      <div className="bg-kaiso-bg border border-kaiso-border w-full max-w-2xl my-4 sm:my-8 min-h-0" onClick={(e) => e.stopPropagation()} data-testid="reservation-system">
         {/* Header */}
         <div className="border-b border-kaiso-border p-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
