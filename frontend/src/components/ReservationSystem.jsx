@@ -533,14 +533,14 @@ export default function ReservationSystem({ onClose }) {
                   </div>
                 </div>
                 <p className="text-kaiso-text text-sm text-center mb-2">
-                  {lang === 'es' && 'Experimente en casa hoy con 10% de descuento.'}
-                  {lang === 'pt' && 'Experimente em casa hoje com 10% de desconto.'}
-                  {lang === 'en' && 'Try it at home today with 10% off.'}
+                  {lang === 'es' ? 'Experimente en casa hoy con 10% de descuento.'
+                  : lang === 'pt' ? 'Experimente em casa hoje com 10% de desconto.'
+                  : 'Try it at home today with 10% off.'}
                 </p>
                 <p className="text-kaiso-gold text-xs text-center uppercase tracking-wider">
-                  {lang === 'es' && 'Estafeta propio, sin intermediarios'}
-                  {lang === 'pt' && 'Entregador próprio, sem intermediários'}
-                  {lang === 'en' && 'Our own courier, no middlemen'}
+                  {lang === 'es' ? 'Estafeta propio, sin intermediarios'
+                  : lang === 'pt' ? 'Entregador próprio, sem intermediários'
+                  : 'Our own courier, no middlemen'}
                 </p>
               </div>
 
