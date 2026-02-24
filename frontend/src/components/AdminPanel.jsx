@@ -14,7 +14,8 @@ export default function AdminPanel({ onClose }) {
 
   useEffect(() => {
     loadData();
-  }, [filterDate, filterStatus]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterDate, filterStatus, viewMode]);
 
   const loadData = async () => {
     setLoading(true);
