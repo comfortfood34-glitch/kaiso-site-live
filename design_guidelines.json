@@ -1,0 +1,155 @@
+{
+  "identity": {
+    "persona": "E1",
+    "tone": "Luxury, Zen, Minimalist, Precision",
+    "principles": [
+      "Fusion over Imitation: Japanese minimalism meets Spanish passion.",
+      "Emotion First: The booking process should feel like a ritual, not a form.",
+      "Content is King: Food is the hero. Use negative space to frame it.",
+      "Negative Space: Value empty areas; they represent 'Ma' (the space between).",
+      "Contrast: Gold (#C9A24A) on Deep Obsidian (#0A0A0A) for maximum impact."
+    ]
+  },
+  "visual_language": {
+    "theme": "dark_mode_forced",
+    "colors": {
+      "palette": {
+        "primary": "#C9A24A",
+        "primary_foreground": "#000000",
+        "background": "#0A0A0A",
+        "foreground": "#E5E5E5",
+        "card": "#121212",
+        "card_foreground": "#E5E5E5",
+        "popover": "#121212",
+        "popover_foreground": "#E5E5E5",
+        "secondary": "#1A1A1A",
+        "secondary_foreground": "#C9A24A",
+        "muted": "#2A2A2A",
+        "muted_foreground": "#888888",
+        "accent": "#C9A24A",
+        "accent_foreground": "#000000",
+        "destructive": "#7F1D1D",
+        "destructive_foreground": "#E5E5E5",
+        "border": "#2A2A2A",
+        "input": "#2A2A2A",
+        "ring": "#C9A24A"
+      },
+      "usage": {
+        "text": "Off-white (#E5E5E5) for body, Gold (#C9A24A) for headers and accents.",
+        "backgrounds": "Deep Obsidian (#0A0A0A) as base. No pure black. Use #121212 for cards.",
+        "borders": "Subtle 1px borders in #2A2A2A. Active elements get Gold borders."
+      }
+    },
+    "typography": {
+      "headings": {
+        "font_family": "Playfair Display, serif",
+        "weights": ["400", "700"],
+        "style": "Elegant, high-contrast serif. Use for all section titles."
+      },
+      "body": {
+        "font_family": "Montserrat, sans-serif",
+        "weights": ["300", "400", "500"],
+        "style": "Clean, geometric sans-serif for legibility."
+      },
+      "scale": {
+        "h1": "text-5xl md:text-7xl font-serif tracking-tight",
+        "h2": "text-3xl md:text-5xl font-serif tracking-tight",
+        "h3": "text-xl md:text-2xl font-serif",
+        "body": "text-base font-sans tracking-wide leading-relaxed",
+        "caption": "text-xs font-sans uppercase tracking-[0.2em] text-muted-foreground"
+      }
+    },
+    "spacing": {
+      "container": "max-w-7xl mx-auto px-6 md:px-12",
+      "section_padding": "py-24 md:py-32",
+      "component_gap": "gap-8"
+    },
+    "visual_enhancers": {
+      "shadows": "shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)]",
+      "borders": "border border-[#2A2A2A]",
+      "radius": "rounded-none",
+      "glass": "backdrop-blur-xl bg-black/40 border-white/5",
+      "textures": "Use subtle noise overlay or gold leaf texture sparingly."
+    }
+  },
+  "assets": {
+    "images": [
+      {
+        "category": "hero",
+        "url": "https://images.unsplash.com/photo-1765646772493-7b5341714eea?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTF8MHwxfHNlYXJjaHwyfHxsdXh1cnklMjBzdXNoaSUyMHBsYXRpbmclMjBkYXJrJTIwYmFja2dyb3VuZHxlbnwwfHx8fDE3NzE5MzM1NTh8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Dimly lit table setting, moody, elegant."
+      },
+      {
+        "category": "interior",
+        "url": "https://images.unsplash.com/photo-1753019491860-128b7763f8ee?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1Mjh8MHwxfHNlYXJjaHwxfHxlbGVnYW50JTIwamFwYW5lc2UlMjByZXN0YXVyYW50JTIwaW50ZXJpb3IlMjBkYXJrJTIwbGlnaHRpbmd8ZW58MHx8fHwxNzcxOTMzNTU5fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Warm lighting, dark interior, bokeh."
+      },
+      {
+        "category": "texture",
+        "url": "https://images.pexels.com/photos/3467946/pexels-photo-3467946.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "Gold texture for accents or text masking."
+      },
+      {
+        "category": "food",
+        "url": "https://images.unsplash.com/photo-1580821082847-c53037ecfe0a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTF8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBzdXNoaSUyMHBsYXRpbmclMjBkYXJrJTIwYmFja2dyb3VuZHxlbnwwfHx8fDE3NzE5MzM1NTh8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Minimalist sushi plating on black."
+      }
+    ],
+    "icons": {
+      "library": "lucide-react",
+      "style": "Stroke width 1.5px (Thin/Elegant). Color: #C9A24A."
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#C9A24A] text-black hover:bg-[#D4AF5F] rounded-none px-8 py-6 uppercase tracking-widest text-xs font-bold transition-all duration-300",
+      "secondary": "bg-transparent border border-[#C9A24A] text-[#C9A24A] hover:bg-[#C9A24A] hover:text-black rounded-none px-8 py-6 uppercase tracking-widest text-xs font-bold transition-all duration-300",
+      "ghost": "text-[#E5E5E5] hover:text-[#C9A24A] transition-colors uppercase tracking-widest text-xs"
+    },
+    "inputs": {
+      "style": "bg-transparent border-b border-[#2A2A2A] rounded-none px-0 py-4 focus:border-[#C9A24A] focus:ring-0 transition-all placeholder:text-[#555]",
+      "label": "text-xs uppercase tracking-widest text-[#888] mb-2"
+    },
+    "cards": {
+      "style": "bg-[#121212] border border-[#2A2A2A] rounded-none p-8 hover:border-[#C9A24A]/50 transition-colors"
+    },
+    "calendar": {
+      "wrapper": "bg-[#121212] border border-[#2A2A2A] p-4 rounded-none",
+      "day_selected": "bg-[#C9A24A] text-black hover:bg-[#D4AF5F]",
+      "day_today": "text-[#C9A24A] font-bold"
+    },
+    "dialog": {
+      "overlay": "bg-black/80 backdrop-blur-sm",
+      "content": "bg-[#0A0A0A] border border-[#2A2A2A] rounded-none"
+    }
+  },
+  "layouts": {
+    "home_hero": "Full screen height (h-screen). Background image with overlay. Centered typography. 'Book Table' CTA.",
+    "booking_wizard": "Centered layout. Steps indicator at top (1. Date > 2. Time > 3. Details). Animate transitions between steps.",
+    "admin_dashboard": "Sidebar layout. Dense data tables. High contrast text for readability."
+  },
+  "functionality_specs": {
+    "booking_logic": {
+      "lunch": "12:30 - 15:00",
+      "dinner": "20:00 - 23:00",
+      "interval": "30 minutes",
+      "capacity": "40 pax per slot"
+    },
+    "admin_features": ["View Reservations", "Filter by Date", "Cancel Reservation"],
+    "notifications": ["Email confirmation (simulated)", "Toast notifications"]
+  },
+  "universal_guidelines": {
+    "css_reset": "Ensure box-sizing: border-box. Remove default margins.",
+    "accessibility": "Ensure contrast ratios for gold text on black background. Use aria-labels.",
+    "interactions": "All interactive elements must have hover states. Use 'cursor-pointer'.",
+    "testing": "All interactive elements MUST include 'data-testid' attribute (kebab-case)."
+  },
+  "instructions_to_main_agent": [
+    "1. UPDATE tailwind.config.js with the colors defined in visual_language.",
+    "2. INSTALL required fonts (Playfair Display, Montserrat) via Google Fonts in index.html.",
+    "3. BUILD the components using the 'rounded-none' and 'border-b' aesthetic. No rounded corners.",
+    "4. IMPLEMENT the Reservation Wizard state machine (Date -> Period -> Time -> Form).",
+    "5. USE the provided image URLs for the Landing Page.",
+    "6. ENSURE the Admin Panel is functional and follows the dark theme."
+  ]
+}
