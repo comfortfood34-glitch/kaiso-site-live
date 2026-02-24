@@ -218,7 +218,7 @@ export default function ReservationSystem({ onClose }) {
               </div>
 
               {/* Lunch Slots */}
-              {availability.lunch_slots?.length > 0 && (
+              {(availability.lunch_slots?.length > 0) ? (
                 <div className="mb-8">
                   <h3 className="text-xs uppercase tracking-widest text-kaiso-muted mb-4">{t.reservation.lunch}</h3>
                   <div className="grid grid-cols-4 gap-2">
@@ -234,10 +234,10 @@ export default function ReservationSystem({ onClose }) {
                     ))}
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* Dinner Slots */}
-              {availability.dinner_slots?.length > 0 && (
+              {(availability.dinner_slots?.length > 0) ? (
                 <div>
                   <h3 className="text-xs uppercase tracking-widest text-kaiso-muted mb-4">{t.reservation.dinner}</h3>
                   <div className="grid grid-cols-4 gap-2">
@@ -248,13 +248,13 @@ export default function ReservationSystem({ onClose }) {
                         className={`p-3 border text-center text-sm transition-all ${selectedTime === time ? 'bg-kaiso-gold text-black border-kaiso-gold' : 'border-kaiso-border hover:border-kaiso-gold text-kaiso-text'} ${availability.tasting_slots?.includes(time) ? 'ring-1 ring-kaiso-gold/30' : ''}`}
                         data-testid={`time-${time.replace(':', '')}`}
                       >
-                        {time}
-                        {availability.tasting_slots?.includes(time) && <Sparkles size={10} className="inline ml-1 text-kaiso-gold" />}
+                        <span>{time}</span>
+                        {availability.tasting_slots?.includes(time) ? <Sparkles size={10} className="inline ml-1 text-kaiso-gold" /> : null}
                       </button>
                     ))}
                   </div>
                 </div>
-              )}
+              ) : null}
             </div>
           )}
 
@@ -271,12 +271,12 @@ export default function ReservationSystem({ onClose }) {
                   <span className="text-kaiso-muted">{t.reservation.time}:</span>
                   <span className="text-kaiso-gold">{selectedTime}</span>
                 </div>
-                {availability?.has_discount && (
+                {availability?.has_discount ? (
                   <div className="flex justify-between text-sm mt-2">
                     <span className="text-kaiso-muted">Descuento:</span>
                     <span className="text-kaiso-gold">-10%</span>
                   </div>
-                )}
+                ) : null}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -349,7 +349,7 @@ export default function ReservationSystem({ onClose }) {
               </div>
 
               {/* Tasting Menu Option */}
-              {canSelectTasting && (
+              {canSelectTasting ? (
                 <div className="border border-kaiso-gold/30 p-4 mt-4">
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input
@@ -371,7 +371,7 @@ export default function ReservationSystem({ onClose }) {
                     </div>
                   </label>
                   
-                  {form.has_tasting_menu && (
+                  {form.has_tasting_menu ? (
                     <div className="mt-3 pt-3 border-t border-kaiso-border">
                       <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-2 block">{t.reservation.tasting_allergies}</label>
                       <input
@@ -383,9 +383,9 @@ export default function ReservationSystem({ onClose }) {
                         data-testid="input-allergies"
                       />
                     </div>
-                  )}
+                  ) : null}
                 </div>
-              )}
+              ) : null}
 
               <button
                 type="submit"
