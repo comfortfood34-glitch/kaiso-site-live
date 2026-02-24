@@ -2,6 +2,7 @@
 """
 Backend API Testing for Kaisō Sushi España Reservation System
 Tests all API endpoints for functionality and data integrity
+Updated to match actual server.py implementation
 """
 
 import requests
@@ -9,14 +10,16 @@ import sys
 import json
 from datetime import datetime, timedelta
 import time
+import base64
 
-class ReservationAPITester:
+class KaisoAPITester:
     def __init__(self, base_url="https://server-bridge-3.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
         self.reservation_id = None
-        self.cancel_token = None
+        self.admin_user = "admin"
+        self.admin_pass = "reservas"
 
     def log(self, message, test_type="INFO"):
         print(f"[{test_type}] {message}")
