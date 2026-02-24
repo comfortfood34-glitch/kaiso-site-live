@@ -344,6 +344,7 @@ const FranchiseSection = () => {
       <div className="max-w-4xl mx-auto">
         <div className="border border-kaiso-gold/30 p-12 text-center">
           <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.franchise.title}</span>
+          <p className="text-kaiso-gold/50 text-xs tracking-[0.3em] mt-1">フランチャイズ</p>
           <h2 className="font-serif text-4xl md:text-5xl text-kaiso-text mt-4 mb-6">{t.franchise.headline}</h2>
           <p className="text-kaiso-muted text-lg mb-8">{t.franchise.description}</p>
           
