@@ -1,16 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --color-primary: #C9A24A;
-  --color-background: #0A0A0A;
-  --color-card: #121212;
-  --color-border: #2A2A2A;
-  --color-text: #E5E5E5;
-  --color-text-muted: #888888;
+  --kaiso-bg: #050608;
+  --kaiso-card: #0D0D0D;
+  --kaiso-border: #1A1A1A;
+  --kaiso-gold: #C9A24A;
+  --kaiso-gold-light: #D4AF5F;
+  --kaiso-red: #D11B2A;
+  --kaiso-text: #E5E5E5;
+  --kaiso-muted: #888888;
 }
 
 * {
@@ -25,145 +27,183 @@ html {
 
 body {
   font-family: 'Montserrat', sans-serif;
-  background-color: var(--color-background);
-  color: var(--color-text);
+  background-color: var(--kaiso-bg);
+  color: var(--kaiso-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Typography */
 .font-serif {
   font-family: 'Playfair Display', Georgia, serif;
 }
 
-.font-sans {
-  font-family: 'Montserrat', sans-serif;
-}
-
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-background);
+  background: var(--kaiso-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 0;
+  background: var(--kaiso-border);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary);
-}
-
-/* Animations */
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 1s ease-out forwards;
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 1s ease-out forwards;
-}
-
-.delay-200 {
-  animation-delay: 200ms;
-}
-
-.delay-300 {
-  animation-delay: 300ms;
+  background: var(--kaiso-gold);
 }
 
 /* Selection */
 ::selection {
-  background-color: var(--color-primary);
-  color: var(--color-background);
+  background-color: var(--kaiso-gold);
+  color: var(--kaiso-bg);
 }
 
-/* Focus states */
+/* Focus */
 *:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 1px solid var(--kaiso-gold);
   outline-offset: 2px;
 }
 
-/* Calendar Styles */
+/* React Day Picker Styles */
 .kaiso-calendar {
   --rdp-cell-size: 44px;
-  --rdp-accent-color: #C9A24A;
-  --rdp-background-color: #121212;
-}
-
-.kaiso-calendar .rdp-day_button {
-  border-radius: 0;
+  --rdp-accent-color: var(--kaiso-gold);
+  --rdp-background-color: transparent;
   font-family: 'Montserrat', sans-serif;
 }
 
-.kaiso-calendar .rdp-day_button:hover:not([disabled]) {
-  background-color: #C9A24A;
-  color: #000;
-}
-
-.kaiso-calendar .rdp-day_button.rdp-day_selected {
-  background-color: #C9A24A;
-  color: #000;
-}
-
-.kaiso-calendar .rdp-day_button.rdp-day_today:not(.rdp-day_selected) {
-  color: #C9A24A;
-  font-weight: bold;
-}
-
-.kaiso-calendar .rdp-nav button {
-  border-radius: 0;
-  border: 1px solid #2A2A2A;
-}
-
-.kaiso-calendar .rdp-nav button:hover {
-  border-color: #C9A24A;
-  color: #C9A24A;
+.kaiso-calendar .rdp-root {
+  --rdp-accent-color: var(--kaiso-gold) !important;
 }
 
 .kaiso-calendar .rdp-caption_label {
-  font-family: 'Playfair Display', serif;
-  color: #C9A24A;
+  font-family: 'Playfair Display', serif !important;
+  color: var(--kaiso-gold) !important;
+  font-size: 1.25rem !important;
+}
+
+.kaiso-calendar .rdp-button_previous,
+.kaiso-calendar .rdp-button_next {
+  border: 1px solid var(--kaiso-border) !important;
+  border-radius: 0 !important;
+  color: var(--kaiso-muted) !important;
+  background: transparent !important;
+}
+
+.kaiso-calendar .rdp-button_previous:hover,
+.kaiso-calendar .rdp-button_next:hover {
+  border-color: var(--kaiso-gold) !important;
+  color: var(--kaiso-gold) !important;
 }
 
 .kaiso-calendar .rdp-weekday {
-  color: #888;
-  font-size: 11px;
-  text-transform: uppercase;
+  color: var(--kaiso-muted) !important;
+  font-size: 0.7rem !important;
+  text-transform: uppercase !important;
 }
 
-/* Form inputs */
+.kaiso-calendar .rdp-day_button {
+  border-radius: 0 !important;
+  width: 44px !important;
+  height: 44px !important;
+  color: var(--kaiso-text);
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  transition: all 0.2s ease;
+}
+
+.kaiso-calendar .rdp-day_button:hover:not(:disabled) {
+  background-color: var(--kaiso-gold) !important;
+  color: var(--kaiso-bg) !important;
+}
+
+.kaiso-calendar .rdp-selected .rdp-day_button {
+  background-color: var(--kaiso-gold) !important;
+  color: var(--kaiso-bg) !important;
+}
+
+.kaiso-calendar .rdp-today:not(.rdp-selected) .rdp-day_button {
+  border-color: var(--kaiso-gold) !important;
+  color: var(--kaiso-gold) !important;
+}
+
+.kaiso-calendar .rdp-disabled .rdp-day_button {
+  color: #333 !important;
+  cursor: not-allowed !important;
+}
+
+.kaiso-calendar .discount-day .rdp-day_button {
+  position: relative;
+}
+
+.kaiso-calendar .discount-day .rdp-day_button::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: var(--kaiso-gold);
+  border-radius: 50%;
+}
+
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .kaiso-calendar {
+    --rdp-cell-size: 38px;
+  }
+  
+  .kaiso-calendar .rdp-day_button {
+    width: 38px !important;
+    height: 38px !important;
+  }
+}
+
+/* Form Elements */
 input, select, textarea {
   font-family: 'Montserrat', sans-serif;
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #555;
+  color: #444;
+}
+
+select option {
+  background: var(--kaiso-bg);
+  color: var(--kaiso-text);
 }
 
 /* Buttons */
@@ -176,158 +216,11 @@ button {
 .transition-colors {
   transition-property: color, background-color, border-color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
+  transition-duration: 200ms;
 }
 
 .transition-all {
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-}
-
-/* React Day Picker overrides */
-.rdp-root {
-  --rdp-accent-color: #C9A24A !important;
-  --rdp-accent-background-color: #C9A24A !important;
-}
-
-.rdp-today:not(.rdp-selected) .rdp-day_button {
-  color: #C9A24A;
-  font-weight: bold;
-}
-
-.rdp-selected .rdp-day_button {
-  background-color: #C9A24A;
-  color: #000;
-}
-
-.rdp-day_button:hover:not(:disabled) {
-  background-color: #C9A24A;
-  color: #000;
-}
-
-/* Success Page Animations */
-@keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.5);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-scale-in {
-  animation: scale-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-/* React Day Picker v9 Custom Styles */
-.rdp {
-  --rdp-cell-size: 44px;
-  --rdp-accent-color: #C9A24A;
-  --rdp-background-color: transparent;
-  margin: 0;
-}
-
-.rdp-root {
-  --rdp-accent-color: #C9A24A !important;
-  --rdp-accent-background-color: #C9A24A !important;
-  font-family: 'Montserrat', sans-serif;
-}
-
-.rdp-month {
-  background: transparent;
-}
-
-.rdp-caption_label {
-  font-family: 'Playfair Display', serif !important;
-  color: #C9A24A !important;
-  font-size: 1.25rem !important;
-}
-
-.rdp-button_previous,
-.rdp-button_next {
-  border: 1px solid #2A2A2A !important;
-  border-radius: 0 !important;
-  color: #888 !important;
-  background: transparent !important;
-}
-
-.rdp-button_previous:hover,
-.rdp-button_next:hover {
-  border-color: #C9A24A !important;
-  color: #C9A24A !important;
-  background: transparent !important;
-}
-
-.rdp-weekday {
-  color: #888 !important;
-  font-size: 0.7rem !important;
-  text-transform: uppercase !important;
-  font-weight: normal !important;
-}
-
-.rdp-day {
-  border-radius: 0 !important;
-}
-
-.rdp-day_button {
-  border-radius: 0 !important;
-  width: 44px !important;
-  height: 44px !important;
-  font-size: 0.875rem;
-  color: #E5E5E5;
-  border: none !important;
-  background: transparent !important;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.rdp-day_button:hover:not(:disabled) {
-  background-color: #C9A24A !important;
-  color: #000 !important;
-}
-
-.rdp-selected .rdp-day_button {
-  background-color: #C9A24A !important;
-  color: #000 !important;
-}
-
-.rdp-today:not(.rdp-selected) .rdp-day_button {
-  color: #C9A24A !important;
-  font-weight: bold !important;
-}
-
-.rdp-disabled .rdp-day_button {
-  color: #444 !important;
-  cursor: not-allowed !important;
-}
-
-.rdp-disabled .rdp-day_button:hover {
-  background: transparent !important;
-  color: #444 !important;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .rdp {
-    --rdp-cell-size: 40px;
-  }
-  
-  .rdp-day_button {
-    width: 40px !important;
-    height: 40px !important;
-  }
+  transition-duration: 200ms;
 }
