@@ -206,11 +206,11 @@ const HeroSection = ({ onReserve }) => {
   
   return (
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden" data-testid="hero-section">
-      {/* Background - Foto real do salão do restaurante */}
+      {/* Background - Foto real do chef Kaisō */}
       <div className="absolute inset-0 bg-kaiso-bg">
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-20 blur-[2px]"
-          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1756027914396-de5b664b6f02?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjV8MHwxfHNlYXJjaHwyfHxqYXBhbmVzZSUyMHN1c2hpJTIwcmVzdGF1cmFudCUyMGludGVyaW9yJTIwZGFyayUyMGFtYmllbnR8ZW58MHx8fHwxNzcxOTQ1NjgxfDA&ixlib=rb-4.1.0&q=85')` }}
+          style={{ backgroundImage: `url('/assets/chef-kaiso.png')` }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-kaiso-bg via-kaiso-bg/60 to-kaiso-bg" />
       </div>
@@ -288,10 +288,10 @@ const AboutSection = () => {
             </p>
           </div>
           <div className="relative">
-            {/* Foto real do salão do restaurante - com blur leve */}
+            {/* Foto real do salão do restaurante Kaisō */}
             <div 
               className="w-full h-[500px] bg-cover bg-center"
-              style={{ backgroundImage: `url('https://images.pexels.com/photos/32722834/pexels-photo-32722834.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940')` }}
+              style={{ backgroundImage: `url('/assets/salon-kaiso.png')` }}
             />
             <div className="absolute -bottom-8 -left-8 bg-kaiso-gold p-8">
               <p className="text-black text-xs uppercase tracking-widest">Grupo Kaisō</p>
