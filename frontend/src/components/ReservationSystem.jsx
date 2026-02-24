@@ -424,18 +424,18 @@ export default function ReservationSystem({ onClose }) {
                   <span className="text-kaiso-muted">{t.reservation.guests}</span>
                   <span className="text-kaiso-text">{form.guests}</span>
                 </div>
-                {form.has_tasting_menu && (
+                {form.has_tasting_menu ? (
                   <div className="flex justify-between border-b border-kaiso-border pb-3">
                     <span className="text-kaiso-muted">{t.reservation.tasting_title}</span>
                     <span className="text-kaiso-gold">€{(Math.max(1, Math.ceil(form.guests / 2)) * 65.90).toFixed(2)}</span>
                   </div>
-                )}
-                {availability?.has_discount && (
+                ) : null}
+                {availability?.has_discount ? (
                   <div className="flex justify-between">
                     <span className="text-kaiso-muted">Descuento</span>
                     <span className="text-kaiso-gold">{t.reservation.discount_applied}</span>
                   </div>
-                )}
+                ) : null}
               </div>
 
               <div className="flex flex-col gap-3 mt-6">
@@ -457,7 +457,7 @@ export default function ReservationSystem({ onClose }) {
           )}
 
           {/* Step 5: Success */}
-          {STEPS[step] === 'success' && reservation && (
+          {(STEPS[step] === 'success' && reservation) ? (
             <div className="text-center" data-testid="step-success">
               <div className="w-16 h-16 border-2 border-kaiso-gold rounded-full flex items-center justify-center mx-auto mb-4">
                 <Check size={32} className="text-kaiso-gold" />
