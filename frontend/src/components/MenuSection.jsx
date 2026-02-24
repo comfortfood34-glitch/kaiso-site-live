@@ -72,11 +72,11 @@ export default function MenuSection() {
         </div>
 
         {/* Category Description */}
-        {menuCategories.find(c => c.id === activeCategory)?.description && (
+        {menuCategories.find(c => c.id === activeCategory)?.description ? (
           <p className="text-kaiso-muted text-center mb-8 max-w-2xl mx-auto">
             {getText(menuCategories.find(c => c.id === activeCategory).description)}
           </p>
-        )}
+        ) : null}
 
         {/* Menu Items Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -96,22 +96,22 @@ export default function MenuSection() {
                 <div className="absolute inset-0 bg-gradient-to-t from-kaiso-bg via-transparent to-transparent" />
                 
                 {/* Discount Badge */}
-                {item.discount && (
+                {item.discount ? (
                   <div className="absolute top-3 right-3 bg-kaiso-red text-white text-xs px-2 py-1 font-bold">
-                    -{item.discount}%
+                    <span>-{item.discount}%</span>
                   </div>
-                )}
+                ) : null}
               </div>
 
               {/* Content */}
               <div className="p-4">
                 <h3 className="font-serif text-lg text-kaiso-text mb-1">{item.name}</h3>
-                {item.description && (
+                {item.description ? (
                   <p className="text-kaiso-muted text-sm mb-3 line-clamp-2">{getText(item.description)}</p>
-                )}
+                ) : null}
                 
                 {/* Allergens */}
-                {item.allergens && item.allergens.length > 0 && (
+                {(item.allergens && item.allergens.length > 0) ? (
                   <div className="flex flex-wrap gap-1 mb-3">
                     {item.allergens.map(a => (
                       <span 
@@ -123,7 +123,7 @@ export default function MenuSection() {
                       </span>
                     ))}
                   </div>
-                )}
+                ) : null}
 
                 {/* Price */}
                 <div className="flex items-center justify-between">
