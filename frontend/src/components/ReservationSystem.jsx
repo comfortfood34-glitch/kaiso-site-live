@@ -135,11 +135,11 @@ export default function ReservationSystem({ onClose }) {
         {/* Header */}
         <div className="border-b border-kaiso-border p-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {step > 0 && step < 4 && (
+            {(step > 0 && step < 4) ? (
               <button onClick={goBack} className="text-kaiso-muted hover:text-kaiso-gold transition-colors" data-testid="back-button">
                 <ArrowLeft size={20} />
               </button>
-            )}
+            ) : null}
             <div>
               <h2 className="font-serif text-2xl text-kaiso-gold">{t.reservation.title}</h2>
               <p className="text-xs text-kaiso-muted uppercase tracking-widest mt-1">
@@ -172,12 +172,12 @@ export default function ReservationSystem({ onClose }) {
 
         {/* Content */}
         <div className="p-6 min-h-[400px]">
-          {error && (
+          {error ? (
             <div className="bg-kaiso-red/10 border border-kaiso-red/30 text-kaiso-text p-4 mb-6 flex items-center gap-3">
               <Info size={18} className="text-kaiso-red" />
               <span>{error}</span>
             </div>
-          )}
+          ) : null}
 
           {/* Step 1: Date Selection */}
           {STEPS[step] === 'date' && (
@@ -203,17 +203,17 @@ export default function ReservationSystem({ onClose }) {
           )}
 
           {/* Step 2: Time Selection */}
-          {STEPS[step] === 'time' && availability && (
+          {(STEPS[step] === 'time' && availability) ? (
             <div data-testid="step-time">
               <div className="text-center mb-8">
                 <p className="text-kaiso-gold font-serif text-lg">
                   {format(selectedDate, "EEEE, d 'de' MMMM", { locale: dateLocale })}
                 </p>
-                {availability.has_discount && (
+                {availability.has_discount ? (
                   <span className="inline-block mt-2 text-xs text-kaiso-gold bg-kaiso-gold/10 px-3 py-1">
                     {t.reservation.discount_applied}
                   </span>
-                )}
+                ) : null}
                 <p className="text-kaiso-muted text-sm mt-2">{availability.remaining_capacity} {t.reservation.remaining}</p>
               </div>
 
