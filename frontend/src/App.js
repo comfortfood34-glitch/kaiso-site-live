@@ -250,48 +250,52 @@ const HeroSection = ({ onReserve }) => {
   );
 };
 
-// Menu/Carta Section
-const CartaSection = () => {
-  const { t } = useLanguage();
-  
-  const categories = [
-    { name: "Nigiri", image: "/assets/nigiri.jpg", count: "12 opciones" },
-    { name: "Sashimi", image: "/assets/sashimi.jpg", count: "8 opciones" },
-    { name: "Rolls Signature", image: "/assets/rolls.jpg", count: "15 opciones" },
-    { name: "Entrantes", image: "/assets/entrantes.jpg", count: "10 opciones" },
-    { name: "Temaki", image: "/assets/temaki.jpg", count: "6 opciones" },
-    { name: "Postres", image: "/assets/postres.jpg", count: "5 opciones" }
-  ];
+// About/History Section - Grupo Kaisō
+const AboutSection = () => {
+  const { lang } = useLanguage();
   
   return (
-    <section id="carta" className="py-24 md:py-32 px-6 bg-kaiso-card" data-testid="carta-section">
+    <section className="py-24 md:py-32 px-6" data-testid="about-section">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.nav.carta}</span>
-          <h2 className="font-serif text-4xl md:text-5xl text-kaiso-text mt-4">Nuestra Carta</h2>
-        </div>
-        
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories.map((cat, idx) => (
+        <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div>
+            <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">
+              {lang === 'es' ? 'Nuestra Historia' : lang === 'pt' ? 'Nossa História' : 'Our Story'}
+            </span>
+            <h2 className="font-serif text-4xl md:text-5xl text-kaiso-text mt-4 mb-8">
+              {lang === 'es' ? 'Sushi Sofisticado' : lang === 'pt' ? 'Sushi Sofisticado' : 'Sophisticated Sushi'}
+            </h2>
+            <p className="text-kaiso-muted leading-relaxed mb-6">
+              {lang === 'es' && 'Fundado por Leandro, el Grupo Kaisō nació de la pasión por elevar la gastronomía japonesa a nuevos estándares de excelencia. Cada pieza de sushi es una obra de arte, preparada con técnica rigurosa y los ingredientes más frescos.'}
+              {lang === 'pt' && 'Fundado por Leandro, o Grupo Kaisō nasceu da paixão por elevar a gastronomia japonesa a novos padrões de excelência. Cada peça de sushi é uma obra de arte, preparada com técnica rigorosa e os ingredientes mais frescos.'}
+              {lang === 'en' && 'Founded by Leandro, Grupo Kaisō was born from the passion to elevate Japanese cuisine to new standards of excellence. Each piece of sushi is a work of art, prepared with rigorous technique and the freshest ingredients.'}
+            </p>
+            <p className="text-kaiso-muted leading-relaxed">
+              {lang === 'es' && 'En nuestro restaurante de Córdoba, ofrecemos una experiencia gastronómica única donde la tradición japonesa se fusiona con la innovación culinaria. El sello Kaisō garantiza calidad premium en cada bocado.'}
+              {lang === 'pt' && 'Em nosso restaurante em Córdoba, oferecemos uma experiência gastronômica única onde a tradição japonesa se funde com a inovação culinária. O selo Kaisō garante qualidade premium em cada mordida.'}
+              {lang === 'en' && 'In our Córdoba restaurant, we offer a unique gastronomic experience where Japanese tradition merges with culinary innovation. The Kaisō seal guarantees premium quality in every bite.'}
+            </p>
+          </div>
+          <div className="relative">
+            {/* Placeholder para imagem real do restaurante */}
             <div 
-              key={idx}
-              className="group relative h-64 overflow-hidden border border-kaiso-border hover:border-kaiso-gold/50 transition-colors cursor-pointer"
-            >
-              <div 
-                className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
-                style={{ backgroundImage: `url('${cat.image}')` }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-kaiso-bg via-kaiso-bg/50 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-6">
-                <h3 className="font-serif text-2xl text-kaiso-text mb-1">{cat.name}</h3>
-                <p className="text-kaiso-muted text-sm">{cat.count}</p>
-              </div>
+              className="w-full h-[500px] bg-cover bg-center"
+              style={{ backgroundImage: `url('/assets/restaurant-interior.jpg')` }}
+            />
+            <div className="absolute -bottom-8 -left-8 bg-kaiso-gold p-8">
+              <p className="text-black text-xs uppercase tracking-widest">Grupo Kaisō</p>
+              <p className="text-black font-serif text-3xl">España</p>
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </section>
   );
+};
+
+// Menu/Carta Section - Using real data
+const CartaSection = () => {
+  return <MenuSection />;
 };
 
 // Delivery Section
