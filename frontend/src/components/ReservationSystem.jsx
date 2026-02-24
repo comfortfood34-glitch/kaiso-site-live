@@ -180,7 +180,7 @@ export default function ReservationSystem({ onClose }) {
           ) : null}
 
           {/* Step 1: Date Selection */}
-          {STEPS[step] === 'date' && (
+          {STEPS[step] === 'date' ? (
             <div className="flex flex-col items-center" data-testid="step-date">
               <DayPicker
                 mode="single"
@@ -200,7 +200,7 @@ export default function ReservationSystem({ onClose }) {
                 </div>
               </div>
             </div>
-          )}
+          ) : null}
 
           {/* Step 2: Time Selection */}
           {(STEPS[step] === 'time' && availability) ? (
