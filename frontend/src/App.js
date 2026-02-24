@@ -293,10 +293,6 @@ const AboutSection = () => {
               className="w-full h-[500px] bg-cover bg-center"
               style={{ backgroundImage: `url('/assets/salon-kaiso.png')` }}
             />
-            <div className="absolute -bottom-8 -left-8 bg-kaiso-gold p-8">
-              <p className="text-black text-xs uppercase tracking-widest">Grupo Kaisō</p>
-              <p className="text-black font-serif text-3xl">España</p>
-            </div>
           </div>
         </div>
       </div>
