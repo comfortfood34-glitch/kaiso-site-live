@@ -1,27 +1,33 @@
-# Kaisō Sushi España - PRD
+# Kaisō Sushi - Product Requirements Document
 
-## Identidade Visual
-- Tema Dark Premium (#050608), Ouro (#C9A24A), Vermelho (#D11B2A)
-- Logo oficial de kaisosushi.es em `/assets/logo-kaiso.png`
-- Fotos reais: chef (hero), salão (about), arte japonesa (decorativa)
+## Original Problem Statement
+Build a premium luxury-tech website for Kaisō Sushi restaurant in Córdoba, Spain. Features include: dark theme (#050608) with gold (#C9A24A) and red (#D11B2A) accents, multilingual support (ES/PT/EN), comprehensive reservation system with 30 diners/day limit, premium tasting menu option, WhatsApp + email confirmations, admin panel, real restaurant photos and menu.
 
-## Status ✅
-- [x] Design premium com fotos reais do restaurante
-- [x] Badge "Grupo Kaisō España" REMOVIDO da entrada
-- [x] Menu Degustação = €65,90 por CASAL
-- [x] Email com logo + promoção QR code na mesa + pontos de fidelidade
-- [x] Bocadillos & Hambúrguesas como categoria padrão
-- [x] Botões WhatsApp dourados + link kaisosushi.es
-- [x] Email obrigatório na reserva
-- [x] Multilíngue ES/PT/EN
-- [x] Painel Admin (admin/reservas)
+## Architecture
+- **Frontend:** React + Tailwind CSS + react-router-dom + i18next
+- **Backend:** FastAPI (Python) + MongoDB
+- **Key files:** App.js, ReservationSystem.jsx, AdminPanel.jsx, MenuSection.jsx, server.py, api.js
 
-## Email de Notificação
-- Logo Kaisō no topo
-- Dados completos da reserva
-- Promoção no final: QR code na mesa, pontos → dinheiro/descontos, mesa ou delivery, tudo automático online
+## What's Been Implemented
+- Full restaurant website with dark/gold luxury theme
+- Multilingual support (ES/PT/EN)
+- Reservation system (date picker, time slots, tasting menu, capacity limits)
+- Admin panel (/admin) with reservations management, capacity config, blackout dates, CSV export
+- Menu section with real items, allergen info, WhatsApp ordering
+- Location section with Google Maps embed
+- Email confirmations (customer + restaurant)
+- WhatsApp integration
+- QR code delivery discount on success page
+- Real restaurant photos and logo
 
-## Próximos Passos
-- [ ] Verificar envio de emails SMTP (senha pendente)
-- [ ] Validar integração WhatsApp
-- [ ] Teste funcionalidades avançadas admin
+## Bug Fix Log
+- **2026-02-24:** Fixed critical `removeChild` React DOM error. Converted ALL conditional rendering from `{condition && <JSX>}` to `{condition ? <JSX> : null}` across App.js, ReservationSystem.jsx, AdminPanel.jsx, MenuSection.jsx. Testing: 100% pass rate (iteration_5.json).
+
+## Credentials
+- Admin: username=admin, password=reservas
+- Route: /admin
+
+## Backlog
+- P1: Full admin panel feature test (capacity adjustment, date blocking) on production
+- P2: Validate WhatsApp integration end-to-end on production
+- User needs to redeploy (Save to GitHub) for production fix
