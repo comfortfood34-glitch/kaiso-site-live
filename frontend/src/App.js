@@ -57,7 +57,7 @@ const LanguageSelector = () => {
         <Globe size={18} />
         <span className="text-sm uppercase">{lang}</span>
       </button>
-      {open && (
+      {open ? (
         <div className="absolute top-full right-0 mt-2 bg-kaiso-card border border-kaiso-border p-2 min-w-[150px] z-50">
           {languages.map(l => (
             <button
@@ -70,7 +70,7 @@ const LanguageSelector = () => {
             </button>
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 };
@@ -159,7 +159,7 @@ const Navigation = ({ onReserve }) => {
       </div>
       
       {/* Mobile Menu */}
-      {mobileOpen && (
+      {mobileOpen ? (
         <div className="lg:hidden bg-kaiso-bg border-t border-kaiso-border">
           <div className="px-6 py-4 space-y-4">
             {navItems.map(item => (
@@ -195,7 +195,7 @@ const Navigation = ({ onReserve }) => {
             ))}
           </div>
         </div>
-      )}
+      ) : null}
     </nav>
   );
 };
@@ -535,9 +535,9 @@ const HomePage = () => {
       <LocationSection />
       <Footer />
       
-      {showReservation && (
+      {showReservation ? (
         <ReservationSystem onClose={() => setShowReservation(false)} />
-      )}
+      ) : null}
     </div>
   );
 };
