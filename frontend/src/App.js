@@ -288,10 +288,10 @@ const AboutSection = () => {
             </p>
           </div>
           <div className="relative">
-            {/* Placeholder para imagem real do restaurante */}
+            {/* Foto real do salão do restaurante - com blur leve */}
             <div 
               className="w-full h-[500px] bg-cover bg-center"
-              style={{ backgroundImage: `url('/assets/restaurant-interior.jpg')` }}
+              style={{ backgroundImage: `url('https://images.pexels.com/photos/32722834/pexels-photo-32722834.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940')` }}
             />
             <div className="absolute -bottom-8 -left-8 bg-kaiso-gold p-8">
               <p className="text-black text-xs uppercase tracking-widest">Grupo Kaisō</p>
@@ -317,6 +317,7 @@ const DeliverySection = () => {
     <section id="entrega" className="py-24 md:py-32 px-6" data-testid="delivery-section">
       <div className="max-w-4xl mx-auto text-center">
         <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.delivery.title}</span>
+        <p className="text-kaiso-gold/50 text-xs tracking-[0.3em] mt-1">デリバリー</p>
         <h2 className="font-serif text-4xl md:text-5xl text-kaiso-text mt-4 mb-6">{t.delivery.headline}</h2>
         <p className="text-kaiso-muted text-lg mb-8 max-w-2xl mx-auto">{t.delivery.description}</p>
         
@@ -324,9 +325,9 @@ const DeliverySection = () => {
           href="https://wa.me/34673036835"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-3 bg-[#25D366] text-white px-8 py-4 uppercase tracking-widest text-xs font-bold hover:bg-[#128C7E] transition-colors"
+          className="inline-flex items-center gap-3 bg-kaiso-gold text-black px-8 py-4 uppercase tracking-widest text-xs font-bold hover:bg-kaiso-gold-light transition-colors"
         >
-          <Phone size={18} />
+          <WhatsAppIcon size={18} />
           {t.delivery.cta}
         </a>
       </div>
