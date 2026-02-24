@@ -175,9 +175,10 @@ def is_tasting_available(date_str: str, time_str: str) -> bool:
     return start_minutes <= time_minutes <= end_minutes
 
 def calculate_estimated_value(guests: int, has_tasting: bool, has_discount: bool) -> float:
-    """Calcula valor estimado da reserva"""
+    """Calcula valor estimado da reserva - €65.90 por casal"""
     if has_tasting:
-        value = guests * TASTING_MENU_PRICE
+        couples = max(1, (guests + 1) // 2)  # Round up: 1-2 guests = 1 couple, 3-4 = 2 couples
+        value = couples * TASTING_MENU_PRICE
         if has_discount:
             value = value * (1 - DISCOUNT_PERCENTAGE / 100)
         return round(value, 2)
