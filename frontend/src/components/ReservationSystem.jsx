@@ -518,20 +518,12 @@ export default function ReservationSystem({ onClose }) {
                   <Sparkles size={20} className="text-kaiso-gold mr-2" />
                   <span className="text-kaiso-gold font-serif text-lg">10% Descuento Delivery</span>
                 </div>
-                {/* QR Code placeholder - substituir por imagem real */}
                 <div className="bg-white p-4 mx-auto w-40 h-40 flex items-center justify-center mb-4">
                   <img 
                     src="/assets/qr-delivery.png" 
                     alt="QR Code Delivery"
                     className="w-full h-full object-contain"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
-                    }}
                   />
-                  <div className="hidden w-full h-full items-center justify-center text-black text-xs text-center">
-                    QR Code<br/>Delivery 10%
-                  </div>
                 </div>
                 <p className="text-kaiso-text text-sm text-center mb-2">
                   {lang === 'es' ? 'Experimente en casa hoy con 10% de descuento.'
