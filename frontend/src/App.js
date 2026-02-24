@@ -5,6 +5,7 @@ import { Menu, X, Globe, Phone, MapPin, Clock, ChevronRight, ExternalLink, Users
 import translations from "./lib/translations";
 import ReservationSystem from "./components/ReservationSystem";
 import AdminPanel from "./components/AdminPanel";
+import MenuSection from "./components/MenuSection";
 
 // Language Context
 const LanguageContext = createContext();
