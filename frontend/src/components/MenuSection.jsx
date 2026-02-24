@@ -222,9 +222,9 @@ export default function MenuSection() {
               <div className="pt-4 border-t border-kaiso-border">
                 <div className="flex items-baseline gap-2 mb-4">
                   <span className="text-kaiso-gold font-serif text-3xl">€{selectedItem.price.toFixed(2)}</span>
-                  {selectedItem.originalPrice && (
+                  {selectedItem.originalPrice ? (
                     <span className="text-kaiso-muted line-through">€{selectedItem.originalPrice.toFixed(2)}</span>
-                  )}
+                  ) : null}
                 </div>
                 <div className="flex gap-3">
                   <button
@@ -250,7 +250,7 @@ export default function MenuSection() {
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </section>
   );
 }
