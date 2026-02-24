@@ -452,14 +452,6 @@ export default function ReservationSystem({ onClose }) {
                     </>
                   )}
                 </button>
-                <button
-                  onClick={handleWhatsApp}
-                  className="w-full bg-kaiso-gold text-black py-4 uppercase tracking-widest text-xs font-bold hover:bg-kaiso-gold-light transition-colors flex items-center justify-center gap-2"
-                  data-testid="whatsapp-button"
-                >
-                  <WhatsAppIcon size={16} />
-                  {t.reservation.confirm_whatsapp}
-                </button>
               </div>
             </div>
           )}
