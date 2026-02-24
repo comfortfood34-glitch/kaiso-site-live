@@ -396,8 +396,8 @@ const Footer = () => {
                 <WhatsAppIcon size={14} />
                 +34 673 036 835
               </a>
-              <a href="mailto:companykaiso@gmail.com" className="flex items-center gap-3 text-kaiso-muted hover:text-kaiso-gold transition-colors text-sm">
-                companykaiso@gmail.com
+              <a href="mailto:grupokaiso@yahoo.com" className="flex items-center gap-3 text-kaiso-muted hover:text-kaiso-gold transition-colors text-sm">
+                grupokaiso@yahoo.com
               </a>
             </div>
           </div>
