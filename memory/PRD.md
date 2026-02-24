@@ -9,16 +9,18 @@ Sistema completo de reservas para restaurante japonês premium em Córdoba, com 
 - **Acento**: Vermelho Japonês (#D11B2A)
 - **Tipografia**: Playfair Display (títulos) + Montserrat (corpo)
 - **Selo**: "KAISŌ SIGNATURE STANDARD"
+- **Logo**: Logo oficial Kaisō Sushi (círculo vermelho com bambu/bowl) em `/assets/logo-kaiso.png`
+- **QR Code Delivery**: `/assets/qr-delivery.png` (10% desconto delivery)
 
 ## Arquitetura Técnica
 
 ### Backend (FastAPI + MongoDB)
 - **server.py**: API REST completa com todas as regras de negócio
 - **Database**: MongoDB para persistência
-- **Email**: SMTP Gmail configurado
+- **Email**: SMTP Gmail configurado (senha pendente de validação)
 
 ### Frontend (React + Tailwind CSS)
-- **Landing Page**: Hero premium, Carta, Delivery, Franquias, Footer
+- **Landing Page**: Hero premium, Sobre, Carta, Delivery, Franquias, Footer
 - **ReservationSystem**: Sistema completo de reservas em 5 etapas
 - **AdminPanel**: Dashboard com login, estatísticas, gestão
 - **Multilíngue**: ES/PT/EN com persistência localStorage
@@ -43,67 +45,46 @@ Sistema completo de reservas para restaurante japonês premium em Córdoba, com 
 - **Admin**: admin / reservas
 - **SMTP**: grupokaiso@kaisosushiespanha.com
 
-## Endpoints da API
+## Status de Implementação
 
-### Públicos
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | /api/config | Configuração pública |
-| GET | /api/availability/{date} | Disponibilidade por data |
-| POST | /api/reservations | Criar reserva |
-| GET | /api/whatsapp-message | Gerar mensagem WhatsApp |
-
-### Admin (requer autenticação)
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | /api/admin/reservations | Listar reservas |
-| PATCH | /api/admin/reservations/{id} | Atualizar reserva |
-| GET | /api/admin/stats | Estatísticas |
-| POST | /api/admin/config | Atualizar configuração |
-| POST | /api/admin/blackout | Adicionar data bloqueada |
-| DELETE | /api/admin/blackout/{date} | Remover bloqueio |
-| GET | /api/admin/blackout | Listar datas bloqueadas |
-| GET | /api/admin/export | Exportar CSV |
-
-## Status de Implementação ✅
-
-### Completo
+### Completo ✅
 - [x] Design premium dark + gold
+- [x] Logo oficial Kaisō Sushi no header e footer
+- [x] QR Code real na página de sucesso de reserva
+- [x] Nomes em japonês nas seções importantes
 - [x] Selo KAISŌ SIGNATURE STANDARD
-- [x] Navegação completa (7 seções)
+- [x] Navegação completa com links dourados
 - [x] Multilíngue ES/PT/EN com persistência
-- [x] Sistema de reservas completo
+- [x] Sistema de reservas completo (email obrigatório)
 - [x] Calendário com bloqueio de segundas
 - [x] Slots de 15 minutos
 - [x] Horários diferentes por dia
 - [x] Desconto 10% Ter-Qui
 - [x] Menu Degustação Premium
+- [x] Botões WhatsApp dourados (não verdes) com ícone WA
+- [x] Dois botões por item do menu (WhatsApp + link kaisosushi.es)
+- [x] Menu focado em Bocadillos & Hambúrguesas (categoria padrão)
+- [x] Fotos reais do menu (menuintegrado.com)
+- [x] Fotos do salão como fundo fosco
 - [x] Confirmação WhatsApp
-- [x] Notificação por email
+- [x] Notificação por email (SMTP)
 - [x] Painel Admin com login
 - [x] Estatísticas em tempo real
 - [x] Gestão de reservas
 - [x] Dias bloqueados (blackout)
 - [x] Exportação CSV
 - [x] Configuração de capacidade
+- [x] Footer sem links Emergent
 
 ## Testes
-- **Backend**: 100% (18/18 testes)
-- **Frontend**: 95%
+- **Backend**: 100%
+- **Frontend**: 100%
+- **Último teste**: iteration_4.json (25/02/2026)
 
-## Deploy no Cloudflare
-Para o build funcionar no Cloudflare Pages, adicione:
-- **Build command**: `cd frontend && npm install && npm run build`
-- **Build output directory**: `frontend/build`
-- **Environment variable**: `CI=false`
-
-## Histórico
-- **24/02/2026**: Site reconstruído do zero com todas as funcionalidades
-- **24/02/2026**: Testes 100% backend, 95% frontend
-
-## Próximos Passos (P1)
-- [ ] Substituir placeholders de imagem (/assets/...)
-- [ ] Verificar envio de emails em produção
+## Próximos Passos
+- [ ] Verificar envio de emails em produção (senha SMTP)
+- [ ] Validar integração WhatsApp (formato da mensagem)
+- [ ] Teste completo do painel admin (funcionalidades avançadas)
 - [ ] Configurar domínio final
 
 ## Contatos
