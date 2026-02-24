@@ -532,6 +532,7 @@ const HomePage = () => {
       <CartaSection />
       <DeliverySection />
       <FranchiseSection />
+      <LocationSection />
       <Footer />
       
       {showReservation && (
