@@ -474,10 +474,10 @@ export default function ReservationSystem({ onClose }) {
                 <Check size={40} className="text-kaiso-gold" />
               </div>
               
-              <h3 className="font-serif text-3xl text-kaiso-gold mb-4">{t.reservation.success_title}</h3>
-              <p className="text-kaiso-muted mb-8">{t.reservation.success_message}</p>
+              <h3 className="font-serif text-3xl text-kaiso-gold mb-2">{t.reservation.success_title}</h3>
+              <p className="text-kaiso-muted mb-6">{t.reservation.success_message}</p>
 
-              <div className="bg-kaiso-card border border-kaiso-border p-6 text-left max-w-sm mx-auto">
+              <div className="bg-kaiso-card border border-kaiso-border p-6 text-left max-w-sm mx-auto mb-6">
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-kaiso-muted text-sm">{t.reservation.date}</span>
@@ -498,11 +498,47 @@ export default function ReservationSystem({ onClose }) {
                     </div>
                   )}
                 </div>
+                <div className="mt-4 pt-4 border-t border-kaiso-border text-center">
+                  <p className="text-kaiso-gold text-xs uppercase tracking-wider">Reserva Confirmada Automáticamente</p>
+                </div>
+              </div>
+
+              {/* QR Code Delivery Discount */}
+              <div className="bg-kaiso-card border border-kaiso-gold/30 p-6 max-w-sm mx-auto mb-6">
+                <div className="flex items-center justify-center mb-4">
+                  <Sparkles size={20} className="text-kaiso-gold mr-2" />
+                  <span className="text-kaiso-gold font-serif text-lg">10% Descuento Delivery</span>
+                </div>
+                {/* QR Code placeholder - substituir por imagem real */}
+                <div className="bg-white p-4 mx-auto w-40 h-40 flex items-center justify-center mb-4">
+                  <img 
+                    src="/assets/qr-delivery.png" 
+                    alt="QR Code Delivery"
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                  <div className="hidden w-full h-full items-center justify-center text-black text-xs text-center">
+                    QR Code<br/>Delivery 10%
+                  </div>
+                </div>
+                <p className="text-kaiso-text text-sm text-center mb-2">
+                  {lang === 'es' && 'Experimente en casa hoy con 10% de descuento.'}
+                  {lang === 'pt' && 'Experimente em casa hoje com 10% de desconto.'}
+                  {lang === 'en' && 'Try it at home today with 10% off.'}
+                </p>
+                <p className="text-kaiso-gold text-xs text-center uppercase tracking-wider">
+                  {lang === 'es' && 'Estafeta propio, sin intermediarios'}
+                  {lang === 'pt' && 'Entregador próprio, sem intermediários'}
+                  {lang === 'en' && 'Our own courier, no middlemen'}
+                </p>
               </div>
 
               <button
                 onClick={handleWhatsApp}
-                className="mt-6 bg-[#25D366] text-white px-8 py-4 uppercase tracking-widest text-xs font-bold hover:bg-[#128C7E] transition-colors inline-flex items-center gap-2"
+                className="bg-[#25D366] text-white px-8 py-4 uppercase tracking-widest text-xs font-bold hover:bg-[#128C7E] transition-colors inline-flex items-center gap-2"
               >
                 <Phone size={16} />
                 {t.reservation.confirm_whatsapp}
