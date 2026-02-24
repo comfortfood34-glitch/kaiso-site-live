@@ -459,67 +459,53 @@ export default function ReservationSystem({ onClose }) {
           {/* Step 5: Success */}
           {STEPS[step] === 'success' && reservation && (
             <div className="text-center" data-testid="step-success">
-              <div className="w-20 h-20 border-2 border-kaiso-gold rounded-full flex items-center justify-center mx-auto mb-6">
-                <Check size={40} className="text-kaiso-gold" />
+              <div className="w-16 h-16 border-2 border-kaiso-gold rounded-full flex items-center justify-center mx-auto mb-4">
+                <Check size={32} className="text-kaiso-gold" />
               </div>
               
-              <h3 className="font-serif text-3xl text-kaiso-gold mb-2">{t.reservation.success_title}</h3>
-              <p className="text-kaiso-muted mb-6">{t.reservation.success_message}</p>
+              <h3 className="font-serif text-2xl text-kaiso-gold mb-1">{t.reservation.success_title}</h3>
+              <p className="text-kaiso-muted text-sm mb-4">{t.reservation.success_message}</p>
 
-              <div className="bg-kaiso-card border border-kaiso-border p-6 text-left max-w-sm mx-auto mb-6">
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-kaiso-muted text-sm">{t.reservation.date}</span>
-                    <span className="text-kaiso-gold">{reservation.reservation_date}</span>
+              {/* Reservation summary - compact */}
+              <div className="bg-kaiso-card border border-kaiso-border p-4 text-left max-w-sm mx-auto mb-4">
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <p className="text-kaiso-muted text-xs">{t.reservation.date}</p>
+                    <p className="text-kaiso-gold text-sm font-bold">{reservation.reservation_date}</p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-kaiso-muted text-sm">{t.reservation.time}</span>
-                    <span className="text-kaiso-gold">{reservation.reservation_time}</span>
+                  <div>
+                    <p className="text-kaiso-muted text-xs">{t.reservation.time}</p>
+                    <p className="text-kaiso-gold text-sm font-bold">{reservation.reservation_time}</p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-kaiso-muted text-sm">{t.reservation.guests}</span>
-                    <span className="text-kaiso-text">{reservation.guests}</span>
+                  <div>
+                    <p className="text-kaiso-muted text-xs">{t.reservation.guests}</p>
+                    <p className="text-kaiso-text text-sm font-bold">{reservation.guests}</p>
                   </div>
-                  {reservation.has_tasting_menu && (
-                    <div className="flex justify-between">
-                      <span className="text-kaiso-muted text-sm">{t.reservation.tasting_title}</span>
-                      <span className="text-kaiso-gold">✓</span>
-                    </div>
-                  )}
                 </div>
-                <div className="mt-4 pt-4 border-t border-kaiso-border text-center">
-                  <p className="text-kaiso-gold text-xs uppercase tracking-wider">Reserva Confirmada Automáticamente</p>
-                </div>
+                <p className="text-kaiso-gold text-xs uppercase tracking-wider text-center mt-3 pt-3 border-t border-kaiso-border">Reserva Confirmada</p>
               </div>
 
-              {/* QR Code Delivery Discount */}
-              <div className="bg-kaiso-card border border-kaiso-gold/30 p-6 max-w-sm mx-auto mb-6">
-                <div className="flex items-center justify-center mb-4">
-                  <Sparkles size={20} className="text-kaiso-gold mr-2" />
-                  <span className="text-kaiso-gold font-serif text-lg">10% Descuento Delivery</span>
-                </div>
-                <div className="bg-white p-4 mx-auto w-40 h-40 flex items-center justify-center mb-4">
+              {/* QR Code - prominent */}
+              <div className="bg-kaiso-card border border-kaiso-gold/30 p-4 max-w-sm mx-auto mb-4">
+                <p className="text-kaiso-gold font-serif text-base mb-3">10% Descuento Delivery</p>
+                <div className="bg-white p-3 mx-auto w-32 h-32 flex items-center justify-center mb-3">
                   <img 
                     src="/assets/qr-delivery.png" 
                     alt="QR Code Delivery"
                     className="w-full h-full object-contain"
                   />
                 </div>
-                <p className="text-kaiso-text text-sm text-center mb-2">
-                  {lang === 'es' ? 'Experimente en casa hoy con 10% de descuento.'
-                  : lang === 'pt' ? 'Experimente em casa hoje com 10% de desconto.'
-                  : 'Try it at home today with 10% off.'}
-                </p>
-                <p className="text-kaiso-gold text-xs text-center uppercase tracking-wider">
-                  {lang === 'es' ? 'Estafeta propio, sin intermediarios'
-                  : lang === 'pt' ? 'Entregador próprio, sem intermediários'
-                  : 'Our own courier, no middlemen'}
+                <p className="text-kaiso-muted text-xs">
+                  {lang === 'es' ? 'Escanea para 10% de descuento en delivery'
+                  : lang === 'pt' ? 'Escaneie para 10% de desconto no delivery'
+                  : 'Scan for 10% off delivery'}
                 </p>
               </div>
 
+              {/* WhatsApp button */}
               <button
                 onClick={handleWhatsApp}
-                className="bg-kaiso-gold text-black px-8 py-4 uppercase tracking-widest text-xs font-bold hover:bg-kaiso-gold-light transition-colors inline-flex items-center gap-2"
+                className="bg-kaiso-gold text-black px-6 py-3 uppercase tracking-widest text-xs font-bold hover:bg-kaiso-gold-light transition-colors inline-flex items-center gap-2 mb-3"
               >
                 <WhatsAppIcon size={16} />
                 {t.reservation.confirm_whatsapp}
@@ -527,7 +513,7 @@ export default function ReservationSystem({ onClose }) {
 
               <button
                 onClick={onClose}
-                className="block mx-auto mt-4 text-kaiso-muted hover:text-kaiso-gold transition-colors text-sm"
+                className="block mx-auto text-kaiso-muted hover:text-kaiso-gold transition-colors text-xs"
               >
                 Cerrar
               </button>
