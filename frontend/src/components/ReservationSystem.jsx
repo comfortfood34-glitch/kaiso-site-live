@@ -256,10 +256,10 @@ export default function ReservationSystem({ onClose }) {
                 </div>
               ) : null}
             </div>
-          )}
+          ) : null}
 
           {/* Step 3: Details Form */}
-          {STEPS[step] === 'details' && (
+          {STEPS[step] === 'details' ? (
             <form onSubmit={handleSubmit} className="space-y-5" data-testid="step-details">
               {/* Summary */}
               <div className="bg-kaiso-card p-4 border border-kaiso-border mb-6">
@@ -396,10 +396,10 @@ export default function ReservationSystem({ onClose }) {
                 <ArrowRight size={16} />
               </button>
             </form>
-          )}
+          ) : null}
 
           {/* Step 4: Confirmation */}
-          {STEPS[step] === 'confirm' && (
+          {STEPS[step] === 'confirm' ? (
             <div data-testid="step-confirm">
               <h3 className="font-serif text-xl text-kaiso-gold text-center mb-6">Confirmar Reserva</h3>
               
@@ -454,7 +454,7 @@ export default function ReservationSystem({ onClose }) {
                 </button>
               </div>
             </div>
-          )}
+          ) : null}
 
           {/* Step 5: Success */}
           {(STEPS[step] === 'success' && reservation) ? (
@@ -518,7 +518,7 @@ export default function ReservationSystem({ onClose }) {
                 Cerrar
               </button>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
