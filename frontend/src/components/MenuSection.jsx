@@ -47,9 +47,9 @@ export default function MenuSection() {
             {lang === 'es' ? 'Nuestra Carta' : lang === 'pt' ? 'Nosso Cardápio' : 'Our Menu'}
           </h2>
           <p className="text-kaiso-muted mt-4 max-w-2xl mx-auto">
-            {lang === 'es' && 'Alta cocina japonesa con precios actualizados en tiempo real'}
-            {lang === 'pt' && 'Alta cozinha japonesa com preços atualizados em tempo real'}
-            {lang === 'en' && 'Japanese haute cuisine with real-time updated prices'}
+            {lang === 'es' ? 'Alta cocina japonesa con precios actualizados en tiempo real'
+            : lang === 'pt' ? 'Alta cozinha japonesa com preços atualizados em tempo real'
+            : 'Japanese haute cuisine with real-time updated prices'}
           </p>
         </div>
 

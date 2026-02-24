@@ -277,14 +277,14 @@ const AboutSection = () => {
               {lang === 'es' ? 'Sushi Sofisticado' : lang === 'pt' ? 'Sushi Sofisticado' : 'Sophisticated Sushi'}
             </h2>
             <p className="text-kaiso-muted leading-relaxed mb-6">
-              {lang === 'es' && 'Fundado por Leandro, el Grupo Kaisō nació de la pasión por elevar la gastronomía japonesa a nuevos estándares de excelencia. Cada pieza de sushi es una obra de arte, preparada con técnica rigurosa y los ingredientes más frescos.'}
-              {lang === 'pt' && 'Fundado por Leandro, o Grupo Kaisō nasceu da paixão por elevar a gastronomia japonesa a novos padrões de excelência. Cada peça de sushi é uma obra de arte, preparada com técnica rigorosa e os ingredientes mais frescos.'}
-              {lang === 'en' && 'Founded by Leandro, Grupo Kaisō was born from the passion to elevate Japanese cuisine to new standards of excellence. Each piece of sushi is a work of art, prepared with rigorous technique and the freshest ingredients.'}
+              {lang === 'es' ? 'Fundado por Leandro, el Grupo Kaisō nació de la pasión por elevar la gastronomía japonesa a nuevos estándares de excelencia. Cada pieza de sushi es una obra de arte, preparada con técnica rigurosa y los ingredientes más frescos.'
+              : lang === 'pt' ? 'Fundado por Leandro, o Grupo Kaisō nasceu da paixão por elevar a gastronomia japonesa a novos padrões de excelência. Cada peça de sushi é uma obra de arte, preparada com técnica rigorosa e os ingredientes mais frescos.'
+              : 'Founded by Leandro, Grupo Kaisō was born from the passion to elevate Japanese cuisine to new standards of excellence. Each piece of sushi is a work of art, prepared with rigorous technique and the freshest ingredients.'}
             </p>
             <p className="text-kaiso-muted leading-relaxed">
-              {lang === 'es' && 'En nuestro restaurante de Córdoba, ofrecemos una experiencia gastronómica única donde la tradición japonesa se fusiona con la innovación culinaria. El sello Kaisō garantiza calidad premium en cada bocado.'}
-              {lang === 'pt' && 'Em nosso restaurante em Córdoba, oferecemos uma experiência gastronômica única onde a tradição japonesa se funde com a inovação culinária. O selo Kaisō garante qualidade premium em cada mordida.'}
-              {lang === 'en' && 'In our Córdoba restaurant, we offer a unique gastronomic experience where Japanese tradition merges with culinary innovation. The Kaisō seal guarantees premium quality in every bite.'}
+              {lang === 'es' ? 'En nuestro restaurante de Córdoba, ofrecemos una experiencia gastronómica única donde la tradición japonesa se fusiona con la innovación culinaria. El sello Kaisō garantiza calidad premium en cada bocado.'
+              : lang === 'pt' ? 'Em nosso restaurante em Córdoba, oferecemos uma experiência gastronômica única onde a tradição japonesa se funde com a inovação culinária. O selo Kaisō garante qualidade premium em cada mordida.'
+              : 'In our Córdoba restaurant, we offer a unique gastronomic experience where Japanese tradition merges with culinary innovation. The Kaisō seal guarantees premium quality in every bite.'}
             </p>
           </div>
           <div className="relative">
