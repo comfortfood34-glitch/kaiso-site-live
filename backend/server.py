@@ -403,12 +403,13 @@ async def create_reservation(input: ReservationCreate):
     has_discount = is_discount_day(input.reservation_date)
     estimated_value = calculate_estimated_value(input.guests, input.has_tasting_menu, has_discount)
     
-    # Criar reserva
+    # Criar reserva - AUTO-ACEITAR se dentro dos horários permitidos
     reservation = Reservation(
         **input.model_dump(),
         has_discount=has_discount,
         discount_percentage=DISCOUNT_PERCENTAGE if has_discount else 0,
-        estimated_value=estimated_value
+        estimated_value=estimated_value,
+        status="confirmada"  # AUTO-ACEITAR todas as reservas válidas
     )
     
     # Salvar no banco
