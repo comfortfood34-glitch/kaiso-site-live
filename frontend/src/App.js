@@ -1,244 +1,433 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, createContext, useContext } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Calendar, MapPin, Phone, Mail, Instagram, Clock, Settings } from "lucide-react";
-import ReservationWizard from "./components/ReservationWizard";
+import { BrowserRouter, Routes, Route, useNavigate, Link } from "react-router-dom";
+import { Menu, X, Globe, Phone, MapPin, Clock, ChevronRight, ExternalLink, Users, Calendar, CheckCircle, AlertCircle } from "lucide-react";
+import translations from "./lib/translations";
+import ReservationSystem from "./components/ReservationSystem";
 import AdminPanel from "./components/AdminPanel";
-import CancelReservation from "./components/CancelReservation";
 
-const Home = () => {
-  const [showReservation, setShowReservation] = useState(false);
-  const [showAdmin, setShowAdmin] = useState(false);
+// Language Context
+const LanguageContext = createContext();
 
+export const useLanguage = () => useContext(LanguageContext);
+
+const LanguageProvider = ({ children }) => {
+  const [lang, setLang] = useState(() => localStorage.getItem('kaiso_lang') || 'es');
+  
+  const changeLang = (newLang) => {
+    setLang(newLang);
+    localStorage.setItem('kaiso_lang', newLang);
+  };
+  
+  const t = translations[lang];
+  
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-[#E5E5E5]">
-      {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden" data-testid="hero-section">
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=2070')`,
-          }}
-        >
-          <div className="absolute inset-0 bg-black/70"></div>
-        </div>
+    <LanguageContext.Provider value={{ lang, changeLang, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+};
 
-        {/* Content */}
-        <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
-          <p className="text-xs uppercase tracking-[0.3em] text-[#C9A24A] mb-6 animate-fade-in">
-            Sushi & Japanese Cuisine
-          </p>
-          <h1 className="font-serif text-6xl md:text-8xl text-[#E5E5E5] mb-4 animate-fade-in-up">
-            Kaisō
-          </h1>
-          <div className="w-24 h-[1px] bg-[#C9A24A] mx-auto mb-8"></div>
-          <p className="text-lg md:text-xl text-[#888] mb-12 font-light tracking-wide max-w-xl mx-auto animate-fade-in-up delay-200">
-            Una experiencia gastronómica japonesa de alta cocina en el corazón de España
-          </p>
-          <button
-            onClick={() => setShowReservation(true)}
-            className="bg-[#C9A24A] text-black px-12 py-5 uppercase tracking-[0.2em] text-xs font-bold hover:bg-[#D4AF5F] transition-all duration-300 animate-fade-in-up delay-300"
-            data-testid="reserve-button"
+// Language Selector Component
+const LanguageSelector = () => {
+  const { lang, changeLang } = useLanguage();
+  const [open, setOpen] = useState(false);
+  
+  const languages = [
+    { code: 'es', name: 'Español', flag: '🇪🇸' },
+    { code: 'pt', name: 'Português', flag: '🇧🇷' },
+    { code: 'en', name: 'English', flag: '🇬🇧' }
+  ];
+  
+  return (
+    <div className="relative">
+      <button 
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 text-kaiso-muted hover:text-kaiso-gold transition-colors"
+        data-testid="language-selector"
+      >
+        <Globe size={18} />
+        <span className="text-sm uppercase">{lang}</span>
+      </button>
+      {open && (
+        <div className="absolute top-full right-0 mt-2 bg-kaiso-card border border-kaiso-border p-2 min-w-[150px] z-50">
+          {languages.map(l => (
+            <button
+              key={l.code}
+              onClick={() => { changeLang(l.code); setOpen(false); }}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-kaiso-gold/10 transition-colors ${lang === l.code ? 'text-kaiso-gold' : 'text-kaiso-text'}`}
+            >
+              <span>{l.flag}</span>
+              <span>{l.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Navigation Component
+const Navigation = ({ onReserve }) => {
+  const { t } = useLanguage();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+  const navItems = [
+    { key: 'inicio', href: '#hero' },
+    { key: 'carta', href: '#carta' },
+    { key: 'reservas', href: '#reservas', action: onReserve },
+    { key: 'ubicacion', href: '#ubicacion' },
+    { key: 'entrega', href: '#entrega' },
+    { key: 'contacto', href: '#contacto' },
+    { key: 'franquicias', href: 'https://kaiso-group.com/', external: true }
+  ];
+  
+  return (
+    <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled ? 'bg-kaiso-bg/95 backdrop-blur-md border-b border-kaiso-border' : 'bg-transparent'}`}>
+      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        {/* Logo */}
+        <a href="#hero" className="font-serif text-2xl text-kaiso-gold">Kaisō</a>
+        
+        {/* Desktop Nav */}
+        <div className="hidden lg:flex items-center gap-8">
+          {navItems.map(item => (
+            item.external ? (
+              <a 
+                key={item.key}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-kaiso-muted hover:text-kaiso-gold transition-colors flex items-center gap-1"
+              >
+                {t.nav[item.key]}
+                <ExternalLink size={12} />
+              </a>
+            ) : item.action ? (
+              <button
+                key={item.key}
+                onClick={item.action}
+                className="text-sm text-kaiso-muted hover:text-kaiso-gold transition-colors"
+              >
+                {t.nav[item.key]}
+              </button>
+            ) : (
+              <a 
+                key={item.key}
+                href={item.href}
+                className="text-sm text-kaiso-muted hover:text-kaiso-gold transition-colors"
+              >
+                {t.nav[item.key]}
+              </a>
+            )
+          ))}
+        </div>
+        
+        {/* Right side */}
+        <div className="flex items-center gap-4">
+          <LanguageSelector />
+          <button 
+            onClick={onReserve}
+            className="hidden md:block bg-kaiso-gold text-black px-6 py-2 text-xs uppercase tracking-widest font-bold hover:bg-kaiso-gold-light transition-colors"
+            data-testid="nav-reserve-button"
           >
-            Reservar Mesa
+            {t.nav.reservas}
+          </button>
+          <button 
+            className="lg:hidden text-kaiso-text"
+            onClick={() => setMobileOpen(!mobileOpen)}
+          >
+            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
-
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <div className="w-[1px] h-16 bg-gradient-to-b from-[#C9A24A] to-transparent"></div>
-        </div>
-      </section>
-
-      {/* About Section */}
-      <section className="py-24 md:py-32 px-6" data-testid="about-section">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-[#C9A24A] mb-4">Nuestra Filosofía</p>
-              <h2 className="font-serif text-4xl md:text-5xl text-[#E5E5E5] mb-8">
-                El Arte del<br />Sushi Tradicional
-              </h2>
-              <p className="text-[#888] leading-relaxed mb-6">
-                En Kaisō, cada pieza de sushi es una obra maestra. Nuestros maestros itamae 
-                combinan técnicas ancestrales japonesas con los mejores ingredientes frescos, 
-                creando una experiencia sensorial única.
-              </p>
-              <p className="text-[#888] leading-relaxed">
-                Desde el arroz perfectamente sazonado hasta el pescado más fresco del día, 
-                cada detalle está cuidadosamente orquestado para deleitar su paladar.
-              </p>
-            </div>
-            <div className="relative">
-              <img 
-                src="https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?q=80&w=1974"
-                alt="Sushi preparation"
-                className="w-full h-[500px] object-cover"
-              />
-              <div className="absolute -bottom-8 -left-8 bg-[#C9A24A] p-8">
-                <p className="text-black text-xs uppercase tracking-widest">Desde</p>
-                <p className="text-black font-serif text-3xl">2018</p>
-              </div>
-            </div>
+      </div>
+      
+      {/* Mobile Menu */}
+      {mobileOpen && (
+        <div className="lg:hidden bg-kaiso-bg border-t border-kaiso-border">
+          <div className="px-6 py-4 space-y-4">
+            {navItems.map(item => (
+              item.external ? (
+                <a 
+                  key={item.key}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-kaiso-text hover:text-kaiso-gold transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {t.nav[item.key]}
+                </a>
+              ) : item.action ? (
+                <button
+                  key={item.key}
+                  onClick={() => { item.action(); setMobileOpen(false); }}
+                  className="block w-full text-left text-kaiso-text hover:text-kaiso-gold transition-colors"
+                >
+                  {t.nav[item.key]}
+                </button>
+              ) : (
+                <a 
+                  key={item.key}
+                  href={item.href}
+                  className="block text-kaiso-text hover:text-kaiso-gold transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {t.nav[item.key]}
+                </a>
+              )
+            ))}
           </div>
         </div>
-      </section>
+      )}
+    </nav>
+  );
+};
 
-      {/* Hours & Location */}
-      <section className="py-24 md:py-32 px-6 bg-[#121212]" data-testid="info-section">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-xs uppercase tracking-[0.2em] text-[#C9A24A] mb-4">Visítenos</p>
-            <h2 className="font-serif text-4xl md:text-5xl text-[#E5E5E5]">
-              Horarios & Ubicación
-            </h2>
+// Hero Section
+const HeroSection = ({ onReserve }) => {
+  const { t } = useLanguage();
+  
+  return (
+    <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden" data-testid="hero-section">
+      {/* Background - Placeholder para imagem real */}
+      <div className="absolute inset-0 bg-kaiso-bg">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-40"
+          style={{ backgroundImage: `url('/assets/hero-bg.jpg')` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-kaiso-bg via-transparent to-kaiso-bg" />
+      </div>
+      
+      {/* Content */}
+      <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
+        {/* Badge */}
+        <div className="inline-block mb-8">
+          <div className="border border-kaiso-gold/50 px-6 py-2 backdrop-blur-sm">
+            <span className="text-kaiso-gold text-[10px] uppercase tracking-[0.3em] font-medium">
+              {t.hero.badge}
+            </span>
           </div>
+        </div>
+        
+        <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl text-kaiso-text mb-6 leading-tight">
+          {t.hero.headline}
+        </h1>
+        
+        <p className="text-kaiso-muted text-lg md:text-xl mb-12 max-w-2xl mx-auto">
+          {t.hero.subheadline}
+        </p>
+        
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <button
+            onClick={onReserve}
+            className="bg-kaiso-gold text-black px-10 py-4 uppercase tracking-[0.2em] text-xs font-bold hover:bg-kaiso-gold-light transition-all"
+            data-testid="hero-reserve-button"
+          >
+            {t.hero.cta_reservar}
+          </button>
+          <a
+            href="#carta"
+            className="border border-kaiso-gold text-kaiso-gold px-10 py-4 uppercase tracking-[0.2em] text-xs font-bold hover:bg-kaiso-gold hover:text-black transition-all"
+          >
+            {t.hero.cta_carta}
+          </a>
+        </div>
+      </div>
+      
+      {/* Scroll indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+        <div className="w-[1px] h-20 bg-gradient-to-b from-kaiso-gold to-transparent animate-pulse" />
+      </div>
+    </section>
+  );
+};
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Lunch */}
-            <div className="border border-[#2A2A2A] p-8 text-center hover:border-[#C9A24A]/50 transition-colors" data-testid="lunch-hours">
-              <Clock className="mx-auto mb-4 text-[#C9A24A]" size={32} />
-              <h3 className="font-serif text-xl text-[#E5E5E5] mb-4">Almuerzo</h3>
-              <p className="text-[#888]">Martes - Domingo</p>
-              <p className="text-[#C9A24A] font-medium mt-2">12:30 - 15:00</p>
-            </div>
-
-            {/* Dinner */}
-            <div className="border border-[#2A2A2A] p-8 text-center hover:border-[#C9A24A]/50 transition-colors" data-testid="dinner-hours">
-              <Clock className="mx-auto mb-4 text-[#C9A24A]" size={32} />
-              <h3 className="font-serif text-xl text-[#E5E5E5] mb-4">Cena</h3>
-              <p className="text-[#888]">Martes - Domingo</p>
-              <p className="text-[#C9A24A] font-medium mt-2">20:00 - 23:00</p>
-            </div>
-
-            {/* Location */}
-            <div className="border border-[#2A2A2A] p-8 text-center hover:border-[#C9A24A]/50 transition-colors" data-testid="location-info">
-              <MapPin className="mx-auto mb-4 text-[#C9A24A]" size={32} />
-              <h3 className="font-serif text-xl text-[#E5E5E5] mb-4">Ubicación</h3>
-              <p className="text-[#888]">Calle Principal, 123</p>
-              <p className="text-[#888]">28001 Madrid, España</p>
-            </div>
-          </div>
-
-          <div className="text-center mt-12">
-            <button
-              onClick={() => setShowReservation(true)}
-              className="border border-[#C9A24A] text-[#C9A24A] px-12 py-5 uppercase tracking-[0.2em] text-xs font-bold hover:bg-[#C9A24A] hover:text-black transition-all duration-300"
-              data-testid="reserve-button-secondary"
+// Menu/Carta Section
+const CartaSection = () => {
+  const { t } = useLanguage();
+  
+  const categories = [
+    { name: "Nigiri", image: "/assets/nigiri.jpg", count: "12 opciones" },
+    { name: "Sashimi", image: "/assets/sashimi.jpg", count: "8 opciones" },
+    { name: "Rolls Signature", image: "/assets/rolls.jpg", count: "15 opciones" },
+    { name: "Entrantes", image: "/assets/entrantes.jpg", count: "10 opciones" },
+    { name: "Temaki", image: "/assets/temaki.jpg", count: "6 opciones" },
+    { name: "Postres", image: "/assets/postres.jpg", count: "5 opciones" }
+  ];
+  
+  return (
+    <section id="carta" className="py-24 md:py-32 px-6 bg-kaiso-card" data-testid="carta-section">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.nav.carta}</span>
+          <h2 className="font-serif text-4xl md:text-5xl text-kaiso-text mt-4">Nuestra Carta</h2>
+        </div>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {categories.map((cat, idx) => (
+            <div 
+              key={idx}
+              className="group relative h-64 overflow-hidden border border-kaiso-border hover:border-kaiso-gold/50 transition-colors cursor-pointer"
             >
-              Reservar Ahora
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Gallery */}
-      <section className="py-24 md:py-32 px-6" data-testid="gallery-section">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-xs uppercase tracking-[0.2em] text-[#C9A24A] mb-4">Galería</p>
-            <h2 className="font-serif text-4xl md:text-5xl text-[#E5E5E5]">
-              Nuestras Creaciones
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <img 
-              src="https://images.unsplash.com/photo-1553621042-f6e147245754?q=80&w=1925"
-              alt="Sushi roll"
-              className="w-full h-64 object-cover hover:opacity-80 transition-opacity"
-            />
-            <img 
-              src="https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?q=80&w=2070"
-              alt="Nigiri"
-              className="w-full h-64 object-cover hover:opacity-80 transition-opacity"
-            />
-            <img 
-              src="https://images.unsplash.com/photo-1582450871972-ab5ca641643d?q=80&w=1974"
-              alt="Sashimi"
-              className="w-full h-64 object-cover hover:opacity-80 transition-opacity"
-            />
-            <img 
-              src="https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=1974"
-              alt="Japanese dish"
-              className="w-full h-64 object-cover hover:opacity-80 transition-opacity"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-[#121212] border-t border-[#2A2A2A] py-16 px-6" data-testid="footer">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12">
-            {/* Brand */}
-            <div>
-              <h3 className="font-serif text-3xl text-[#C9A24A] mb-4">Kaisō</h3>
-              <p className="text-[#888] text-sm">
-                Sushi & Japanese Cuisine<br />
-                Una experiencia única en Madrid
-              </p>
-            </div>
-
-            {/* Contact */}
-            <div>
-              <h4 className="text-xs uppercase tracking-widest text-[#E5E5E5] mb-4">Contacto</h4>
-              <div className="space-y-3">
-                <a href="tel:+34600000000" className="flex items-center gap-3 text-[#888] hover:text-[#C9A24A] transition-colors text-sm">
-                  <Phone size={14} />
-                  +34 600 000 000
-                </a>
-                <a href="mailto:grupokaiso@kaisosushiespanha.com" className="flex items-center gap-3 text-[#888] hover:text-[#C9A24A] transition-colors text-sm">
-                  <Mail size={14} />
-                  grupokaiso@kaisosushiespanha.com
-                </a>
+              <div 
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
+                style={{ backgroundImage: `url('${cat.image}')` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-kaiso-bg via-kaiso-bg/50 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-6">
+                <h3 className="font-serif text-2xl text-kaiso-text mb-1">{cat.name}</h3>
+                <p className="text-kaiso-muted text-sm">{cat.count}</p>
               </div>
             </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
 
-            {/* Hours */}
-            <div>
-              <h4 className="text-xs uppercase tracking-widest text-[#E5E5E5] mb-4">Horario</h4>
-              <div className="space-y-2 text-[#888] text-sm">
-                <p>Almuerzo: 12:30 - 15:00</p>
-                <p>Cena: 20:00 - 23:00</p>
-                <p className="text-[#C9A24A]">Cerrado los Lunes</p>
-              </div>
+// Delivery Section
+const DeliverySection = () => {
+  const { t } = useLanguage();
+  
+  return (
+    <section id="entrega" className="py-24 md:py-32 px-6" data-testid="delivery-section">
+      <div className="max-w-4xl mx-auto text-center">
+        <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.delivery.title}</span>
+        <h2 className="font-serif text-4xl md:text-5xl text-kaiso-text mt-4 mb-6">{t.delivery.headline}</h2>
+        <p className="text-kaiso-muted text-lg mb-8 max-w-2xl mx-auto">{t.delivery.description}</p>
+        
+        <a
+          href="https://wa.me/34673036835"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-3 bg-[#25D366] text-white px-8 py-4 uppercase tracking-widest text-xs font-bold hover:bg-[#128C7E] transition-colors"
+        >
+          <Phone size={18} />
+          {t.delivery.cta}
+        </a>
+      </div>
+    </section>
+  );
+};
+
+// Franchise Section
+const FranchiseSection = () => {
+  const { t } = useLanguage();
+  
+  return (
+    <section className="py-24 md:py-32 px-6 bg-kaiso-card" data-testid="franchise-section">
+      <div className="max-w-4xl mx-auto">
+        <div className="border border-kaiso-gold/30 p-12 text-center">
+          <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.franchise.title}</span>
+          <h2 className="font-serif text-4xl md:text-5xl text-kaiso-text mt-4 mb-6">{t.franchise.headline}</h2>
+          <p className="text-kaiso-muted text-lg mb-8">{t.franchise.description}</p>
+          
+          <a
+            href="https://kaiso-group.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 border border-kaiso-gold text-kaiso-gold px-8 py-4 uppercase tracking-widest text-xs font-bold hover:bg-kaiso-gold hover:text-black transition-all"
+          >
+            {t.franchise.cta}
+            <ExternalLink size={14} />
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// Footer
+const Footer = () => {
+  const { t } = useLanguage();
+  
+  return (
+    <footer id="contacto" className="bg-kaiso-bg border-t border-kaiso-border py-16 px-6" data-testid="footer">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-4 gap-12">
+          {/* Brand */}
+          <div>
+            <h3 className="font-serif text-3xl text-kaiso-gold mb-4">Kaisō</h3>
+            <p className="text-kaiso-muted text-sm">Sushi & Japanese Cuisine</p>
+            <p className="text-kaiso-muted text-sm mt-2">Córdoba, España</p>
+          </div>
+          
+          {/* Hours */}
+          <div>
+            <h4 className="text-xs uppercase tracking-widest text-kaiso-text mb-4">{t.footer.hours_title}</h4>
+            <div className="space-y-2 text-sm text-kaiso-muted">
+              <p><span className="text-kaiso-gold">{t.footer.lunch_label}:</span></p>
+              <p>{t.footer.tue_thu}: 12:30–14:30</p>
+              <p>{t.footer.fri_sun}: 12:30–15:00</p>
+              <p className="mt-3"><span className="text-kaiso-gold">{t.footer.dinner_label}:</span></p>
+              <p>{t.footer.tue_thu} / {t.footer.fri_sun}: 19:30–22:00</p>
+              <p className="text-kaiso-red mt-3">{t.footer.closed}</p>
             </div>
-
-            {/* Social */}
-            <div>
-              <h4 className="text-xs uppercase tracking-widest text-[#E5E5E5] mb-4">Síguenos</h4>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-[#888] hover:text-[#C9A24A] transition-colors text-sm">
-                <Instagram size={14} />
-                @kaisosushi
+          </div>
+          
+          {/* Contact */}
+          <div>
+            <h4 className="text-xs uppercase tracking-widest text-kaiso-text mb-4">{t.footer.contact}</h4>
+            <div className="space-y-3">
+              <a href="tel:+34673036835" className="flex items-center gap-3 text-kaiso-muted hover:text-kaiso-gold transition-colors text-sm">
+                <Phone size={14} />
+                +34 673 036 835
+              </a>
+              <a href="mailto:companykaiso@gmail.com" className="flex items-center gap-3 text-kaiso-muted hover:text-kaiso-gold transition-colors text-sm">
+                companykaiso@gmail.com
               </a>
             </div>
           </div>
-
-          <div className="border-t border-[#2A2A2A] mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-[#555] text-xs">
-              © 2024 Kaisō Sushi España. Todos los derechos reservados.
-            </p>
-            <button
-              onClick={() => setShowAdmin(true)}
-              className="mt-4 md:mt-0 flex items-center gap-2 text-[#555] hover:text-[#C9A24A] transition-colors text-xs"
-              data-testid="admin-button"
-            >
-              <Settings size={14} />
-              Admin
-            </button>
+          
+          {/* Location */}
+          <div id="ubicacion">
+            <h4 className="text-xs uppercase tracking-widest text-kaiso-text mb-4">{t.footer.location}</h4>
+            <div className="flex items-start gap-3 text-kaiso-muted text-sm">
+              <MapPin size={14} className="mt-1 text-kaiso-gold flex-shrink-0" />
+              <span>Av. de Barcelona, 19<br />14010 Córdoba, España</span>
+            </div>
           </div>
         </div>
-      </footer>
+        
+        <div className="border-t border-kaiso-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-kaiso-muted/50 text-xs">
+            © 2024 Kaisō Sushi. Todos los derechos reservados.
+          </p>
+          <Link
+            to="/admin"
+            className="mt-4 md:mt-0 text-kaiso-muted/30 hover:text-kaiso-gold transition-colors text-xs"
+          >
+            Admin
+          </Link>
+        </div>
+      </div>
+    </footer>
+  );
+};
 
-      {/* Modals */}
-      {showReservation && (
-        <ReservationWizard onClose={() => setShowReservation(false)} />
-      )}
+// Main Home Page
+const HomePage = () => {
+  const [showReservation, setShowReservation] = useState(false);
+  
+  return (
+    <div className="min-h-screen bg-kaiso-bg text-kaiso-text">
+      <Navigation onReserve={() => setShowReservation(true)} />
+      <HeroSection onReserve={() => setShowReservation(true)} />
+      <CartaSection />
+      <DeliverySection />
+      <FranchiseSection />
+      <Footer />
       
-      {showAdmin && (
-        <AdminPanel onClose={() => setShowAdmin(false)} />
+      {showReservation && (
+        <ReservationSystem onClose={() => setShowReservation(false)} />
       )}
     </div>
   );
@@ -246,12 +435,14 @@ const Home = () => {
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/cancel/:token" element={<CancelReservation />} />
-      </Routes>
-    </BrowserRouter>
+    <LanguageProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/admin" element={<AdminPanel />} />
+        </Routes>
+      </BrowserRouter>
+    </LanguageProvider>
   );
 }
 
