@@ -372,8 +372,9 @@ const Footer = () => {
         <div className="grid md:grid-cols-4 gap-12">
           {/* Brand */}
           <div>
-            <h3 className="font-serif text-3xl text-kaiso-gold mb-4">Kaisō</h3>
+            <img src="/assets/logo-kaiso.png" alt="Kaisō Sushi" className="h-12 w-auto mb-4" />
             <p className="text-kaiso-muted text-sm">Sushi & Japanese Cuisine</p>
+            <p className="text-kaiso-gold/50 text-xs mt-1">寿司と日本料理</p>
             <p className="text-kaiso-muted text-sm mt-2">Córdoba, España</p>
           </div>
           
@@ -394,8 +395,8 @@ const Footer = () => {
           <div>
             <h4 className="text-xs uppercase tracking-widest text-kaiso-text mb-4">{t.footer.contact}</h4>
             <div className="space-y-3">
-              <a href="tel:+34673036835" className="flex items-center gap-3 text-kaiso-muted hover:text-kaiso-gold transition-colors text-sm">
-                <Phone size={14} />
+              <a href="https://wa.me/34673036835" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-kaiso-muted hover:text-kaiso-gold transition-colors text-sm">
+                <WhatsAppIcon size={14} />
                 +34 673 036 835
               </a>
               <a href="mailto:companykaiso@gmail.com" className="flex items-center gap-3 text-kaiso-muted hover:text-kaiso-gold transition-colors text-sm">
@@ -416,7 +417,7 @@ const Footer = () => {
         
         <div className="border-t border-kaiso-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-kaiso-muted/50 text-xs">
-            © 2024 Kaisō Sushi. Todos los derechos reservados.
+            © {new Date().getFullYear()} Kaisō Sushi España. Todos los derechos reservados.
           </p>
           <Link
             to="/admin"
