@@ -34,7 +34,7 @@ export default function MenuSection() {
       <div className="absolute inset-0 opacity-5">
         <div 
           className="absolute inset-0 bg-cover bg-center blur-[3px]"
-          style={{ backgroundImage: `url('https://images.pexels.com/photos/33327454/pexels-photo-33327454.png?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940')` }}
+          style={{ backgroundImage: `url('/assets/salon-kaiso.png')` }}
         />
       </div>
       
