@@ -309,6 +309,64 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
     return credentials.username
 
 
+def get_client_confirmation_email(reservation: Reservation) -> str:
+    """Email de confirmação para o cliente"""
+    base_url = os.environ.get("BASE_URL", "https://kaiso-reservas.preview.emergentagent.com")
+    logo_url = f"{base_url}/assets/logo-kaiso.png"
+    
+    tasting_row = ""
+    if reservation.has_tasting_menu:
+        tasting_row = f'<tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Menu Degustacion</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #C9A24A; text-align: right;">Premium (Pareja) - EUR {reservation.estimated_value:.2f}</td></tr>'
+    
+    discount_text = ""
+    if reservation.has_discount:
+        discount_text = '<p style="color:#C9A24A; margin-top: 15px;">&#10003; 10% descuento aplicado (Martes-Jueves)</p>'
+    
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="UTF-8"></head>
+    <body style="font-family: Arial, sans-serif; background-color: #050608; color: #E5E5E5; margin: 0; padding: 40px 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #0D0D0D; border: 1px solid #1A1A1A; padding: 40px;">
+            <div style="text-align: center; border-bottom: 1px solid #C9A24A; padding-bottom: 30px; margin-bottom: 30px;">
+                <img src="{logo_url}" alt="Kaiso Sushi" style="max-height: 60px; width: auto; margin-bottom: 15px;" />
+                <h2 style="color: #C9A24A; margin: 10px 0 5px;">Reserva Confirmada</h2>
+                <p style="color: #888; font-size: 13px;">Gracias por elegir Kaiso Sushi, {reservation.customer_name}!</p>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Fecha</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #C9A24A; text-align: right; font-weight: bold;">{reservation.reservation_date}</td></tr>
+                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Hora</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #C9A24A; text-align: right; font-weight: bold;">{reservation.reservation_time}</td></tr>
+                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Personas</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{reservation.guests}</td></tr>
+                {tasting_row}
+            </table>
+            
+            {discount_text}
+            
+            <!-- QR Code Promotion -->
+            <div style="background: linear-gradient(135deg, #1A1A1A 0%, #0D0D0D 100%); border: 1px solid #C9A24A; padding: 25px; margin-top: 30px; text-align: center;">
+                <p style="color: #C9A24A; font-size: 16px; font-weight: bold; margin: 0 0 10px 0;">Haga su pedido por el QR Code en la mesa</p>
+                <p style="color: #E5E5E5; font-size: 14px; margin: 0 0 15px 0;">
+                    Acumule puntos que se convierten en dinero y descuentos para comprar en la mesa o por delivery.
+                </p>
+                <p style="color: #C9A24A; font-size: 13px; margin: 0;">Todo automatico y online</p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="https://wa.me/34673036835" style="display: inline-block; background-color: #C9A24A; color: #000; padding: 12px 30px; text-decoration: none; font-weight: bold; font-size: 13px; text-transform: uppercase; letter-spacing: 2px;">Contactar por WhatsApp</a>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid #1A1A1A; color: #666; font-size: 12px;">
+                <p>{RESTAURANT_NAME}</p>
+                <p>{RESTAURANT_ADDRESS}</p>
+                <p>{RESTAURANT_PHONE}</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+
 # ========================
 # API ROUTES - PUBLIC
 # ========================
