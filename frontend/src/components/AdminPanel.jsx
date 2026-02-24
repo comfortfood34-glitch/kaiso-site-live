@@ -372,10 +372,10 @@ export default function AdminPanel() {
               </div>
             )}
           </>
-        )}
+        ) : null}
 
         {/* Settings Tab */}
-        {activeTab === 'settings' && (
+        {activeTab === 'settings' ? (
           <div className="grid md:grid-cols-2 gap-8">
             {/* Capacity */}
             <div className="bg-kaiso-card border border-kaiso-border p-6">
@@ -451,7 +451,7 @@ export default function AdminPanel() {
               </div>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
