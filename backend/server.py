@@ -131,6 +131,14 @@ class BlackoutDate(BaseModel):
     date: str
     reason: Optional[str] = ""
 
+class AnalyticsEvent(BaseModel):
+    event_type: str  # page_view, reservation_open, reservation_complete
+    page: Optional[str] = "/"
+    referrer: Optional[str] = ""
+    user_agent: Optional[str] = ""
+    language: Optional[str] = "es"
+    screen_width: Optional[int] = 0
+
 
 # ========================
 # HELPER FUNCTIONS
