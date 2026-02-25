@@ -528,11 +528,27 @@ const Footer = () => {
 // Main Home Page
 const HomePage = () => {
   const [showReservation, setShowReservation] = useState(false);
+  const { lang } = useLanguage();
+  
+  useEffect(() => {
+    trackEvent({
+      event_type: 'page_view',
+      page: window.location.pathname,
+      referrer: document.referrer || '',
+      language: lang,
+      screen_width: window.innerWidth
+    });
+  }, []);
+
+  const handleOpenReservation = () => {
+    trackEvent({ event_type: 'reservation_open', page: '/', language: lang, screen_width: window.innerWidth });
+    setShowReservation(true);
+  };
   
   return (
     <div className="min-h-screen bg-kaiso-bg text-kaiso-text">
-      <Navigation onReserve={() => setShowReservation(true)} />
-      <HeroSection onReserve={() => setShowReservation(true)} />
+      <Navigation onReserve={handleOpenReservation} />
+      <HeroSection onReserve={handleOpenReservation} />
       <AboutSection />
       <CartaSection />
       <DeliverySection />
