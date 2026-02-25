@@ -194,7 +194,7 @@ async def get_current_guests(date_str: str) -> int:
     reservations = await db.reservations.find({
         "reservation_date": date_str,
         "status": {"$nin": ["cancelada"]}
-    }).to_list(1000)
+    }, {"guests": 1}).to_list(1000)
     return sum(r.get("guests", 0) for r in reservations)
 
 async def is_blackout_date(date_str: str) -> bool:
