@@ -473,10 +473,12 @@ const Footer = () => {
             <h4 className="text-xs uppercase tracking-widest text-kaiso-text mb-4">{t.footer.hours_title}</h4>
             <div className="space-y-2 text-sm text-kaiso-muted">
               <p><span className="text-kaiso-gold">{t.footer.lunch_label}:</span></p>
-              <p>{t.footer.tue_thu}: 12:30–14:30</p>
-              <p>{t.footer.fri_sun}: 12:30–15:00</p>
+              <p>{t.footer.tue_thu}: 12:00–14:00</p>
+              <p>{t.footer.fri_sun}: 12:00–15:30</p>
               <p className="mt-3"><span className="text-kaiso-gold">{t.footer.dinner_label}:</span></p>
-              <p>{t.footer.tue_thu} / {t.footer.fri_sun}: 19:30–22:00</p>
+              <p>{t.footer.tue_thu}: 19:00–23:00</p>
+              <p>{t.footer.fri_sat}: 19:00–23:30</p>
+              <p>{t.footer.sun}: 19:00–23:00</p>
               <p className="text-kaiso-red mt-3">{t.footer.closed}</p>
             </div>
           </div>
