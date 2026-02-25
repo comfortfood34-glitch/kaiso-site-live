@@ -696,6 +696,125 @@ async def admin_export_csv(
     )
 
 
+# ========================
+# ANALYTICS ENDPOINTS
+# ========================
+@api_router.post("/analytics/track")
+async def track_event(event: AnalyticsEvent):
+    """Track a page view or user action"""
+    doc = {
+        "event_type": event.event_type,
+        "page": event.page,
+        "referrer": event.referrer,
+        "language": event.language,
+        "device": "mobile" if event.screen_width and event.screen_width < 768 else "desktop",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "hour": datetime.now(timezone.utc).hour
+    }
+    await db.analytics.insert_one(doc)
+    return {"status": "ok"}
+
+@api_router.get("/analytics/stats")
+async def get_analytics_stats(
+    period: str = Query("7d", description="7d, 30d, 90d"),
+    credentials: HTTPBasicCredentials = Depends(verify_admin)
+):
+    """Get analytics dashboard data"""
+    days_map = {"7d": 7, "30d": 30, "90d": 90}
+    num_days = days_map.get(period, 7)
+    
+    start_date = (datetime.now(timezone.utc) - timedelta(days=num_days)).strftime("%Y-%m-%d")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    # Get all events in period
+    events = await db.analytics.find(
+        {"date": {"$gte": start_date}},
+        {"_id": 0}
+    ).to_list(50000)
+    
+    # Visitors per day
+    daily_views = {}
+    pages_count = {}
+    languages = {}
+    devices = {}
+    hourly = {h: 0 for h in range(24)}
+    funnel = {"page_view": 0, "reservation_open": 0, "reservation_complete": 0}
+    
+    for e in events:
+        d = e.get("date", "")
+        event_type = e.get("event_type", "")
+        
+        # Daily count
+        if event_type == "page_view":
+            daily_views[d] = daily_views.get(d, 0) + 1
+        
+        # Funnel
+        if event_type in funnel:
+            funnel[event_type] += 1
+        
+        # Pages
+        page = e.get("page", "/")
+        pages_count[page] = pages_count.get(page, 0) + 1
+        
+        # Languages
+        lang = e.get("language", "es")
+        languages[lang] = languages.get(lang, 0) + 1
+        
+        # Devices
+        device = e.get("device", "desktop")
+        devices[device] = devices.get(device, 0) + 1
+        
+        # Hourly
+        hour = e.get("hour", 0)
+        hourly[hour] = hourly.get(hour, 0) + 1
+    
+    # Build daily chart data for the period
+    daily_chart = []
+    for i in range(num_days):
+        d = (datetime.now(timezone.utc) - timedelta(days=num_days - 1 - i)).strftime("%Y-%m-%d")
+        daily_chart.append({"date": d, "views": daily_views.get(d, 0)})
+    
+    # Get reservations in period for correlation
+    reservations = await db.reservations.find(
+        {"reservation_date": {"$gte": start_date}},
+        {"_id": 0, "reservation_date": 1, "guests": 1, "status": 1}
+    ).to_list(5000)
+    
+    daily_reservations = {}
+    for r in reservations:
+        d = r.get("reservation_date", "")
+        daily_reservations[d] = daily_reservations.get(d, 0) + 1
+    
+    # Add reservations to daily chart
+    for item in daily_chart:
+        item["reservations"] = daily_reservations.get(item["date"], 0)
+    
+    # Top pages
+    top_pages = sorted(pages_count.items(), key=lambda x: x[1], reverse=True)[:10]
+    
+    # Today stats
+    today_events = [e for e in events if e.get("date") == today]
+    today_views = sum(1 for e in today_events if e.get("event_type") == "page_view")
+    
+    total_views = sum(1 for e in events if e.get("event_type") == "page_view")
+    
+    return {
+        "period": period,
+        "total_views": total_views,
+        "today_views": today_views,
+        "total_reservations_opened": funnel["reservation_open"],
+        "total_reservations_completed": funnel["reservation_complete"],
+        "conversion_rate": round((funnel["reservation_complete"] / funnel["reservation_open"] * 100), 1) if funnel["reservation_open"] > 0 else 0,
+        "daily_chart": daily_chart,
+        "top_pages": [{"page": p, "views": v} for p, v in top_pages],
+        "languages": [{"lang": k, "count": v} for k, v in sorted(languages.items(), key=lambda x: x[1], reverse=True)],
+        "devices": [{"device": k, "count": v} for k, v in devices.items()],
+        "hourly": [{"hour": h, "count": c} for h, c in sorted(hourly.items())],
+        "funnel": funnel
+    }
+
+
 # Include router
 app.include_router(api_router)
 
