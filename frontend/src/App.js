@@ -377,7 +377,7 @@ const LocationSection = () => {
           <div className="h-[350px] md:h-auto min-h-[300px]">
             <iframe
               title="Kaisō Sushi Location"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3149.5!2d-4.7885!3d37.8882!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s!2s!5e0!3m2!1ses!2ses!4v1&q=Kaiso+Sushi+Av+de+Barcelona+19+Cordoba+España"
+              src="https://maps.google.com/maps?q=Kaiso+Sushi+Av+de+Barcelona+19+Cordoba+Espa%C3%B1a&t=&z=16&ie=UTF8&iwloc=&output=embed"
               width="100%"
               height="100%"
               style={{ border: 0 }}
