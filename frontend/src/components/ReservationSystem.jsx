@@ -4,7 +4,7 @@ import { es, pt, enUS } from 'date-fns/locale';
 import { DayPicker } from 'react-day-picker';
 import { Calendar, Clock, Users, X, ArrowLeft, ArrowRight, Check, Info, Sparkles } from 'lucide-react';
 import { useLanguage } from '../App';
-import { getAvailability, createReservation, getWhatsAppMessage } from '../lib/api';
+import { getAvailability, createReservation, getWhatsAppMessage, trackEvent } from '../lib/api';
 import 'react-day-picker/style.css';
 
 // WhatsApp SVG Icon
