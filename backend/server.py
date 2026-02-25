@@ -77,6 +77,17 @@ db = client[os.environ.get('DB_NAME', 'kaiso_db')]
 
 # Create the main app
 app = FastAPI(title="Kaisō Sushi Reservation System")
+
+# CORS must be before routes
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+)
+
 api_router = APIRouter(prefix="/api")
 security = HTTPBasic()
 
