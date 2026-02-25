@@ -5,7 +5,9 @@ import { Menu, X, Globe, MapPin, Clock, ChevronRight, ExternalLink, Users, Calen
 import translations from "./lib/translations";
 import ReservationSystem from "./components/ReservationSystem";
 import AdminPanel from "./components/AdminPanel";
+import AnalyticsPanel from "./components/AnalyticsPanel";
 import MenuSection from "./components/MenuSection";
+import { trackEvent } from "./lib/api";
 
 // WhatsApp SVG Icon component
 const WhatsAppIcon = ({ size = 18, className = "" }) => (
