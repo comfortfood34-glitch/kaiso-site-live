@@ -53,12 +53,12 @@ TASTING_MENU_NAME = "Menú Degustación Premium"
 # 0=Segunda, 1=Terça, 2=Quarta, 3=Quinta, 4=Sexta, 5=Sábado, 6=Domingo
 SCHEDULE = {
     0: None,  # Segunda - FECHADO
-    1: {"lunch": ("12:30", "14:30"), "dinner": ("19:30", "22:00")},  # Terça
-    2: {"lunch": ("12:30", "14:30"), "dinner": ("19:30", "22:00")},  # Quarta
-    3: {"lunch": ("12:30", "14:30"), "dinner": ("19:30", "22:00")},  # Quinta
-    4: {"lunch": ("12:30", "15:00"), "dinner": ("19:30", "22:00")},  # Sexta
-    5: {"lunch": ("12:30", "15:00"), "dinner": ("19:30", "22:00")},  # Sábado
-    6: {"lunch": ("12:30", "15:00"), "dinner": ("19:30", "22:00")},  # Domingo
+    1: {"lunch": ("12:00", "14:00"), "dinner": ("19:00", "23:00")},  # Terça
+    2: {"lunch": ("12:00", "14:00"), "dinner": ("19:00", "23:00")},  # Quarta
+    3: {"lunch": ("12:00", "14:00"), "dinner": ("19:00", "23:00")},  # Quinta
+    4: {"lunch": ("12:00", "15:30"), "dinner": ("19:00", "23:30")},  # Sexta
+    5: {"lunch": ("12:00", "15:30"), "dinner": ("19:00", "23:30")},  # Sábado
+    6: {"lunch": ("12:00", "15:30"), "dinner": ("19:00", "23:00")},  # Domingo
 }
 
 # Dias com desconto 10% (Terça, Quarta, Quinta)
