@@ -107,6 +107,7 @@ export default function ReservationSystem({ onClose }) {
       
       const result = await createReservation(reservationData);
       setReservation(result);
+      trackEvent({ event_type: 'reservation_complete', page: '/', language: lang, screen_width: window.innerWidth });
       setStep(4); // Success - show QR code page
     } catch (err) {
       setError(err.response?.data?.detail || 'Error al crear la reserva');
