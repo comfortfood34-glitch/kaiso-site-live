@@ -74,7 +74,9 @@ const translations = {
       lunch_label: "Almuerzo",
       dinner_label: "Cena",
       tue_thu: "Mar–Jue",
+      fri_sat: "Vie–Sáb",
       fri_sun: "Vie–Dom",
+      sun: "Dom",
       closed: "Lunes: Cerrado",
       contact: "Contacto",
       location: "Ubicación"
@@ -161,7 +163,9 @@ const translations = {
       lunch_label: "Almoço",
       dinner_label: "Jantar",
       tue_thu: "Ter–Qui",
+      fri_sat: "Sex–Sáb",
       fri_sun: "Sex–Dom",
+      sun: "Dom",
       closed: "Segunda: Fechado",
       contact: "Contato",
       location: "Localização"
@@ -247,7 +251,9 @@ const translations = {
       lunch_label: "Lunch",
       dinner_label: "Dinner",
       tue_thu: "Tue–Thu",
+      fri_sat: "Fri–Sat",
       fri_sun: "Fri–Sun",
+      sun: "Sun",
       closed: "Monday: Closed",
       contact: "Contact",
       location: "Location"
