@@ -159,3 +159,7 @@ android-sdk/ -e
 *.env.*
 frontend/node_modules/.cache/default-development/10.pack
 frontend/node_modules/.cache/default-development/2.pack
+-e 
+# Environment files
+*.env
+*.env.*
