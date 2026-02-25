@@ -24,17 +24,17 @@ load_dotenv(ROOT_DIR / '.env')
 # ========================
 # CONFIGURAÇÕES EDITÁVEIS
 # ========================
-ADMIN_USER = "admin"
-ADMIN_PASSWORD = "reservas"
+ADMIN_USER = os.environ.get('ADMIN_USER')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD')
 
 # Email Configuration
-SMTP_HOST = "smtp.gmail.com"
-SMTP_PORT = 587
-SMTP_USER = "grupokaiso@kaisosushiespanha.com"
-SMTP_PASS = "ztxfyfdmwcsadzkm"  # App Password sem espaços
-ADMIN_EMAIL_FROM = "grupokaiso@kaisosushiespanha.com"
-NOTIFY_TO = "companykaiso@gmail.com"
-CC_TO = "grupokaiso@kaisosushiespanha.com"
+SMTP_HOST = os.environ.get('SMTP_HOST')
+SMTP_PORT = int(os.environ.get('SMTP_PORT', '587'))
+SMTP_USER = os.environ.get('SMTP_USER')
+SMTP_PASS = os.environ.get('SMTP_PASS')
+ADMIN_EMAIL_FROM = os.environ.get('ADMIN_EMAIL_FROM')
+NOTIFY_TO = os.environ.get('NOTIFY_TO')
+CC_TO = os.environ.get('CC_TO')
 
 # Restaurant Configuration
 RESTAURANT_NAME = "Kaisō Sushi"
