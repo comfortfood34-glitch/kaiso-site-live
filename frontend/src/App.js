@@ -362,8 +362,9 @@ const LocationSection = () => {
               <p className="flex items-start gap-3">
                 <Clock size={18} className="text-kaiso-gold mt-1 shrink-0" />
                 <span>
-                  {lang === 'es' ? 'Mar–Jue: 12:30–14:30, 19:30–22:00' : lang === 'pt' ? 'Ter–Qui: 12:30–14:30, 19:30–22:00' : 'Tue–Thu: 12:30–14:30, 19:30–22:00'}<br/>
-                  {lang === 'es' ? 'Vie–Dom: 12:30–15:00, 19:30–22:00' : lang === 'pt' ? 'Sex–Dom: 12:30–15:00, 19:30–22:00' : 'Fri–Sun: 12:30–15:00, 19:30–22:00'}<br/>
+                  {lang === 'es' ? 'Mar–Jue: 12:00–14:00, 19:00–23:00' : lang === 'pt' ? 'Ter–Qui: 12:00–14:00, 19:00–23:00' : 'Tue–Thu: 12:00–14:00, 19:00–23:00'}<br/>
+                  {lang === 'es' ? 'Vie–Sáb: 12:00–15:30, 19:00–23:30' : lang === 'pt' ? 'Sex–Sáb: 12:00–15:30, 19:00–23:30' : 'Fri–Sat: 12:00–15:30, 19:00–23:30'}<br/>
+                  {lang === 'es' ? 'Dom: 12:00–15:30, 19:00–23:00' : lang === 'pt' ? 'Dom: 12:00–15:30, 19:00–23:00' : 'Sun: 12:00–15:30, 19:00–23:00'}<br/>
                   <span className="text-kaiso-red">{lang === 'es' ? 'Lunes cerrado' : lang === 'pt' ? 'Segunda fechado' : 'Monday closed'}</span>
                 </span>
               </p>
