@@ -63,4 +63,15 @@ export const adminExportCSV = async (dateFrom, dateTo, username, password) => {
   return response.data;
 };
 
+// Analytics endpoints
+export const trackEvent = async (eventData) => {
+  try {
+    await api.post('/analytics/track', eventData);
+  } catch (e) { /* silent fail */ }
+};
+
+export const getAnalyticsStats = async (period, username, password) => {
+  return (await api.get(`/analytics/stats?period=${period}`, adminAuth(username, password))).data;
+};
+
 export default api;
