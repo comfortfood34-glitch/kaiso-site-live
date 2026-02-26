@@ -468,6 +468,7 @@ export default function AdminPanel() {
                       <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-kaiso-muted font-normal">Valor</th>
                       <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-kaiso-muted font-normal">Estado</th>
                       <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-kaiso-muted font-normal">Obs.</th>
+                      <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-kaiso-muted font-normal">Origen</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -515,6 +516,13 @@ export default function AdminPanel() {
                         </td>
                         <td className="py-4 px-4 text-kaiso-muted text-sm max-w-[150px] truncate" title={res.observations}>
                           {res.observations || '-'}
+                        </td>
+                        <td className="py-4 px-4">
+                          {res.source === 'manual' ? (
+                            <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 uppercase tracking-wider">Manual</span>
+                          ) : (
+                            <span className="text-xs text-kaiso-muted">Online</span>
+                          )}
                         </td>
                       </tr>
                     ))}
