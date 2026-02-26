@@ -111,6 +111,15 @@ class ReservationCreate(BaseModel):
     has_tasting_menu: bool = False
     tasting_allergies: Optional[str] = ""
 
+class ManualReservationCreate(BaseModel):
+    customer_name: str = Field(..., min_length=2, max_length=100)
+    customer_phone: str = Field(..., min_length=9, max_length=20)
+    customer_email: Optional[str] = None
+    guests: int = Field(..., ge=1, le=MAX_GUESTS_PER_RESERVATION)
+    reservation_date: str  # YYYY-MM-DD
+    reservation_time: str  # HH:MM
+    observations: Optional[str] = ""
+
 class Reservation(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -128,6 +137,7 @@ class Reservation(BaseModel):
     estimated_value: float = 0.0
     status: str = "confirmada"  # AUTO-ACEITAR: confirmada por padrão
     admin_notes: str = ""
+    source: str = "online"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ReservationUpdate(BaseModel):
@@ -556,6 +566,57 @@ _Enviado desde kaisosushi.es_"""
 # ========================
 # API ROUTES - ADMIN
 # ========================
+@api_router.post("/admin/reservations")
+async def admin_create_reservation(
+    input: ManualReservationCreate,
+    credentials: HTTPBasicCredentials = Depends(verify_admin)
+):
+    """Create reservation manually (admin) - bypasses availability checks"""
+    has_discount = is_discount_day(input.reservation_date)
+
+    reservation = Reservation(
+        customer_name=input.customer_name,
+        customer_phone=input.customer_phone,
+        customer_email=input.customer_email,
+        guests=input.guests,
+        reservation_date=input.reservation_date,
+        reservation_time=input.reservation_time,
+        observations=input.observations or "",
+        has_discount=has_discount,
+        discount_percentage=DISCOUNT_PERCENTAGE if has_discount else 0,
+        estimated_value=0.0,
+        status="confirmada",
+        source="manual"
+    )
+
+    doc = reservation.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.reservations.insert_one(doc)
+
+    # Remove _id added by MongoDB
+    doc.pop('_id', None)
+
+    # Send emails in background
+    async def send_emails_background():
+        # Notify restaurant
+        try:
+            email_html = get_reservation_email_html(reservation)
+            await send_email(NOTIFY_TO, f"Nueva Reserva Manual: {reservation.customer_name} - {reservation.reservation_date}", email_html, CC_TO)
+        except Exception as e:
+            logger.error(f"Erro ao enviar email admin (manual): {e}")
+
+        # Notify customer if email provided
+        if reservation.customer_email:
+            try:
+                client_html = get_client_confirmation_email(reservation)
+                await send_email(reservation.customer_email, "Confirmación de Reserva - Kaisō Sushi", client_html)
+            except Exception as e:
+                logger.error(f"Erro ao enviar email cliente (manual): {e}")
+
+    asyncio.create_task(send_emails_background())
+
+    return doc
+
 @api_router.get("/admin/reservations")
 async def admin_get_reservations(
     date_from: Optional[str] = None,
