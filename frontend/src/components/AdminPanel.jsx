@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { format, addDays } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Users, Clock, Download, Plus, Trash2, RefreshCw, LogOut, Settings, BarChart3, Lock, ChevronLeft, ChevronRight } from 'lucide-react';
-import { adminGetReservations, adminUpdateReservation, adminGetStats, adminUpdateConfig, adminAddBlackout, adminRemoveBlackout, adminGetBlackouts, adminExportCSV } from '../lib/api';
+import { adminGetReservations, adminUpdateReservation, adminGetStats, adminUpdateConfig, adminAddBlackout, adminRemoveBlackout, adminGetBlackouts, adminExportCSV, adminCreateReservation } from '../lib/api';
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -20,6 +20,13 @@ export default function AdminPanel() {
   
   const [newBlackout, setNewBlackout] = useState({ date: '', reason: '' });
   const [dailyCapacity, setDailyCapacity] = useState(30);
+  const [showNewReservation, setShowNewReservation] = useState(false);
+  const [newRes, setNewRes] = useState({
+    customer_name: '', customer_phone: '', customer_email: '',
+    guests: 2, reservation_date: format(new Date(), 'yyyy-MM-dd'),
+    reservation_time: '19:00', observations: ''
+  });
+  const [creatingRes, setCreatingRes] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
