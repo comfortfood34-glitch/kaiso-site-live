@@ -525,7 +525,6 @@ async def create_reservation(input: ReservationCreate):
             except Exception as e:
                 logger.error(f"Erro ao enviar email cliente: {e}")
     
-    import asyncio
     asyncio.create_task(send_emails_background())
     
     return reservation
