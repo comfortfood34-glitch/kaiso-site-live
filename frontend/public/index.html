@@ -23,7 +23,10 @@
         -->
         <title>Kaisō Sushi | Alta Cocina Japonesa en Córdoba</title>
         <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
-        <style>#emergent-badge{display:none!important;}</style>
+        <style>#emergent-badge,a[href*="emergent.sh"][style*="position: fixed"],a[href*="emergent.sh"][style*="position:fixed"]{display:none!important;visibility:hidden!important;width:0!important;height:0!important;overflow:hidden!important;}</style>
+        <script>
+        (function(){var r=function(){var b=document.getElementById('emergent-badge');if(b)b.remove();document.querySelectorAll('a[href*="emergent.sh"]').forEach(function(e){if(e.style&&e.style.position==='fixed')e.remove();});};r();document.addEventListener('DOMContentLoaded',r);window.addEventListener('load',function(){r();setTimeout(r,1000);setTimeout(r,3000);});var o=new MutationObserver(function(){r();});o.observe(document.body||document.documentElement,{childList:true,subtree:true});})();
+        </script>
         <!--
         These two scripts have been added for the Visual Edits, please do not edit or remove them
         -->
