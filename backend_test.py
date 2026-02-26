@@ -13,7 +13,7 @@ import time
 import base64
 
 class KaisoAPITester:
-    def __init__(self, base_url="https://kaiso-premium.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://manual-reservations.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0

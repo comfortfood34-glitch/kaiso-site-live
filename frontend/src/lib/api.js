@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const rawUrl = process.env.REACT_APP_BACKEND_URL 
-  || 'https://kaiso-premium.preview.emergentagent.com';
+  || 'https://manual-reservations.preview.emergentagent.com';
 const API_BASE_URL = `${rawUrl.replace(/\/+$/, '')}/api`;
 
 const api = axios.create({
