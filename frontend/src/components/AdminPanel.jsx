@@ -323,7 +323,129 @@ export default function AdminPanel() {
                 <Download size={14} />
                 Exportar CSV
               </button>
+
+              <button
+                onClick={() => setShowNewReservation(!showNewReservation)}
+                data-testid="toggle-new-reservation-form"
+                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 text-xs uppercase tracking-wider font-bold hover:bg-green-500 transition-colors"
+              >
+                <Plus size={14} />
+                Nueva Reserva
+              </button>
             </div>
+
+            {/* Manual Reservation Form */}
+            {showNewReservation ? (
+              <form
+                onSubmit={handleCreateReservation}
+                data-testid="manual-reservation-form"
+                className="bg-kaiso-card border border-kaiso-gold/30 p-6 mb-6 space-y-4"
+              >
+                <h3 className="text-kaiso-gold font-serif text-lg mb-2 flex items-center gap-2">
+                  <Plus size={18} />
+                  Crear Reserva Manual
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-1 block">Nombre *</label>
+                    <input
+                      type="text"
+                      data-testid="manual-res-name"
+                      value={newRes.customer_name}
+                      onChange={(e) => setNewRes(prev => ({ ...prev, customer_name: e.target.value }))}
+                      className="w-full bg-kaiso-bg border border-kaiso-border px-3 py-2 text-kaiso-text focus:border-kaiso-gold focus:outline-none"
+                      required
+                      minLength={2}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-1 block">Teléfono *</label>
+                    <input
+                      type="tel"
+                      data-testid="manual-res-phone"
+                      value={newRes.customer_phone}
+                      onChange={(e) => setNewRes(prev => ({ ...prev, customer_phone: e.target.value }))}
+                      className="w-full bg-kaiso-bg border border-kaiso-border px-3 py-2 text-kaiso-text focus:border-kaiso-gold focus:outline-none"
+                      required
+                      minLength={9}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-1 block">Email (opcional)</label>
+                    <input
+                      type="email"
+                      data-testid="manual-res-email"
+                      value={newRes.customer_email}
+                      onChange={(e) => setNewRes(prev => ({ ...prev, customer_email: e.target.value }))}
+                      className="w-full bg-kaiso-bg border border-kaiso-border px-3 py-2 text-kaiso-text focus:border-kaiso-gold focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-1 block">Fecha *</label>
+                    <input
+                      type="date"
+                      data-testid="manual-res-date"
+                      value={newRes.reservation_date}
+                      onChange={(e) => setNewRes(prev => ({ ...prev, reservation_date: e.target.value }))}
+                      className="w-full bg-kaiso-bg border border-kaiso-border px-3 py-2 text-kaiso-text focus:border-kaiso-gold focus:outline-none"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-1 block">Hora *</label>
+                    <input
+                      type="time"
+                      data-testid="manual-res-time"
+                      value={newRes.reservation_time}
+                      onChange={(e) => setNewRes(prev => ({ ...prev, reservation_time: e.target.value }))}
+                      className="w-full bg-kaiso-bg border border-kaiso-border px-3 py-2 text-kaiso-text focus:border-kaiso-gold focus:outline-none"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-1 block">Personas *</label>
+                    <input
+                      type="number"
+                      data-testid="manual-res-guests"
+                      value={newRes.guests}
+                      onChange={(e) => setNewRes(prev => ({ ...prev, guests: parseInt(e.target.value) || 1 }))}
+                      min={1}
+                      max={12}
+                      className="w-full bg-kaiso-bg border border-kaiso-border px-3 py-2 text-kaiso-text focus:border-kaiso-gold focus:outline-none"
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs uppercase tracking-widest text-kaiso-muted mb-1 block">Observaciones</label>
+                  <input
+                    type="text"
+                    data-testid="manual-res-observations"
+                    value={newRes.observations}
+                    onChange={(e) => setNewRes(prev => ({ ...prev, observations: e.target.value }))}
+                    placeholder="Alergias, preferencias, etc."
+                    className="w-full bg-kaiso-bg border border-kaiso-border px-3 py-2 text-kaiso-text focus:border-kaiso-gold focus:outline-none"
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    data-testid="submit-manual-reservation"
+                    disabled={creatingRes}
+                    className="bg-kaiso-gold text-black px-6 py-3 text-xs uppercase tracking-wider font-bold hover:bg-kaiso-gold-light transition-colors disabled:opacity-50"
+                  >
+                    {creatingRes ? 'Creando...' : 'Crear Reserva'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowNewReservation(false)}
+                    className="border border-kaiso-border px-6 py-3 text-xs uppercase tracking-wider text-kaiso-muted hover:text-kaiso-text transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            ) : null}
 
             {/* Reservations Table */}
             {loading ? (
