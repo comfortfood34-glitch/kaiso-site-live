@@ -140,6 +140,28 @@ export default function AdminPanel() {
     setFilterDate(format(newDate, 'yyyy-MM-dd'));
   };
 
+  const handleCreateReservation = async (e) => {
+    e.preventDefault();
+    setCreatingRes(true);
+    try {
+      const payload = { ...newRes };
+      if (!payload.customer_email) delete payload.customer_email;
+      if (!payload.observations) delete payload.observations;
+      await adminCreateReservation(payload, credentials.username, credentials.password);
+      setShowNewReservation(false);
+      setNewRes({
+        customer_name: '', customer_phone: '', customer_email: '',
+        guests: 2, reservation_date: format(new Date(), 'yyyy-MM-dd'),
+        reservation_time: '19:00', observations: ''
+      });
+      loadData();
+    } catch (err) {
+      alert('Error al crear reserva: ' + (err.response?.data?.detail || err.message));
+    } finally {
+      setCreatingRes(false);
+    }
+  };
+
   // Login Screen
   if (!isLoggedIn) {
     return (
