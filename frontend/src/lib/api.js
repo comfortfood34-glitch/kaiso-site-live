@@ -63,6 +63,10 @@ export const adminExportCSV = async (dateFrom, dateTo, username, password) => {
   return response.data;
 };
 
+export const adminCreateReservation = async (data, username, password) => {
+  return (await api.post('/admin/reservations', data, adminAuth(username, password))).data;
+};
+
 // Analytics endpoints
 export const trackEvent = async (eventData) => {
   try {
