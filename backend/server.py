@@ -451,8 +451,8 @@ async def get_availability(date_str: str):
         return {"available": False, "reason": "Capacidade esgotada para esta data", "remaining_capacity": 0, "slots": []}
     
     # Gerar slots
-    lunch_slots = generate_time_slots(schedule["lunch"][0], schedule["lunch"][1])
-    dinner_slots = generate_time_slots(schedule["dinner"][0], schedule["dinner"][1])
+    lunch_slots = generate_time_slots(schedule["lunch"][0], schedule["lunch"][1], buffer_minutes=LAST_RESERVATION_BUFFER)
+    dinner_slots = generate_time_slots(schedule["dinner"][0], schedule["dinner"][1], buffer_minutes=LAST_RESERVATION_BUFFER)
     
     # Verificar desconto
     has_discount = is_discount_day(date_str)
@@ -491,8 +491,8 @@ async def create_reservation(input: ReservationCreate):
         raise HTTPException(status_code=400, detail=f"Capacidad agotada para esta fecha. Plazas disponibles: {remaining}")
     
     # Validar horário
-    lunch_slots = generate_time_slots(schedule["lunch"][0], schedule["lunch"][1])
-    dinner_slots = generate_time_slots(schedule["dinner"][0], schedule["dinner"][1])
+    lunch_slots = generate_time_slots(schedule["lunch"][0], schedule["lunch"][1], buffer_minutes=LAST_RESERVATION_BUFFER)
+    dinner_slots = generate_time_slots(schedule["dinner"][0], schedule["dinner"][1], buffer_minutes=LAST_RESERVATION_BUFFER)
     all_slots = lunch_slots + dinner_slots
     
     if input.reservation_time not in all_slots:
