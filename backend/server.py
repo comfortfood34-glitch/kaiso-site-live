@@ -280,8 +280,7 @@ def get_reservation_email_html(reservation: Reservation, lang: str = "es") -> st
     if reservation.has_discount:
         discount_text = f"<p style='color:#C9A24A;'>&#10003; 10% descuento aplicado (Martes-Jueves)</p>"
     
-    base_url = os.environ.get("BASE_URL", "https://manual-reservations.preview.emergentagent.com")
-    logo_url = f"{base_url}/assets/logo-kaiso.png"
+    logo_url = "https://kaisosushiespanha.com/assets/logo-kaiso.png"
     
     return f"""
     <!DOCTYPE html>
@@ -342,8 +341,7 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 
 def get_client_confirmation_email(reservation: Reservation) -> str:
     """Email de confirmação para o cliente"""
-    base_url = os.environ.get("BASE_URL", "https://manual-reservations.preview.emergentagent.com")
-    logo_url = f"{base_url}/assets/logo-kaiso.png"
+    logo_url = "https://kaisosushiespanha.com/assets/logo-kaiso.png"
     
     tasting_row = ""
     if reservation.has_tasting_menu:
