@@ -43,6 +43,7 @@ RESTAURANT_PHONE = "+34 673 036 835"
 RESTAURANT_ADDRESS = "Av. de Barcelona, 19, 14010 Córdoba, Espanha"
 DEFAULT_DAILY_CAPACITY = 30
 MAX_GUESTS_PER_RESERVATION = 12
+LAST_RESERVATION_BUFFER = 30  # Minutos antes do fecho - não aceitar reservas
 
 # Tasting Menu
 TASTING_MENU_PRICE = 65.90
@@ -165,14 +166,14 @@ class AnalyticsEvent(BaseModel):
 # ========================
 # HELPER FUNCTIONS
 # ========================
-def generate_time_slots(start: str, end: str, interval_minutes: int = 15) -> List[str]:
-    """Gera slots de horário a cada X minutos"""
+def generate_time_slots(start: str, end: str, interval_minutes: int = 15, buffer_minutes: int = 0) -> List[str]:
+    """Gera slots de horário a cada X minutos, com buffer antes do fecho"""
     slots = []
     start_h, start_m = map(int, start.split(":"))
     end_h, end_m = map(int, end.split(":"))
     
     current = start_h * 60 + start_m
-    end_time = end_h * 60 + end_m
+    end_time = end_h * 60 + end_m - buffer_minutes
     
     while current <= end_time:
         h, m = divmod(current, 60)
