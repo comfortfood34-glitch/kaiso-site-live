@@ -946,12 +946,38 @@ _{RESTAURANT_ADDRESS}_"""
 @api_router.get("/admin/whatsapp/status")
 async def whatsapp_status(credentials: HTTPBasicCredentials = Depends(verify_admin)):
     """Get WhatsApp connection status"""
+    global whatsapp_process
+    import shutil
+
+    # Check if process is alive, restart if needed
+    if whatsapp_process and whatsapp_process.poll() is not None:
+        logger.warning(f"WhatsApp process died (exit: {whatsapp_process.returncode}), restarting...")
+        whatsapp_process = None
+        await start_whatsapp_service()
+        await asyncio.sleep(3)
+
+    if not whatsapp_process:
+        await start_whatsapp_service()
+        await asyncio.sleep(3)
+
     try:
         async with httpx.AsyncClient(timeout=5) as client_http:
             resp = await client_http.get(f"{WHATSAPP_SERVICE_URL}/status")
             return resp.json()
     except Exception as e:
-        return {"status": "offline", "error": str(e)}
+        import os
+        wa_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "whatsapp-service")
+        diag = {
+            "status": "offline",
+            "error": str(e),
+            "node_available": bool(shutil.which("node")),
+            "wa_dir_exists": os.path.exists(wa_dir),
+            "index_exists": os.path.exists(os.path.join(wa_dir, "index.mjs")),
+            "node_modules_exists": os.path.exists(os.path.join(wa_dir, "node_modules")),
+            "process_pid": whatsapp_process.pid if whatsapp_process else None,
+            "process_alive": whatsapp_process.poll() is None if whatsapp_process else False
+        }
+        return diag
 
 @api_router.post("/admin/whatsapp/reset")
 async def whatsapp_reset(credentials: HTTPBasicCredentials = Depends(verify_admin)):
@@ -996,30 +1022,35 @@ app.include_router(api_router)
 async def start_whatsapp_service():
     """Start the WhatsApp Node.js service on startup"""
     global whatsapp_process
-    import os
+    import os, shutil
     wa_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "whatsapp-service")
     index_file = os.path.join(wa_dir, "index.mjs")
+    nm_dir = os.path.join(wa_dir, "node_modules")
+
     if not os.path.exists(index_file):
         logger.warning(f"WhatsApp service not found at {index_file}")
         return
+
+    # Check if node is available
+    node_path = shutil.which("node")
+    if not node_path:
+        logger.error("Node.js not found in PATH")
+        return
+
     try:
-        # Install dependencies if needed
-        nm_dir = os.path.join(wa_dir, "node_modules")
+        # Install deps if missing
         if not os.path.exists(nm_dir):
-            logger.info("Installing WhatsApp service dependencies...")
-            install = subprocess.run(
-                ["npm", "install", "--production"],
-                cwd=wa_dir,
-                capture_output=True,
-                timeout=120
-            )
-            if install.returncode != 0:
-                logger.error(f"npm install failed: {install.stderr.decode()}")
-                return
-            logger.info("WhatsApp dependencies installed")
+            npm_path = shutil.which("npm")
+            if npm_path:
+                logger.info("Installing WhatsApp dependencies...")
+                subprocess.run([npm_path, "install", "--production"], cwd=wa_dir, capture_output=True, timeout=120)
+
+        if not os.path.exists(nm_dir):
+            logger.error("WhatsApp node_modules missing and could not be installed")
+            return
 
         whatsapp_process = subprocess.Popen(
-            ["node", "index.mjs"],
+            [node_path, "index.mjs"],
             cwd=wa_dir,
             stdout=open("/tmp/whatsapp.log", "a"),
             stderr=open("/tmp/whatsapp.err", "a")

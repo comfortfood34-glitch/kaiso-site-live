@@ -611,9 +611,18 @@ export default function AdminPanel() {
                   <div className="bg-red-500/10 border border-red-500/30 p-4" data-testid="wa-disconnected">
                     <div className="flex items-center justify-center gap-2 text-red-400 mb-2">
                       <WifiOff size={20} />
-                      <span className="text-sm uppercase tracking-wider font-bold">Desconectado</span>
+                      <span className="text-sm uppercase tracking-wider font-bold">
+                        {waStatus.status === 'connecting' ? 'Conectando...' : 'Desconectado'}
+                      </span>
                     </div>
-                    <p className="text-kaiso-muted text-xs">Clique em reconectar para gerar novo QR Code</p>
+                    {waStatus.error ? (
+                      <p className="text-kaiso-muted text-xs mb-2">Serviço iniciando... aguarde alguns segundos</p>
+                    ) : (
+                      <p className="text-kaiso-muted text-xs">Clique em reconectar para gerar novo QR Code</p>
+                    )}
+                    {waStatus.node_available === false ? (
+                      <p className="text-red-400 text-xs mt-2">Node.js não disponível no servidor</p>
+                    ) : null}
                   </div>
                 )}
               </div>
