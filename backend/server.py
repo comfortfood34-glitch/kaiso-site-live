@@ -58,9 +58,9 @@ SCHEDULE = {
     1: {"lunch": ("12:00", "14:00"), "dinner": ("19:00", "23:00")},  # Terça
     2: {"lunch": ("12:00", "14:00"), "dinner": ("19:00", "23:00")},  # Quarta
     3: {"lunch": ("12:00", "14:00"), "dinner": ("19:00", "23:00")},  # Quinta
-    4: {"lunch": ("12:00", "15:30"), "dinner": ("19:00", "23:30")},  # Sexta
-    5: {"lunch": ("12:00", "15:30"), "dinner": ("19:00", "23:30")},  # Sábado
-    6: {"lunch": ("12:00", "15:30"), "dinner": ("19:00", "23:00")},  # Domingo
+    4: {"lunch": ("13:00", "15:30"), "dinner": ("20:00", "23:30")},  # Sexta
+    5: {"lunch": ("13:00", "15:30"), "dinner": ("20:00", "23:30")},  # Sábado
+    6: {"lunch": ("13:00", "15:30"), "dinner": ("20:00", "23:30")},  # Domingo
 }
 
 # Dias com desconto 10% (Terça, Quarta, Quinta)
@@ -269,65 +269,67 @@ async def send_email(to_email: str, subject: str, html_content: str, cc_email: s
         return False
 
 def get_reservation_email_html(reservation: Reservation, lang: str = "es") -> str:
-    """Gera HTML do email de reserva"""
-    tasting_text = {
-        "es": "Menú Degustación Premium (Pareja)" if reservation.has_tasting_menu else "No",
-        "pt": "Menu Degustação Premium (Casal)" if reservation.has_tasting_menu else "Não",
-        "en": "Premium Tasting Menu (Couple)" if reservation.has_tasting_menu else "No"
-    }
-    
-    discount_text = ""
+    """Gera HTML do email de reserva - para o restaurante"""
+    tasting_text = "Si" if reservation.has_tasting_menu else "No"
+    discount_row = ""
     if reservation.has_discount:
-        discount_text = f"<p style='color:#C9A24A;'>&#10003; 10% descuento aplicado (Martes-Jueves)</p>"
-    
-    logo_url = "https://kaisosushiespanha.com/assets/logo-kaiso.png"
-    
-    return f"""
-    <!DOCTYPE html>
-    <html>
-    <head><meta charset="UTF-8"></head>
-    <body style="font-family: 'Montserrat', Arial, sans-serif; background-color: #050608; color: #E5E5E5; margin: 0; padding: 40px 20px;">
-        <div style="max-width: 600px; margin: 0 auto; background-color: #0D0D0D; border: 1px solid #1A1A1A; padding: 40px;">
-            <div style="text-align: center; border-bottom: 1px solid #C9A24A; padding-bottom: 30px; margin-bottom: 30px;">
-                <img src="{logo_url}" alt="Kaiso Sushi" style="max-height: 60px; width: auto; margin-bottom: 15px;" />
-                <p style="color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; margin-top: 10px;">Nueva Reserva</p>
-            </div>
-            
-            <table style="width: 100%; border-collapse: collapse;">
-                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Nombre</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{reservation.customer_name}</td></tr>
-                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Telefono</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{reservation.customer_phone}</td></tr>
-                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Email</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{reservation.customer_email or '-'}</td></tr>
-                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Fecha</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #C9A24A; text-align: right; font-weight: bold;">{reservation.reservation_date}</td></tr>
-                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Hora</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #C9A24A; text-align: right; font-weight: bold;">{reservation.reservation_time}</td></tr>
-                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Personas</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{reservation.guests}</td></tr>
-                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Degustacion</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{tasting_text.get(lang, tasting_text['es'])}</td></tr>
-                {f'<tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Valor Estimado</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #C9A24A; text-align: right;">EUR {reservation.estimated_value:.2f}</td></tr>' if reservation.estimated_value > 0 else ''}
-            </table>
-            
-            {discount_text}
-            
-            {f'<div style="background-color: #1A1A1A; padding: 15px; margin-top: 20px;"><p style="color: #888; margin: 0; font-size: 14px;"><strong>Observaciones:</strong> {reservation.observations}</p></div>' if reservation.observations else ''}
-            {f'<div style="background-color: #1A1A1A; padding: 15px; margin-top: 10px;"><p style="color: #D11B2A; margin: 0; font-size: 14px;"><strong>Alergias:</strong> {reservation.tasting_allergies}</p></div>' if reservation.tasting_allergies else ''}
-            
-            <!-- QR Code Promotion -->
-            <div style="background: linear-gradient(135deg, #1A1A1A 0%, #0D0D0D 100%); border: 1px solid #C9A24A; padding: 25px; margin-top: 30px; text-align: center;">
-                <p style="color: #C9A24A; font-size: 16px; font-weight: bold; margin: 0 0 10px 0;">Haga su pedido por el QR Code en la mesa</p>
-                <p style="color: #E5E5E5; font-size: 14px; margin: 0 0 15px 0;">
-                    Acumule puntos que se convierten en dinero y descuentos para comprar en la mesa o por delivery.
-                </p>
-                <p style="color: #C9A24A; font-size: 13px; margin: 0;">
-                    Todo automatico y online
-                </p>
-            </div>
-            
-            <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid #1A1A1A; color: #666; font-size: 12px;">
-                <p>{RESTAURANT_NAME} &middot; {RESTAURANT_ADDRESS}</p>
-                <p>{RESTAURANT_PHONE}</p>
-            </div>
-        </div>
-    </body>
-    </html>
-    """
+        discount_row = '<tr><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#C9A24A;font-size:14px;" colspan="2">&#10003; 10% descuento aplicado (Martes-Jueves)</td></tr>'
+    value_row = ""
+    if reservation.estimated_value > 0:
+        value_row = f'<tr><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#888;font-size:14px;">Valor Estimado</td><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#C9A24A;text-align:right;font-size:14px;">EUR {reservation.estimated_value:.2f}</td></tr>'
+    obs_row = ""
+    if reservation.observations:
+        obs_row = f'<tr><td colspan="2" style="padding:15px;background-color:#1A1A1A;color:#888;font-size:14px;"><strong>Observaciones:</strong> {reservation.observations}</td></tr>'
+    allergy_row = ""
+    if reservation.tasting_allergies:
+        allergy_row = f'<tr><td colspan="2" style="padding:15px;background-color:#1A1A1A;color:#D11B2A;font-size:14px;"><strong>Alergias:</strong> {reservation.tasting_allergies}</td></tr>'
+    source_label = "MANUAL" if reservation.source == "manual" else "ONLINE"
+
+    return f"""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>Nueva Reserva</title></head>
+<body style="margin:0;padding:0;background-color:#050608;font-family:Arial,Helvetica,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#050608" style="background-color:#050608;">
+<tr><td align="center" style="padding:30px 10px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" bgcolor="#0D0D0D" style="background-color:#0D0D0D;border:1px solid #1A1A1A;max-width:600px;width:100%;">
+<tr><td style="padding:30px;text-align:center;border-bottom:1px solid #C9A24A;">
+<img src="https://kaisosushiespanha.com/assets/logo-kaiso.png" alt="Kaiso Sushi" width="120" height="auto" style="display:block;margin:0 auto 10px;max-width:120px;height:auto;"/>
+<p style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:3px;margin:10px 0 0;">{source_label} - Nueva Reserva</p>
+</td></tr>
+<tr><td style="padding:25px 30px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#888;font-size:14px;">Nombre</td><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#E5E5E5;text-align:right;font-size:14px;">{reservation.customer_name}</td></tr>
+<tr><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#888;font-size:14px;">Telefono</td><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#E5E5E5;text-align:right;font-size:14px;">{reservation.customer_phone}</td></tr>
+<tr><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#888;font-size:14px;">Email</td><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#E5E5E5;text-align:right;font-size:14px;">{reservation.customer_email or '-'}</td></tr>
+<tr><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#888;font-size:14px;">Fecha</td><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#C9A24A;text-align:right;font-size:14px;font-weight:bold;">{reservation.reservation_date}</td></tr>
+<tr><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#888;font-size:14px;">Hora</td><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#C9A24A;text-align:right;font-size:14px;font-weight:bold;">{reservation.reservation_time}</td></tr>
+<tr><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#888;font-size:14px;">Personas</td><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#E5E5E5;text-align:right;font-size:14px;">{reservation.guests}</td></tr>
+<tr><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#888;font-size:14px;">Degustacion</td><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#E5E5E5;text-align:right;font-size:14px;">{tasting_text}</td></tr>
+{value_row}
+{discount_row}
+{obs_row}
+{allergy_row}
+</table>
+</td></tr>
+<tr><td style="padding:20px 30px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1A1A1A" style="background-color:#1A1A1A;border:1px solid #C9A24A;">
+<tr><td style="padding:20px;text-align:center;">
+<p style="color:#C9A24A;font-size:15px;font-weight:bold;margin:0 0 8px;">Haga su pedido por el QR Code en la mesa</p>
+<p style="color:#E5E5E5;font-size:13px;margin:0 0 8px;">Acumule puntos que se convierten en dinero y descuentos.</p>
+<p style="color:#C9A24A;font-size:12px;margin:0;">Todo automatico y online</p>
+</td></tr>
+</table>
+</td></tr>
+<tr><td style="padding:20px 30px;text-align:center;border-top:1px solid #1A1A1A;">
+<p style="color:#666;font-size:11px;margin:0 0 4px;">{RESTAURANT_NAME}</p>
+<p style="color:#666;font-size:11px;margin:0 0 4px;">{RESTAURANT_ADDRESS}</p>
+<p style="color:#666;font-size:11px;margin:0;">{RESTAURANT_PHONE}</p>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>"""
 
 
 # ========================
@@ -340,60 +342,61 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 
 
 def get_client_confirmation_email(reservation: Reservation) -> str:
-    """Email de confirmação para o cliente"""
-    logo_url = "https://kaisosushiespanha.com/assets/logo-kaiso.png"
-    
+    """Email de confirmação para o cliente - HTML blindado para todos os clientes de email"""
     tasting_row = ""
     if reservation.has_tasting_menu:
-        tasting_row = f'<tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Menu Degustacion</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #C9A24A; text-align: right;">Premium (Pareja) - EUR {reservation.estimated_value:.2f}</td></tr>'
-    
-    discount_text = ""
+        tasting_row = f'<tr><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#888;font-size:14px;">Menu Degustacion</td><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#C9A24A;text-align:right;font-size:14px;">Premium (Pareja) - EUR {reservation.estimated_value:.2f}</td></tr>'
+    discount_row = ""
     if reservation.has_discount:
-        discount_text = '<p style="color:#C9A24A; margin-top: 15px;">&#10003; 10% descuento aplicado (Martes-Jueves)</p>'
-    
-    return f"""
-    <!DOCTYPE html>
-    <html>
-    <head><meta charset="UTF-8"></head>
-    <body style="font-family: Arial, sans-serif; background-color: #050608; color: #E5E5E5; margin: 0; padding: 40px 20px;">
-        <div style="max-width: 600px; margin: 0 auto; background-color: #0D0D0D; border: 1px solid #1A1A1A; padding: 40px;">
-            <div style="text-align: center; border-bottom: 1px solid #C9A24A; padding-bottom: 30px; margin-bottom: 30px;">
-                <img src="{logo_url}" alt="Kaiso Sushi" style="max-height: 60px; width: auto; margin-bottom: 15px;" />
-                <h2 style="color: #C9A24A; margin: 10px 0 5px;">Reserva Confirmada</h2>
-                <p style="color: #888; font-size: 13px;">Gracias por elegir Kaiso Sushi, {reservation.customer_name}!</p>
-            </div>
-            
-            <table style="width: 100%; border-collapse: collapse;">
-                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Fecha</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #C9A24A; text-align: right; font-weight: bold;">{reservation.reservation_date}</td></tr>
-                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Hora</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #C9A24A; text-align: right; font-weight: bold;">{reservation.reservation_time}</td></tr>
-                <tr><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #888;">Personas</td><td style="padding: 12px 0; border-bottom: 1px solid #1A1A1A; color: #E5E5E5; text-align: right;">{reservation.guests}</td></tr>
-                {tasting_row}
-            </table>
-            
-            {discount_text}
-            
-            <!-- QR Code Promotion -->
-            <div style="background: linear-gradient(135deg, #1A1A1A 0%, #0D0D0D 100%); border: 1px solid #C9A24A; padding: 25px; margin-top: 30px; text-align: center;">
-                <p style="color: #C9A24A; font-size: 16px; font-weight: bold; margin: 0 0 10px 0;">Haga su pedido por el QR Code en la mesa</p>
-                <p style="color: #E5E5E5; font-size: 14px; margin: 0 0 15px 0;">
-                    Acumule puntos que se convierten en dinero y descuentos para comprar en la mesa o por delivery.
-                </p>
-                <p style="color: #C9A24A; font-size: 13px; margin: 0;">Todo automatico y online</p>
-            </div>
-            
-            <div style="text-align: center; margin-top: 30px;">
-                <a href="https://wa.me/34673036835" style="display: inline-block; background-color: #C9A24A; color: #000; padding: 12px 30px; text-decoration: none; font-weight: bold; font-size: 13px; text-transform: uppercase; letter-spacing: 2px;">Contactar por WhatsApp</a>
-            </div>
-            
-            <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid #1A1A1A; color: #666; font-size: 12px;">
-                <p>{RESTAURANT_NAME}</p>
-                <p>{RESTAURANT_ADDRESS}</p>
-                <p>{RESTAURANT_PHONE}</p>
-            </div>
-        </div>
-    </body>
-    </html>
-    """
+        discount_row = '<tr><td colspan="2" style="padding:12px 0;color:#C9A24A;font-size:13px;">&#10003; 10% descuento aplicado (Martes-Jueves)</td></tr>'
+
+    return f"""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>Reserva Confirmada</title></head>
+<body style="margin:0;padding:0;background-color:#050608;font-family:Arial,Helvetica,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#050608" style="background-color:#050608;">
+<tr><td align="center" style="padding:30px 10px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" bgcolor="#0D0D0D" style="background-color:#0D0D0D;border:1px solid #1A1A1A;max-width:600px;width:100%;">
+<tr><td style="padding:30px;text-align:center;border-bottom:1px solid #C9A24A;">
+<img src="https://kaisosushiespanha.com/assets/logo-kaiso.png" alt="Kaiso Sushi" width="120" height="auto" style="display:block;margin:0 auto 10px;max-width:120px;height:auto;"/>
+<h2 style="color:#C9A24A;font-size:20px;margin:10px 0 5px;font-family:Arial,Helvetica,sans-serif;">Reserva Confirmada</h2>
+<p style="color:#888;font-size:13px;margin:0;">Gracias por elegir Kaiso Sushi, {reservation.customer_name}!</p>
+</td></tr>
+<tr><td style="padding:25px 30px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#888;font-size:14px;">Fecha</td><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#C9A24A;text-align:right;font-size:14px;font-weight:bold;">{reservation.reservation_date}</td></tr>
+<tr><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#888;font-size:14px;">Hora</td><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#C9A24A;text-align:right;font-size:14px;font-weight:bold;">{reservation.reservation_time}</td></tr>
+<tr><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#888;font-size:14px;">Personas</td><td style="padding:12px 0;border-bottom:1px solid #1A1A1A;color:#E5E5E5;text-align:right;font-size:14px;">{reservation.guests}</td></tr>
+{tasting_row}
+{discount_row}
+</table>
+</td></tr>
+<tr><td style="padding:20px 30px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1A1A1A" style="background-color:#1A1A1A;border:1px solid #C9A24A;">
+<tr><td style="padding:20px;text-align:center;">
+<p style="color:#C9A24A;font-size:15px;font-weight:bold;margin:0 0 8px;">Haga su pedido por el QR Code en la mesa</p>
+<p style="color:#E5E5E5;font-size:13px;margin:0 0 8px;">Acumule puntos que se convierten en dinero y descuentos.</p>
+<p style="color:#C9A24A;font-size:12px;margin:0;">Todo automatico y online</p>
+</td></tr>
+</table>
+</td></tr>
+<tr><td style="padding:20px 30px;text-align:center;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+<tr><td bgcolor="#C9A24A" style="background-color:#C9A24A;padding:12px 30px;">
+<a href="https://wa.me/34673036835" style="color:#000000;text-decoration:none;font-weight:bold;font-size:13px;text-transform:uppercase;letter-spacing:2px;font-family:Arial,Helvetica,sans-serif;">Contactar por WhatsApp</a>
+</td></tr>
+</table>
+</td></tr>
+<tr><td style="padding:20px 30px;text-align:center;border-top:1px solid #1A1A1A;">
+<p style="color:#666;font-size:11px;margin:0 0 4px;">{RESTAURANT_NAME}</p>
+<p style="color:#666;font-size:11px;margin:0 0 4px;">{RESTAURANT_ADDRESS}</p>
+<p style="color:#666;font-size:11px;margin:0;">{RESTAURANT_PHONE}</p>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>"""
 
 
 # ========================
