@@ -163,6 +163,20 @@ class BlackoutDate(BaseModel):
 class AnalyticsEvent(BaseModel):
     event_type: str  # page_view, reservation_open, reservation_complete
     page: Optional[str] = "/"
+
+@api_router.get("/debug/arch")
+async def debug_arch():
+    import platform, shutil, os
+    wa_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "whatsapp-service")
+    return {
+        "machine": platform.machine(),
+        "system": platform.system(),
+        "node_in_path": bool(shutil.which("node")),
+        "npm_in_path": bool(shutil.which("npm")),
+        "wa_dir": os.path.exists(wa_dir),
+        "local_node": os.path.exists(os.path.join(wa_dir, "node", "bin", "node")),
+        "node_modules": os.path.exists(os.path.join(wa_dir, "node_modules")),
+    }
     referrer: Optional[str] = ""
     user_agent: Optional[str] = ""
     language: Optional[str] = "es"
@@ -967,13 +981,15 @@ async def whatsapp_status(credentials: HTTPBasicCredentials = Depends(verify_adm
     except Exception as e:
         import os
         wa_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "whatsapp-service")
+        local_node = os.path.join(wa_dir, "node", "bin", "node")
         diag = {
             "status": "offline",
             "error": str(e),
-            "node_available": bool(shutil.which("node")),
+            "node_available": bool(shutil.which("node")) or os.path.exists(local_node),
             "wa_dir_exists": os.path.exists(wa_dir),
             "index_exists": os.path.exists(os.path.join(wa_dir, "index.mjs")),
             "node_modules_exists": os.path.exists(os.path.join(wa_dir, "node_modules")),
+            "local_node_exists": os.path.exists(local_node),
             "process_pid": whatsapp_process.pid if whatsapp_process else None,
             "process_alive": whatsapp_process.poll() is None if whatsapp_process else False
         }
@@ -1022,7 +1038,7 @@ app.include_router(api_router)
 async def start_whatsapp_service():
     """Start the WhatsApp Node.js service on startup"""
     global whatsapp_process
-    import os, shutil
+    import os, shutil, platform, tarfile, urllib.request
     wa_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "whatsapp-service")
     index_file = os.path.join(wa_dir, "index.mjs")
     nm_dir = os.path.join(wa_dir, "node_modules")
@@ -1031,24 +1047,68 @@ async def start_whatsapp_service():
         logger.warning(f"WhatsApp service not found at {index_file}")
         return
 
-    # Check if node is available
+    # Find or install Node.js
     node_path = shutil.which("node")
+    local_node = os.path.join(wa_dir, "node", "bin", "node")
+
+    if not node_path and os.path.exists(local_node):
+        node_path = local_node
+
     if not node_path:
-        logger.error("Node.js not found in PATH")
+        # Download portable Node.js
+        try:
+            arch = platform.machine()
+            if arch in ("x86_64", "amd64"):
+                node_arch = "x64"
+            elif arch in ("aarch64", "arm64"):
+                node_arch = "arm64"
+            else:
+                logger.error(f"Unsupported architecture: {arch}")
+                return
+
+            node_version = "v20.18.1"
+            filename = f"node-{node_version}-linux-{node_arch}"
+            url = f"https://nodejs.org/dist/{node_version}/{filename}.tar.xz"
+            download_path = os.path.join(wa_dir, f"{filename}.tar.xz")
+            extract_dir = os.path.join(wa_dir, "node")
+
+            logger.info(f"Downloading Node.js {node_version} for {node_arch}...")
+            urllib.request.urlretrieve(url, download_path)
+
+            # Extract
+            os.makedirs(extract_dir, exist_ok=True)
+            subprocess.run(["tar", "-xf", download_path, "--strip-components=1", "-C", extract_dir], check=True, timeout=60)
+            os.remove(download_path)
+
+            node_path = os.path.join(extract_dir, "bin", "node")
+            logger.info(f"Node.js installed at {node_path}")
+        except Exception as e:
+            logger.error(f"Failed to install Node.js: {e}")
+            return
+
+    # Install npm deps if missing
+    if not os.path.exists(nm_dir):
+        npm_path = shutil.which("npm")
+        local_npm = os.path.join(wa_dir, "node", "bin", "npm")
+        if not npm_path and os.path.exists(local_npm):
+            npm_path = local_npm
+        if npm_path:
+            try:
+                logger.info("Installing WhatsApp dependencies...")
+                env = os.environ.copy()
+                node_bin_dir = os.path.dirname(node_path)
+                env["PATH"] = f"{node_bin_dir}:{env.get('PATH', '')}"
+                subprocess.run([npm_path, "install", "--production"], cwd=wa_dir, capture_output=True, timeout=120, env=env)
+                logger.info("WhatsApp dependencies installed")
+            except Exception as e:
+                logger.error(f"npm install failed: {e}")
+                return
+
+    if not os.path.exists(nm_dir):
+        logger.error("WhatsApp node_modules missing")
         return
 
     try:
-        # Install deps if missing
-        if not os.path.exists(nm_dir):
-            npm_path = shutil.which("npm")
-            if npm_path:
-                logger.info("Installing WhatsApp dependencies...")
-                subprocess.run([npm_path, "install", "--production"], cwd=wa_dir, capture_output=True, timeout=120)
-
-        if not os.path.exists(nm_dir):
-            logger.error("WhatsApp node_modules missing and could not be installed")
-            return
-
         whatsapp_process = subprocess.Popen(
             [node_path, "index.mjs"],
             cwd=wa_dir,
