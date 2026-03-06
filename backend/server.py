@@ -998,20 +998,35 @@ async def start_whatsapp_service():
     global whatsapp_process
     import os
     wa_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "whatsapp-service")
-    if os.path.exists(os.path.join(wa_dir, "index.mjs")):
-        try:
-            # Install dependencies if needed
-            if not os.path.exists(os.path.join(wa_dir, "node_modules")):
-                subprocess.run(["npm", "install"], cwd=wa_dir, capture_output=True, timeout=60)
-            whatsapp_process = subprocess.Popen(
-                ["node", "index.mjs"],
+    index_file = os.path.join(wa_dir, "index.mjs")
+    if not os.path.exists(index_file):
+        logger.warning(f"WhatsApp service not found at {index_file}")
+        return
+    try:
+        # Install dependencies if needed
+        nm_dir = os.path.join(wa_dir, "node_modules")
+        if not os.path.exists(nm_dir):
+            logger.info("Installing WhatsApp service dependencies...")
+            install = subprocess.run(
+                ["npm", "install", "--production"],
                 cwd=wa_dir,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
+                capture_output=True,
+                timeout=120
             )
-            logger.info(f"WhatsApp service started (PID: {whatsapp_process.pid})")
-        except Exception as e:
-            logger.error(f"Failed to start WhatsApp service: {e}")
+            if install.returncode != 0:
+                logger.error(f"npm install failed: {install.stderr.decode()}")
+                return
+            logger.info("WhatsApp dependencies installed")
+
+        whatsapp_process = subprocess.Popen(
+            ["node", "index.mjs"],
+            cwd=wa_dir,
+            stdout=open("/tmp/whatsapp.log", "a"),
+            stderr=open("/tmp/whatsapp.err", "a")
+        )
+        logger.info(f"WhatsApp service started (PID: {whatsapp_process.pid})")
+    except Exception as e:
+        logger.error(f"Failed to start WhatsApp service: {e}")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
