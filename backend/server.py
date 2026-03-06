@@ -18,6 +18,9 @@ from email.mime.multipart import MIMEMultipart
 import secrets
 import csv
 import io
+import httpx
+
+WHATSAPP_SERVICE_URL = "http://localhost:8002"
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -536,6 +539,14 @@ async def create_reservation(input: ReservationCreate):
                 await send_email(reservation.customer_email, "Confirmación de Reserva - Kaisō Sushi", client_html)
             except Exception as e:
                 logger.error(f"Erro ao enviar email cliente: {e}")
+
+        # Send WhatsApp to customer
+        await send_whatsapp_notification(reservation.customer_phone, {
+            "customer_name": reservation.customer_name,
+            "reservation_date": reservation.reservation_date,
+            "reservation_time": reservation.reservation_time,
+            "guests": reservation.guests
+        })
     
     asyncio.create_task(send_emails_background())
     
@@ -598,9 +609,9 @@ async def admin_create_reservation(
     # Remove _id added by MongoDB
     doc.pop('_id', None)
 
-    # Send emails in background
-    async def send_emails_background():
-        # Notify restaurant
+    # Send emails + WhatsApp in background
+    async def send_notifications_background():
+        # Notify restaurant via email
         try:
             email_html = get_reservation_email_html(reservation)
             await send_email(NOTIFY_TO, f"Nueva Reserva Manual: {reservation.customer_name} - {reservation.reservation_date}", email_html, CC_TO)
@@ -615,7 +626,10 @@ async def admin_create_reservation(
             except Exception as e:
                 logger.error(f"Erro ao enviar email cliente (manual): {e}")
 
-    asyncio.create_task(send_emails_background())
+        # Send WhatsApp to customer
+        await send_whatsapp_notification(reservation.customer_phone, doc)
+
+    asyncio.create_task(send_notifications_background())
 
     return doc
 
@@ -890,6 +904,86 @@ async def get_analytics_stats(
         "hourly": [{"hour": h, "count": c} for h, c in sorted(hourly.items())],
         "funnel": funnel
     }
+
+
+# ========================
+# WHATSAPP ENDPOINTS
+# ========================
+async def send_whatsapp_notification(phone: str, reservation_data: dict):
+    """Send WhatsApp notification via local WhatsApp service"""
+    try:
+        message = f"""*RESERVA CONFIRMADA - Kaisō Sushi*
+
+Nombre: {reservation_data.get('customer_name', '')}
+Fecha: {reservation_data.get('reservation_date', '')}
+Hora: {reservation_data.get('reservation_time', '')}
+Personas: {reservation_data.get('guests', '')}
+
+Le esperamos! Para cualquier cambio, contacte:
+{RESTAURANT_PHONE}
+
+_{RESTAURANT_NAME}_
+_{RESTAURANT_ADDRESS}_"""
+
+        async with httpx.AsyncClient(timeout=10) as client_http:
+            resp = await client_http.post(f"{WHATSAPP_SERVICE_URL}/send", json={
+                "phone": phone,
+                "message": message
+            })
+            if resp.status_code == 200:
+                logger.info(f"WhatsApp enviado para {phone}")
+                return True
+            else:
+                logger.warning(f"WhatsApp falhou para {phone}: {resp.text}")
+                return False
+    except Exception as e:
+        logger.error(f"Erro WhatsApp: {e}")
+        return False
+
+@api_router.get("/admin/whatsapp/status")
+async def whatsapp_status(credentials: HTTPBasicCredentials = Depends(verify_admin)):
+    """Get WhatsApp connection status"""
+    try:
+        async with httpx.AsyncClient(timeout=5) as client_http:
+            resp = await client_http.get(f"{WHATSAPP_SERVICE_URL}/status")
+            return resp.json()
+    except Exception as e:
+        return {"status": "offline", "error": str(e)}
+
+@api_router.post("/admin/whatsapp/reset")
+async def whatsapp_reset(credentials: HTTPBasicCredentials = Depends(verify_admin)):
+    """Reset WhatsApp connection"""
+    try:
+        async with httpx.AsyncClient(timeout=10) as client_http:
+            resp = await client_http.post(f"{WHATSAPP_SERVICE_URL}/reset")
+            return resp.json()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/admin/whatsapp/reconnect")
+async def whatsapp_reconnect(credentials: HTTPBasicCredentials = Depends(verify_admin)):
+    """Reconnect WhatsApp"""
+    try:
+        async with httpx.AsyncClient(timeout=10) as client_http:
+            resp = await client_http.post(f"{WHATSAPP_SERVICE_URL}/reconnect")
+            return resp.json()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/admin/whatsapp/send-test")
+async def whatsapp_send_test(
+    credentials: HTTPBasicCredentials = Depends(verify_admin)
+):
+    """Send a test message to verify connection"""
+    try:
+        async with httpx.AsyncClient(timeout=10) as client_http:
+            resp = await client_http.post(f"{WHATSAPP_SERVICE_URL}/send", json={
+                "phone": RESTAURANT_PHONE,
+                "message": "Teste de conexao WhatsApp - Kaiso Sushi"
+            })
+            return resp.json()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # Include router

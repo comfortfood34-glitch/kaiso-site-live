@@ -67,6 +67,19 @@ export const adminCreateReservation = async (data, username, password) => {
   return (await api.post('/admin/reservations', data, adminAuth(username, password))).data;
 };
 
+// WhatsApp endpoints
+export const getWhatsAppStatus = async (username, password) => {
+  return (await api.get('/admin/whatsapp/status', adminAuth(username, password))).data;
+};
+
+export const resetWhatsApp = async (username, password) => {
+  return (await api.post('/admin/whatsapp/reset', {}, adminAuth(username, password))).data;
+};
+
+export const reconnectWhatsApp = async (username, password) => {
+  return (await api.post('/admin/whatsapp/reconnect', {}, adminAuth(username, password))).data;
+};
+
 // Analytics endpoints
 export const trackEvent = async (eventData) => {
   try {

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { format, addDays } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Users, Clock, Download, Plus, Trash2, RefreshCw, LogOut, Settings, BarChart3, Lock, ChevronLeft, ChevronRight } from 'lucide-react';
-import { adminGetReservations, adminUpdateReservation, adminGetStats, adminUpdateConfig, adminAddBlackout, adminRemoveBlackout, adminGetBlackouts, adminExportCSV, adminCreateReservation } from '../lib/api';
+import { Calendar, Users, Clock, Download, Plus, Trash2, RefreshCw, LogOut, Settings, BarChart3, Lock, ChevronLeft, ChevronRight, MessageCircle, Wifi, WifiOff, RotateCcw } from 'lucide-react';
+import { adminGetReservations, adminUpdateReservation, adminGetStats, adminUpdateConfig, adminAddBlackout, adminRemoveBlackout, adminGetBlackouts, adminExportCSV, adminCreateReservation, getWhatsAppStatus, resetWhatsApp, reconnectWhatsApp } from '../lib/api';
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -27,6 +27,8 @@ export default function AdminPanel() {
     reservation_time: '19:00', observations: ''
   });
   const [creatingRes, setCreatingRes] = useState(false);
+  const [waStatus, setWaStatus] = useState({ status: 'offline', qr: null, phone: null });
+  const [waLoading, setWaLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -138,6 +140,36 @@ export default function AdminPanel() {
   const navigateDate = (days) => {
     const newDate = addDays(new Date(filterDate), days);
     setFilterDate(format(newDate, 'yyyy-MM-dd'));
+  };
+
+  // WhatsApp polling
+  useEffect(() => {
+    if (!isLoggedIn || activeTab !== 'whatsapp') return;
+    const loadWaStatus = async () => {
+      try {
+        const data = await getWhatsAppStatus(credentials.username, credentials.password);
+        setWaStatus(data);
+      } catch (e) { setWaStatus({ status: 'offline', qr: null, phone: null }); }
+    };
+    loadWaStatus();
+    const interval = setInterval(loadWaStatus, 3000);
+    return () => clearInterval(interval);
+  }, [isLoggedIn, activeTab, credentials]);
+
+  const handleWaReset = async () => {
+    setWaLoading(true);
+    try {
+      await resetWhatsApp(credentials.username, credentials.password);
+    } catch (e) { alert('Error al resetear WhatsApp'); }
+    finally { setWaLoading(false); }
+  };
+
+  const handleWaReconnect = async () => {
+    setWaLoading(true);
+    try {
+      await reconnectWhatsApp(credentials.username, credentials.password);
+    } catch (e) { alert('Error al reconectar'); }
+    finally { setWaLoading(false); }
   };
 
   const handleCreateReservation = async (e) => {
@@ -276,13 +308,17 @@ export default function AdminPanel() {
 
         {/* Tabs */}
         <div className="flex gap-4 mb-6 border-b border-kaiso-border">
-          {['reservations', 'settings'].map(tab => (
+          {['reservations', 'whatsapp', 'settings'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-3 px-2 text-sm uppercase tracking-wider transition-colors ${activeTab === tab ? 'text-kaiso-gold border-b-2 border-kaiso-gold' : 'text-kaiso-muted hover:text-kaiso-text'}`}
+              className={`pb-3 px-2 text-sm uppercase tracking-wider transition-colors flex items-center gap-2 ${activeTab === tab ? 'text-kaiso-gold border-b-2 border-kaiso-gold' : 'text-kaiso-muted hover:text-kaiso-text'}`}
             >
-              {tab === 'reservations' ? 'Reservas' : 'Configuración'}
+              {tab === 'whatsapp' ? <MessageCircle size={16} /> : null}
+              {tab === 'reservations' ? 'Reservas' : tab === 'whatsapp' ? 'WhatsApp' : 'Configuración'}
+              {tab === 'whatsapp' ? (
+                <span className={`w-2 h-2 rounded-full ${waStatus.status === 'connected' ? 'bg-green-400' : waStatus.status === 'qr_ready' ? 'bg-yellow-400' : 'bg-red-400'}`} />
+              ) : null}
             </button>
           ))}
         </div>
@@ -531,6 +567,89 @@ export default function AdminPanel() {
               </div>
             )}
           </>
+        ) : null}
+
+        {/* WhatsApp Tab */}
+        {activeTab === 'whatsapp' ? (
+          <div className="max-w-lg mx-auto">
+            <div className="bg-kaiso-card border border-kaiso-border p-8 text-center">
+              <h3 className="text-kaiso-gold font-serif text-xl mb-2 flex items-center justify-center gap-2">
+                <MessageCircle size={22} />
+                WhatsApp Notificaciones
+              </h3>
+              <p className="text-kaiso-muted text-sm mb-6">
+                Conecte seu WhatsApp para enviar confirmações automáticas aos clientes
+              </p>
+
+              {/* Status */}
+              <div className="mb-6">
+                {waStatus.status === 'connected' ? (
+                  <div className="bg-green-500/10 border border-green-500/30 p-4" data-testid="wa-connected">
+                    <div className="flex items-center justify-center gap-2 text-green-400 mb-2">
+                      <Wifi size={20} />
+                      <span className="text-sm uppercase tracking-wider font-bold">Conectado</span>
+                    </div>
+                    {waStatus.phone ? (
+                      <p className="text-kaiso-muted text-xs">Numero: {waStatus.phone}</p>
+                    ) : null}
+                    <p className="text-green-400/70 text-xs mt-2">Notificações WhatsApp ativas</p>
+                  </div>
+                ) : waStatus.status === 'qr_ready' && waStatus.qr ? (
+                  <div data-testid="wa-qr-code">
+                    <p className="text-yellow-400 text-sm mb-4 flex items-center justify-center gap-2">
+                      <Clock size={16} />
+                      Escanee o QR Code com seu WhatsApp
+                    </p>
+                    <div className="bg-white p-2 inline-block mb-4">
+                      <img src={waStatus.qr} alt="WhatsApp QR Code" className="w-64 h-64" />
+                    </div>
+                    <p className="text-kaiso-muted text-xs">
+                      WhatsApp &gt; Dispositivos conectados &gt; Conectar dispositivo
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-red-500/10 border border-red-500/30 p-4" data-testid="wa-disconnected">
+                    <div className="flex items-center justify-center gap-2 text-red-400 mb-2">
+                      <WifiOff size={20} />
+                      <span className="text-sm uppercase tracking-wider font-bold">Desconectado</span>
+                    </div>
+                    <p className="text-kaiso-muted text-xs">Clique em reconectar para gerar novo QR Code</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 justify-center">
+                {waStatus.status !== 'connected' ? (
+                  <button
+                    onClick={handleWaReconnect}
+                    disabled={waLoading}
+                    data-testid="wa-reconnect-btn"
+                    className="flex items-center gap-2 bg-kaiso-gold text-black px-6 py-3 text-xs uppercase tracking-wider font-bold hover:bg-kaiso-gold-light transition-colors disabled:opacity-50"
+                  >
+                    <RefreshCw size={14} className={waLoading ? 'animate-spin' : ''} />
+                    Reconectar
+                  </button>
+                ) : null}
+                <button
+                  onClick={handleWaReset}
+                  disabled={waLoading}
+                  data-testid="wa-reset-btn"
+                  className="flex items-center gap-2 border border-kaiso-red text-kaiso-red px-6 py-3 text-xs uppercase tracking-wider font-bold hover:bg-kaiso-red/10 transition-colors disabled:opacity-50"
+                >
+                  <RotateCcw size={14} />
+                  Reset
+                </button>
+              </div>
+
+              {/* Info */}
+              <div className="mt-8 pt-6 border-t border-kaiso-border text-left">
+                <p className="text-kaiso-muted text-xs leading-relaxed">
+                  <strong className="text-kaiso-text">Como funciona:</strong> Ao conectar, cada reserva nova (online ou manual) envia automaticamente uma mensagem WhatsApp de confirmação ao cliente. Se a conexão cair, clique em "Reconectar". Se persistir, clique "Reset" para gerar novo QR Code.
+                </p>
+              </div>
+            </div>
+          </div>
         ) : null}
 
         {/* Settings Tab */}
