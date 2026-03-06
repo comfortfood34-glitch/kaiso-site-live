@@ -19,8 +19,11 @@ import secrets
 import csv
 import io
 import httpx
+import subprocess
+import signal
 
 WHATSAPP_SERVICE_URL = "http://localhost:8002"
+whatsapp_process = None
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -989,6 +992,35 @@ async def whatsapp_send_test(
 # Include router
 app.include_router(api_router)
 
+@app.on_event("startup")
+async def start_whatsapp_service():
+    """Start the WhatsApp Node.js service on startup"""
+    global whatsapp_process
+    import os
+    wa_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "whatsapp-service")
+    if os.path.exists(os.path.join(wa_dir, "index.mjs")):
+        try:
+            # Install dependencies if needed
+            if not os.path.exists(os.path.join(wa_dir, "node_modules")):
+                subprocess.run(["npm", "install"], cwd=wa_dir, capture_output=True, timeout=60)
+            whatsapp_process = subprocess.Popen(
+                ["node", "index.mjs"],
+                cwd=wa_dir,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            logger.info(f"WhatsApp service started (PID: {whatsapp_process.pid})")
+        except Exception as e:
+            logger.error(f"Failed to start WhatsApp service: {e}")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    global whatsapp_process
+    if whatsapp_process:
+        whatsapp_process.terminate()
+        try:
+            whatsapp_process.wait(timeout=5)
+        except:
+            whatsapp_process.kill()
+        logger.info("WhatsApp service stopped")
     client.close()
