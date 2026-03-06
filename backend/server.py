@@ -81,7 +81,7 @@ TASTING_END = "21:00"
 # MongoDB connection
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ.get('DB_NAME', 'kaiso_db')]
+db = client[os.environ.get('DB_NAME')]
 
 # Create the main app
 app = FastAPI(title="Kaisō Sushi Reservation System")
