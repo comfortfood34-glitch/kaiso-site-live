@@ -163,20 +163,6 @@ class BlackoutDate(BaseModel):
 class AnalyticsEvent(BaseModel):
     event_type: str  # page_view, reservation_open, reservation_complete
     page: Optional[str] = "/"
-
-@api_router.get("/debug/arch")
-async def debug_arch():
-    import platform, shutil, os
-    wa_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "whatsapp-service")
-    return {
-        "machine": platform.machine(),
-        "system": platform.system(),
-        "node_in_path": bool(shutil.which("node")),
-        "npm_in_path": bool(shutil.which("npm")),
-        "wa_dir": os.path.exists(wa_dir),
-        "local_node": os.path.exists(os.path.join(wa_dir, "node", "bin", "node")),
-        "node_modules": os.path.exists(os.path.join(wa_dir, "node_modules")),
-    }
     referrer: Optional[str] = ""
     user_agent: Optional[str] = ""
     language: Optional[str] = "es"
