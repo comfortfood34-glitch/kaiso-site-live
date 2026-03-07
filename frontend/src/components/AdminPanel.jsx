@@ -180,6 +180,8 @@ export default function AdminPanel() {
       if (!payload.customer_email) delete payload.customer_email;
       if (!payload.observations) delete payload.observations;
       await adminCreateReservation(payload, credentials.username, credentials.password);
+      // Switch filter to the reservation date so it appears in the list
+      setFilterDate(newRes.reservation_date);
       setShowNewReservation(false);
       setNewRes({
         customer_name: '', customer_phone: '', customer_email: '',
