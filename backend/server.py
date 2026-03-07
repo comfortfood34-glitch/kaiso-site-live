@@ -110,7 +110,7 @@ logger = logging.getLogger(__name__)
 class ReservationCreate(BaseModel):
     customer_name: str = Field(..., min_length=2, max_length=100)
     customer_phone: str = Field(..., min_length=9, max_length=20)
-    customer_email: Optional[str] = None
+    customer_email: str = Field(..., min_length=5)
     guests: int = Field(..., ge=1, le=MAX_GUESTS_PER_RESERVATION)
     reservation_date: str  # YYYY-MM-DD
     reservation_time: str  # HH:MM
