@@ -364,8 +364,9 @@ const LocationSection = () => {
               <p className="flex items-start gap-3">
                 <Clock size={18} className="text-kaiso-gold mt-1 shrink-0" />
                 <span>
-                  {lang === 'es' ? 'Mar–Jue: 12:00–14:00, 19:00–23:00' : lang === 'pt' ? 'Ter–Qui: 12:00–14:00, 19:00–23:00' : 'Tue–Thu: 12:00–14:00, 19:00–23:00'}<br/>
-                  {lang === 'es' ? 'Vie–Dom: 13:00–15:30, 20:00–23:30' : lang === 'pt' ? 'Sex–Dom: 13:00–15:30, 20:00–23:30' : 'Fri–Sun: 13:00–15:30, 20:00–23:30'}<br/>
+                  {lang === 'es' ? 'Mar–Jue: 12:00–14:00, 20:00–23:00' : lang === 'pt' ? 'Ter–Qui: 12:00–14:00, 20:00–23:00' : 'Tue–Thu: 12:00–14:00, 20:00–23:00'}<br/>
+                  {lang === 'es' ? 'Vie–Sáb: 13:00–15:30, 20:00–23:30' : lang === 'pt' ? 'Sex–Sáb: 13:00–15:30, 20:00–23:30' : 'Fri–Sat: 13:00–15:30, 20:00–23:30'}<br/>
+                  {lang === 'es' ? 'Dom: 13:00–15:30, 20:00–23:00' : lang === 'pt' ? 'Dom: 13:00–15:30, 20:00–23:00' : 'Sun: 13:00–15:30, 20:00–23:00'}<br/>
                   <span className="text-kaiso-red">{lang === 'es' ? 'Lunes cerrado' : lang === 'pt' ? 'Segunda fechado' : 'Monday closed'}</span>
                 </span>
               </p>
@@ -477,8 +478,9 @@ const Footer = () => {
               <p>{t.footer.tue_thu}: 12:00–14:00</p>
               <p>{t.footer.fri_sun}: 13:00–15:30</p>
               <p className="mt-3"><span className="text-kaiso-gold">{t.footer.dinner_label}:</span></p>
-              <p>{t.footer.tue_thu}: 19:00–23:00</p>
-              <p>{t.footer.fri_sun}: 20:00–23:30</p>
+              <p>{t.footer.tue_thu}: 20:00–23:00</p>
+              <p>{t.footer.fri_sat}: 20:00–23:30</p>
+              <p>{t.footer.sun}: 20:00–23:00</p>
               <p className="text-kaiso-red mt-3">{t.footer.closed}</p>
             </div>
           </div>
