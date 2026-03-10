@@ -1,10 +1,11 @@
-import makeWASocket, { useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } from '@whiskeysockets/baileys';
+import makeWASocket, { useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, proto } from '@whiskeysockets/baileys';
 import express from 'express';
 import cors from 'cors';
 import QRCode from 'qrcode';
 import fs from 'fs';
 import path from 'path';
 import pino from 'pino';
+import { MongoClient } from 'mongodb';
 
 const app = express();
 app.use(cors());
@@ -15,22 +16,105 @@ const PID_FILE = path.resolve('./whatsapp.pid');
 const PORT = 8002;
 const logger = pino({ level: 'warn' });
 
+// Read MongoDB URL from backend .env
+let MONGO_URL = '';
+let DB_NAME = '';
+try {
+  const envContent = fs.readFileSync(path.resolve('../backend/.env'), 'utf-8');
+  const mongoMatch = envContent.match(/MONGO_URL="?([^"\n]+)"?/);
+  const dbMatch = envContent.match(/DB_NAME="?([^"\n]+)"?/);
+  MONGO_URL = mongoMatch ? mongoMatch[1] : '';
+  DB_NAME = dbMatch ? dbMatch[1] : 'kaiso_reservas';
+} catch(e) {
+  console.error('[WhatsApp] Could not read backend .env:', e.message);
+}
+
+let mongoDb = null;
 let sock = null;
 let qrDataUrl = null;
 let connectionStatus = 'disconnected';
 let phoneNumber = null;
 let reconnectAttempts = 0;
-const MAX_RECONNECT_ATTEMPTS = 10;
+const MAX_RECONNECT_ATTEMPTS = 15;
 
-// Write PID file so backend can check if we're running
+// PID management
 fs.writeFileSync(PID_FILE, process.pid.toString());
 process.on('exit', () => { try { fs.unlinkSync(PID_FILE); } catch(e) {} });
-process.on('SIGTERM', () => { process.exit(0); });
-process.on('SIGINT', () => { process.exit(0); });
+process.on('SIGTERM', () => process.exit(0));
+process.on('SIGINT', () => process.exit(0));
+
+// MongoDB session storage
+async function connectMongo() {
+  if (mongoDb) return mongoDb;
+  if (!MONGO_URL) return null;
+  try {
+    const client = new MongoClient(MONGO_URL);
+    await client.connect();
+    mongoDb = client.db(DB_NAME);
+    console.log('[WhatsApp] MongoDB connected for session storage');
+    return mongoDb;
+  } catch(e) {
+    console.error('[WhatsApp] MongoDB connection failed:', e.message);
+    return null;
+  }
+}
+
+async function saveSessionToMongo() {
+  const db = await connectMongo();
+  if (!db || !fs.existsSync(AUTH_DIR)) return;
+  try {
+    const files = fs.readdirSync(AUTH_DIR);
+    const sessionData = {};
+    for (const file of files) {
+      const content = fs.readFileSync(path.join(AUTH_DIR, file), 'utf-8');
+      sessionData[file] = content;
+    }
+    await db.collection('whatsapp_session').updateOne(
+      { _id: 'auth_session' },
+      { $set: { files: sessionData, updated_at: new Date() } },
+      { upsert: true }
+    );
+    console.log(`[WhatsApp] Session saved to MongoDB (${files.length} files)`);
+  } catch(e) {
+    console.error('[WhatsApp] Failed to save session:', e.message);
+  }
+}
+
+async function loadSessionFromMongo() {
+  const db = await connectMongo();
+  if (!db) return false;
+  try {
+    const doc = await db.collection('whatsapp_session').findOne({ _id: 'auth_session' });
+    if (!doc || !doc.files) return false;
+    fs.mkdirSync(AUTH_DIR, { recursive: true });
+    for (const [file, content] of Object.entries(doc.files)) {
+      fs.writeFileSync(path.join(AUTH_DIR, file), content);
+    }
+    console.log(`[WhatsApp] Session loaded from MongoDB (${Object.keys(doc.files).length} files)`);
+    return true;
+  } catch(e) {
+    console.error('[WhatsApp] Failed to load session:', e.message);
+    return false;
+  }
+}
+
+async function clearSessionFromMongo() {
+  const db = await connectMongo();
+  if (!db) return;
+  try {
+    await db.collection('whatsapp_session').deleteOne({ _id: 'auth_session' });
+    console.log('[WhatsApp] Session cleared from MongoDB');
+  } catch(e) {}
+}
 
 async function startWhatsApp() {
   connectionStatus = 'connecting';
   qrDataUrl = null;
+
+  // Load session from MongoDB if local session is empty
+  if (!fs.existsSync(AUTH_DIR) || fs.readdirSync(AUTH_DIR).length === 0) {
+    await loadSessionFromMongo();
+  }
 
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
   const { version } = await fetchLatestBaileysVersion();
@@ -41,13 +125,17 @@ async function startWhatsApp() {
     logger,
     markOnlineOnConnect: false,
     browser: ['Kaiso Sushi', 'Chrome', '120.0.0'],
-    keepAliveIntervalMs: 30000,
+    keepAliveIntervalMs: 25000,
     connectTimeoutMs: 60000,
     retryRequestDelayMs: 2000,
     defaultQueryTimeoutMs: undefined,
   });
 
-  sock.ev.on('creds.update', saveCreds);
+  sock.ev.on('creds.update', async () => {
+    await saveCreds();
+    // Backup to MongoDB every time creds update
+    await saveSessionToMongo();
+  });
 
   sock.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect, qr } = update;
@@ -56,34 +144,33 @@ async function startWhatsApp() {
       try {
         qrDataUrl = await QRCode.toDataURL(qr, { width: 300, margin: 2 });
         connectionStatus = 'qr_ready';
-        console.log('[WhatsApp] QR Code generated - scan with your phone');
+        console.log('[WhatsApp] QR Code generated');
       } catch (err) {
-        console.error('[WhatsApp] QR generation error:', err);
+        console.error('[WhatsApp] QR error:', err);
       }
     }
 
     if (connection === 'close') {
       const statusCode = lastDisconnect?.error?.output?.statusCode;
-      console.log(`[WhatsApp] Connection closed (code: ${statusCode})`);
+      console.log(`[WhatsApp] Closed (code: ${statusCode})`);
       connectionStatus = 'disconnected';
       qrDataUrl = null;
 
       if (statusCode === DisconnectReason.loggedOut) {
-        // User logged out - clear session and wait for new QR scan
-        console.log('[WhatsApp] Logged out. Clearing session...');
-        if (fs.existsSync(AUTH_DIR)) {
-          fs.rmSync(AUTH_DIR, { recursive: true, force: true });
-        }
+        console.log('[WhatsApp] Logged out - clearing session');
+        if (fs.existsSync(AUTH_DIR)) fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+        await clearSessionFromMongo();
         reconnectAttempts = 0;
         setTimeout(() => startWhatsApp(), 2000);
       } else if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-        // Connection lost - reconnect with backoff
         reconnectAttempts++;
-        const delay = Math.min(2000 * Math.pow(1.5, reconnectAttempts - 1), 30000);
-        console.log(`[WhatsApp] Reconnecting in ${Math.round(delay/1000)}s (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
+        const delay = Math.min(3000 * Math.pow(1.3, reconnectAttempts - 1), 60000);
+        console.log(`[WhatsApp] Reconnecting in ${Math.round(delay/1000)}s (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
         setTimeout(() => startWhatsApp(), delay);
       } else {
-        console.log('[WhatsApp] Max reconnect attempts reached. Use /reset to try again.');
+        console.log('[WhatsApp] Max attempts reached. Waiting 5min then retry...');
+        reconnectAttempts = 0;
+        setTimeout(() => startWhatsApp(), 300000);
       }
     }
 
@@ -93,19 +180,10 @@ async function startWhatsApp() {
       reconnectAttempts = 0;
       phoneNumber = sock.user?.id?.split(':')[0] || sock.user?.id;
       console.log(`[WhatsApp] Connected as ${phoneNumber}`);
+      // Save session immediately on successful connection
+      await saveSessionToMongo();
     }
   });
-
-  // Periodic keepalive check
-  setInterval(() => {
-    if (connectionStatus === 'connected' && sock) {
-      try {
-        sock.sendPresenceUpdate('available');
-      } catch (e) {
-        // ignore
-      }
-    }
-  }, 60000);
 }
 
 // --- API Endpoints ---
@@ -124,17 +202,14 @@ app.post('/send', async (req, res) => {
   if (connectionStatus !== 'connected' || !sock) {
     return res.status(503).json({ error: 'WhatsApp not connected' });
   }
-
   const { phone, message } = req.body;
-  if (!phone || !message) {
-    return res.status(400).json({ error: 'phone and message required' });
-  }
+  if (!phone || !message) return res.status(400).json({ error: 'phone and message required' });
 
   try {
     const cleanPhone = phone.replace(/[\s\-\+\(\)]/g, '');
     const jid = `${cleanPhone}@s.whatsapp.net`;
     await sock.sendMessage(jid, { text: message });
-    console.log(`[WhatsApp] Message sent to ${cleanPhone}`);
+    console.log(`[WhatsApp] Sent to ${cleanPhone}`);
     res.json({ success: true, to: cleanPhone });
   } catch (err) {
     console.error('[WhatsApp] Send error:', err);
@@ -143,45 +218,27 @@ app.post('/send', async (req, res) => {
 });
 
 app.post('/reset', async (req, res) => {
-  console.log('[WhatsApp] Resetting connection...');
+  console.log('[WhatsApp] Reset requested');
   try {
-    if (sock) {
-      sock.ev.removeAllListeners();
-      await sock.logout().catch(() => {});
-      sock = null;
-    }
-  } catch (e) { /* ignore */ }
-
-  if (fs.existsSync(AUTH_DIR)) {
-    fs.rmSync(AUTH_DIR, { recursive: true, force: true });
-  }
-
+    if (sock) { sock.ev.removeAllListeners(); await sock.logout().catch(() => {}); sock = null; }
+  } catch(e) {}
+  if (fs.existsSync(AUTH_DIR)) fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+  await clearSessionFromMongo();
   connectionStatus = 'disconnected';
   qrDataUrl = null;
   phoneNumber = null;
   reconnectAttempts = 0;
-
   setTimeout(() => startWhatsApp(), 1000);
-  res.json({ success: true, message: 'Resetting... new QR will appear shortly' });
+  res.json({ success: true });
 });
 
 app.post('/reconnect', async (req, res) => {
-  console.log('[WhatsApp] Reconnecting...');
-  if (connectionStatus === 'connected') {
-    return res.json({ success: true, message: 'Already connected' });
-  }
-
-  try {
-    if (sock) {
-      sock.ev.removeAllListeners();
-      sock.end(undefined);
-      sock = null;
-    }
-  } catch (e) { /* ignore */ }
-
+  console.log('[WhatsApp] Reconnect requested');
+  if (connectionStatus === 'connected') return res.json({ success: true, message: 'Already connected' });
+  try { if (sock) { sock.ev.removeAllListeners(); sock.end(undefined); sock = null; } } catch(e) {}
   reconnectAttempts = 0;
   setTimeout(() => startWhatsApp(), 500);
-  res.json({ success: true, message: 'Reconnecting...' });
+  res.json({ success: true });
 });
 
 app.get('/health', (req, res) => {
@@ -190,6 +247,6 @@ app.get('/health', (req, res) => {
 
 // Start
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[WhatsApp Service] Running on port ${PORT} (PID: ${process.pid})`);
+  console.log(`[WhatsApp Service] Port ${PORT} (PID: ${process.pid})`);
   startWhatsApp();
 });
