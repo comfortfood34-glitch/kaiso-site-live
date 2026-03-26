@@ -1,6 +1,7 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, Query
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Query, Request
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -1121,3 +1122,20 @@ async def start_whatsapp_service():
 async def shutdown_db_client():
     # DON'T kill WhatsApp service - it runs independently
     client.close()
+
+# ========================
+# SERVE FRONTEND (Production / Render)
+# ========================
+FRONTEND_BUILD = Path(__file__).parent.parent / "frontend" / "build"
+
+if FRONTEND_BUILD.exists() and (FRONTEND_BUILD / "index.html").exists():
+    # Serve static assets (JS, CSS, images, etc.)
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_BUILD / "static")), name="static-assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(request: Request, full_path: str):
+        """Serve React SPA - all non-API routes return index.html"""
+        file_path = FRONTEND_BUILD / full_path
+        if full_path and file_path.exists() and file_path.is_file():
+            return FileResponse(str(file_path))
+        return FileResponse(str(FRONTEND_BUILD / "index.html"))

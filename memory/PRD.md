@@ -1,15 +1,24 @@
 # Kaisō Sushi - Product Requirements Document
 
 ## Original Problem Statement
-Complete rebuild of the Kaisō Sushi website to a premium, luxury-tech standard with reservation system, admin panel, analytics, WhatsApp auto-notifications, and external MongoDB.
+Complete rebuild of the Kaisō Sushi website to a premium, luxury-tech standard with reservation system, admin panel, analytics, WhatsApp auto-notifications, and external MongoDB. Deploy as a single Docker container on Render.
 
 ## Architecture
-- **Frontend:** React + Tailwind → Cloudflare (kaisosushiespanha.com)
-- **Backend:** FastAPI + Pydantic → Emergent (kaiso-premium.emergent.host)
+- **Frontend:** React + Tailwind (built and served by FastAPI in production)
+- **Backend:** FastAPI + Pydantic (serves API + static frontend)
 - **WhatsApp:** Node.js + baileys (auto-installed, runs as subprocess of backend)
 - **Database:** MongoDB Atlas (cluster0.qdzhihd.mongodb.net / kaiso_reservas)
 - **Email:** Gmail SMTP via aiosmtplib (BackgroundTasks)
-- **Code:** GitHub repository
+- **Hosting:** Render (Docker Web Service) - Single container serves everything
+
+## Render Deployment Architecture
+```
+[Internet] → [Render Web Service (Docker)]
+                ├── React Frontend (static files served by FastAPI)
+                ├── FastAPI Backend (/api/*)
+                └── WhatsApp Node.js Service (spawned by FastAPI on startup)
+                      └── MongoDB Atlas (external)
+```
 
 ## Schedule
 - Mon: CLOSED
@@ -21,23 +30,27 @@ Complete rebuild of the Kaisō Sushi website to a premium, luxury-tech standard 
 - Admin/Analytics: admin / reservas
 - MongoDB Atlas: leandrosilva0311_db_user @ cluster0.qdzhihd.mongodb.net
 
-## Completed Features (All Tested & Live on Production)
+## Completed Features
 - Full restaurant website with dark luxury theme
 - Multi-language reservation system (ES/PT/EN)
 - Admin panel: view/filter reservations, manual creation, CSV export
 - Analytics dashboard with KPIs and charts
-- WhatsApp QR code integration with auto-notifications ✅ LIVE
+- WhatsApp QR code integration with auto-notifications
 - MongoDB Atlas (external, secure)
 - Bulletproof email HTML (table-based XHTML)
 - 30-minute buffer before closing time
 - Updated weekend schedule
 - Performance optimization (BackgroundTasks)
 - Production CORS fix, removeChild bug fix
+- **Render deployment configuration (Dockerfile, start.sh, render.yaml)** ✅ 2026-03-26
+- **Frontend served by FastAPI for single-container deploy** ✅ 2026-03-26
+- **Deployment guide created (DEPLOY_GUIDE.md)** ✅ 2026-03-26
 
-## Deployment Process
-1. "Save to Github" → updates frontend on Cloudflare
-2. "Deploy" → updates backend on Emergent (kaiso-premium.emergent.host)
-3. Both steps needed for full production update
+## Key Deployment Files
+- `/app/Dockerfile` - Multi-stage build (frontend + backend + WhatsApp)
+- `/app/deploy/start.sh` - Generates .env from Render env vars, starts uvicorn
+- `/app/render.yaml` - Render Infrastructure-as-Code
+- `/app/DEPLOY_GUIDE.md` - Step-by-step guide for the user
 
 ## Backlog
 - P1: Test admin capacity adjustment and date blocking features

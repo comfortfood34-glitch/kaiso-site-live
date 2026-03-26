@@ -1,31 +1,39 @@
 FROM python:3.11-slim
 
-# Install Node.js
-RUN apt-get update && apt-get install -y curl supervisor && \
+# Install Node.js + system deps
+RUN apt-get update && apt-get install -y curl && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
+    npm install -g yarn && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Install Python dependencies
+# ---- Build Frontend ----
+COPY frontend/package.json frontend/yarn.lock /app/frontend/
+RUN cd /app/frontend && yarn install --frozen-lockfile
+
+COPY frontend/ /app/frontend/
+# Build with empty BACKEND_URL so API calls use relative paths (same origin)
+RUN cd /app/frontend && REACT_APP_BACKEND_URL="" yarn build
+
+# ---- Install Python dependencies ----
 COPY backend/requirements.txt /app/backend/requirements.txt
 RUN pip install --no-cache-dir -r /app/backend/requirements.txt
 
-# Install Node.js dependencies
+# ---- Install WhatsApp Node.js dependencies ----
 COPY whatsapp-service/package.json whatsapp-service/package-lock.json* /app/whatsapp-service/
 RUN cd /app/whatsapp-service && npm install --production
 
-# Copy app code
+# ---- Copy application code ----
 COPY backend/ /app/backend/
 COPY whatsapp-service/ /app/whatsapp-service/
 
-# Copy supervisor config
-COPY deploy/supervisord.conf /etc/supervisor/conf.d/app.conf
+# ---- Copy startup script ----
+COPY deploy/start.sh /app/start.sh
+RUN chmod +x /app/start.sh
 
-# Create log directories
-RUN mkdir -p /var/log/supervisor /tmp
+# Create necessary directories
+RUN mkdir -p /tmp
 
-EXPOSE 8001
-
-CMD ["supervisord", "-n", "-c", "/etc/supervisor/conf.d/app.conf"]
+CMD ["/app/start.sh"]

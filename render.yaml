@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: kaiso-sushi-backend
+    name: kaiso-sushi
     runtime: docker
     dockerfilePath: ./Dockerfile
     plan: starter
@@ -31,5 +31,3 @@ services:
         sync: false
       - key: CC_TO
         sync: false
-      - key: PORT
-        value: "8001"
