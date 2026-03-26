@@ -41,6 +41,7 @@ SMTP_PORT = int(os.environ.get('SMTP_PORT', '587'))
 SMTP_USER = os.environ.get('SMTP_USER')
 SMTP_PASS = os.environ.get('SMTP_PASS')
 ADMIN_EMAIL_FROM = os.environ.get('ADMIN_EMAIL_FROM')
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
 NOTIFY_TO = os.environ.get('NOTIFY_TO')
 CC_TO = os.environ.get('CC_TO')
 
@@ -245,46 +246,38 @@ async def is_blackout_date(date_str: str) -> bool:
 # EMAIL FUNCTIONS
 # ========================
 async def send_email(to_email: str, subject: str, html_content: str, cc_email: str = None):
-    """Envia email via SMTP Gmail - uses thread to avoid async issues"""
-    if not all([SMTP_HOST, SMTP_USER, SMTP_PASS, ADMIN_EMAIL_FROM, to_email]):
-        logger.warning(f"Email para '{to_email}' ignorado - SMTP não configurado")
+    """Envia email via Resend API (HTTPS) - não usa SMTP direto para evitar bloqueios de porta"""
+    if not RESEND_API_KEY:
+        logger.warning(f"Email para '{to_email}' ignorado - RESEND_API_KEY não configurada")
         return False
-    import smtplib, ssl
-    
-    def _send():
-        message = MIMEMultipart("alternative")
-        message["From"] = f"{RESTAURANT_NAME} <{ADMIN_EMAIL_FROM}>"
-        message["To"] = to_email
-        message["Subject"] = subject
-        if cc_email:
-            message["Cc"] = cc_email
-        
-        html_part = MIMEText(html_content, "html")
-        message.attach(html_part)
-        
-        recipients = [to_email]
-        if cc_email:
-            recipients.append(cc_email)
-        
-        port = SMTP_PORT or 465
-        context = ssl.create_default_context()
-        
-        if port == 465:
-            with smtplib.SMTP_SSL(SMTP_HOST, port, context=context, timeout=30) as server:
-                server.login(SMTP_USER, SMTP_PASS)
-                server.sendmail(ADMIN_EMAIL_FROM, recipients, message.as_string())
-        else:
-            with smtplib.SMTP(SMTP_HOST, port, timeout=30) as server:
-                server.starttls(context=context)
-                server.login(SMTP_USER, SMTP_PASS)
-                server.sendmail(ADMIN_EMAIL_FROM, recipients, message.as_string())
-        
-        return True
-    
+    if not to_email:
+        logger.warning("Email ignorado - destinatário em falta")
+        return False
+
+    from_addr = f"{RESTAURANT_NAME} <{ADMIN_EMAIL_FROM}>" if ADMIN_EMAIL_FROM else f"{RESTAURANT_NAME} <onboarding@resend.dev>"
+    payload = {
+        "from": from_addr,
+        "to": [to_email],
+        "subject": subject,
+        "html": html_content,
+    }
+    if cc_email:
+        payload["cc"] = [cc_email]
+
     try:
-        result = await asyncio.get_event_loop().run_in_executor(None, _send)
-        logger.info(f"Email enviado para {to_email}")
-        return True
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                "https://api.resend.com/emails",
+                headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
+                json=payload,
+            )
+        if resp.status_code in (200, 201):
+            logger.info(f"Email enviado para {to_email} via Resend")
+            return True
+        else:
+            error_msg = resp.text
+            logger.error(f"Resend erro {resp.status_code} para {to_email}: {error_msg}")
+            raise Exception(f"Resend API error {resp.status_code}: {error_msg}")
     except Exception as e:
         logger.error(f"Erro ao enviar email para {to_email}: {str(e)}")
         raise e
@@ -437,18 +430,15 @@ async def test_email(token: str = ""):
     if not token or token != ADMIN_PASSWORD:
         return {"error": "Adicione ?token=SUA_PASSWORD_ADMIN ao URL"}
     config_status = {
-        "SMTP_HOST": SMTP_HOST or "MISSING",
-        "SMTP_PORT": SMTP_PORT,
-        "SMTP_USER": SMTP_USER or "MISSING",
-        "SMTP_PASS": "SET" if SMTP_PASS else "MISSING",
+        "RESEND_API_KEY": "SET" if RESEND_API_KEY else "MISSING",
         "ADMIN_EMAIL_FROM": ADMIN_EMAIL_FROM or "MISSING",
         "NOTIFY_TO": NOTIFY_TO or "MISSING",
     }
-    if not all([SMTP_HOST, SMTP_USER, SMTP_PASS, ADMIN_EMAIL_FROM, NOTIFY_TO]):
-        return {"success": False, "config": config_status, "error": "Variaveis SMTP em falta"}
+    if not RESEND_API_KEY:
+        return {"success": False, "config": config_status, "error": "RESEND_API_KEY nao configurada"}
     try:
         html = f"<h2>Teste SMTP - Kaiso Sushi</h2><p>Enviado em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>"
-        await send_email(NOTIFY_TO, "Teste SMTP - Kaiso Sushi", html)
+        await send_email(NOTIFY_TO, "Teste Email - Kaiso Sushi", html)
         return {"success": True, "config": config_status, "sent_to": NOTIFY_TO, "message": "Email enviado! Verifique a caixa de entrada e pasta spam."}
     except Exception as e:
         return {"success": False, "config": config_status, "error": str(e)}
@@ -1100,17 +1090,10 @@ app.include_router(api_router)
 @app.on_event("startup")
 async def check_config():
     """Log warnings for missing critical configuration"""
-    missing = []
-    if not SMTP_HOST: missing.append("SMTP_HOST")
-    if not SMTP_USER: missing.append("SMTP_USER")
-    if not SMTP_PASS: missing.append("SMTP_PASS")
-    if not ADMIN_EMAIL_FROM: missing.append("ADMIN_EMAIL_FROM")
-    if not NOTIFY_TO: missing.append("NOTIFY_TO")
-    if missing:
-        logger.warning(f"⚠️  SMTP não configurado - emails desativados. Variáveis em falta: {', '.join(missing)}")
-        logger.warning("Configure estas variáveis no painel do Render → Environment Variables")
+    if RESEND_API_KEY:
+        logger.info(f"✅ Resend API configurada → notificacoes ativas para {NOTIFY_TO}")
     else:
-        logger.info(f"✅ SMTP configurado: {SMTP_HOST}:{SMTP_PORT} → {NOTIFY_TO}")
+        logger.warning("⚠️  RESEND_API_KEY nao configurada - emails desativados. Adicione no Render → Environment Variables")
 
 @app.on_event("startup")
 async def start_whatsapp_service():
