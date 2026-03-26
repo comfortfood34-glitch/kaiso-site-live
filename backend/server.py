@@ -246,6 +246,9 @@ async def is_blackout_date(date_str: str) -> bool:
 # ========================
 async def send_email(to_email: str, subject: str, html_content: str, cc_email: str = None):
     """Envia email via SMTP Gmail - uses thread to avoid async issues"""
+    if not all([SMTP_HOST, SMTP_USER, SMTP_PASS, ADMIN_EMAIL_FROM, to_email]):
+        logger.warning(f"Email para '{to_email}' ignorado - SMTP não configurado")
+        return False
     import smtplib, ssl
     
     def _send():
@@ -427,6 +430,26 @@ async def root():
 @api_router.get("/health")
 async def health_check():
     return {"status": "ok"}
+
+@api_router.get("/admin/test-email")
+async def test_email(credentials: HTTPBasicCredentials = Depends(verify_admin)):
+    """Testa configuração SMTP e envia email de teste para NOTIFY_TO"""
+    config_status = {
+        "SMTP_HOST": SMTP_HOST or "MISSING",
+        "SMTP_PORT": SMTP_PORT,
+        "SMTP_USER": SMTP_USER or "MISSING",
+        "SMTP_PASS": "SET" if SMTP_PASS else "MISSING",
+        "ADMIN_EMAIL_FROM": ADMIN_EMAIL_FROM or "MISSING",
+        "NOTIFY_TO": NOTIFY_TO or "MISSING",
+    }
+    if not all([SMTP_HOST, SMTP_USER, SMTP_PASS, ADMIN_EMAIL_FROM, NOTIFY_TO]):
+        return {"success": False, "config": config_status, "error": "Variaveis SMTP em falta"}
+    try:
+        html = f"<h2>Teste SMTP - Kaiso Sushi</h2><p>Email de teste enviado em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p><p>Configuracao SMTP funciona correctamente.</p>"
+        await send_email(NOTIFY_TO, "Teste SMTP - Kaiso Sushi", html)
+        return {"success": True, "config": config_status, "sent_to": NOTIFY_TO, "message": "Email enviado! Verifique a caixa de entrada e pasta spam."}
+    except Exception as e:
+        return {"success": False, "config": config_status, "error": str(e)}
 
 @api_router.get("/debug/email-config")
 async def debug_email_config():
@@ -1071,6 +1094,21 @@ async def whatsapp_send_test(
 
 # Include router
 app.include_router(api_router)
+
+@app.on_event("startup")
+async def check_config():
+    """Log warnings for missing critical configuration"""
+    missing = []
+    if not SMTP_HOST: missing.append("SMTP_HOST")
+    if not SMTP_USER: missing.append("SMTP_USER")
+    if not SMTP_PASS: missing.append("SMTP_PASS")
+    if not ADMIN_EMAIL_FROM: missing.append("ADMIN_EMAIL_FROM")
+    if not NOTIFY_TO: missing.append("NOTIFY_TO")
+    if missing:
+        logger.warning(f"⚠️  SMTP não configurado - emails desativados. Variáveis em falta: {', '.join(missing)}")
+        logger.warning("Configure estas variáveis no painel do Render → Environment Variables")
+    else:
+        logger.info(f"✅ SMTP configurado: {SMTP_HOST}:{SMTP_PORT} → {NOTIFY_TO}")
 
 @app.on_event("startup")
 async def start_whatsapp_service():
