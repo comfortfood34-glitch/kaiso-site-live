@@ -261,14 +261,29 @@ async def send_email(to_email: str, subject: str, html_content: str, cc_email: s
         if cc_email:
             recipients.append(cc_email)
         
-        await aiosmtplib.send(
-            message,
-            hostname=SMTP_HOST,
-            port=SMTP_PORT,
-            start_tls=True,
-            username=SMTP_USER,
-            password=SMTP_PASS,
-        )
+        # Use port 465 with SSL (more reliable on cloud platforms like Render)
+        # Fall back to port 587 with STARTTLS if configured
+        port = SMTP_PORT or 465
+        if port == 465:
+            await aiosmtplib.send(
+                message,
+                hostname=SMTP_HOST,
+                port=465,
+                use_tls=True,
+                username=SMTP_USER,
+                password=SMTP_PASS,
+                timeout=30,
+            )
+        else:
+            await aiosmtplib.send(
+                message,
+                hostname=SMTP_HOST,
+                port=port,
+                start_tls=True,
+                username=SMTP_USER,
+                password=SMTP_PASS,
+                timeout=30,
+            )
         logger.info(f"Email enviado para {to_email}")
         return True
     except Exception as e:
