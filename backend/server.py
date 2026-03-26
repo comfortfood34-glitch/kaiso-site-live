@@ -417,6 +417,32 @@ async def root():
 async def health_check():
     return {"status": "ok"}
 
+@api_router.get("/debug/email-config")
+async def debug_email_config():
+    """Temporary debug endpoint - remove after fixing"""
+    return {
+        "smtp_host": SMTP_HOST,
+        "smtp_port": SMTP_PORT,
+        "smtp_user": SMTP_USER[:5] + "..." if SMTP_USER else None,
+        "smtp_pass_set": bool(SMTP_PASS),
+        "admin_email_from": ADMIN_EMAIL_FROM,
+        "notify_to": NOTIFY_TO,
+        "cc_to": CC_TO,
+    }
+
+@api_router.post("/debug/test-email")
+async def debug_test_email():
+    """Temporary debug endpoint - sends test email"""
+    try:
+        result = await send_email(
+            NOTIFY_TO,
+            "TESTE - Kaisō Sushi Email",
+            "<h1>Teste de Email</h1><p>Email enviado com sucesso do Render!</p>",
+        )
+        return {"status": "sent", "to": NOTIFY_TO}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
 @api_router.get("/config")
 async def get_public_config():
     """Configuração pública do restaurante"""

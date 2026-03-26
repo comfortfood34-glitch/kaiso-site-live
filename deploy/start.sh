@@ -1,12 +1,13 @@
 #!/bin/bash
 # Render Entrypoint Script
-# Generates backend/.env from Render environment variables
+# Generates backend/.env from Render environment variables (needed for WhatsApp service)
 # then starts the application
 
 ENV_FILE="/app/backend/.env"
 APP_PORT="${PORT:-8001}"
 
 echo "=== Generating backend .env from environment ==="
+echo "=== Available env vars: MONGO_URL=$([ -n "$MONGO_URL" ] && echo 'SET' || echo 'MISSING'), SMTP_HOST=$([ -n "$SMTP_HOST" ] && echo 'SET' || echo 'MISSING'), SMTP_USER=$([ -n "$SMTP_USER" ] && echo 'SET' || echo 'MISSING'), SMTP_PASS=$([ -n "$SMTP_PASS" ] && echo 'SET' || echo 'MISSING') ==="
 
 > "$ENV_FILE"
 
@@ -24,6 +25,7 @@ echo "=== Generating backend .env from environment ==="
 [ -n "$CC_TO" ] && echo "CC_TO=$CC_TO" >> "$ENV_FILE"
 
 echo "=== .env generated with $(wc -l < "$ENV_FILE") variables ==="
+cat "$ENV_FILE" | sed 's/SMTP_PASS=.*/SMTP_PASS=***HIDDEN***/' | sed 's/MONGO_URL=.*/MONGO_URL=***HIDDEN***/'
 echo "=== Starting Kaisō Sushi on port $APP_PORT ==="
 
 cd /app/backend
