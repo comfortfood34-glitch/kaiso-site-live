@@ -134,8 +134,9 @@ export default function ReservationSystem({ onClose }) {
   // Scroll to top when step changes (fixes black screen on mobile)
   React.useEffect(() => {
     if (overlayRef.current) {
-      overlayRef.current.scrollTo({ top: 0, behavior: 'instant' });
+      overlayRef.current.scrollTop = 0;
     }
+    try { window.scrollTo(0, 0); } catch (_) {}
   }, [step]);
 
   return (

@@ -246,6 +246,9 @@ async def is_blackout_date(date_str: str) -> bool:
 # ========================
 async def send_email(to_email: str, subject: str, html_content: str, cc_email: str = None):
     """Envia email via SMTP Gmail - uses thread to avoid async issues"""
+    if not all([SMTP_HOST, SMTP_USER, SMTP_PASS, ADMIN_EMAIL_FROM, to_email]):
+        logger.warning(f"Email para '{to_email}' ignorado - SMTP não configurado")
+        return False
     import smtplib, ssl
     
     def _send():
@@ -1071,6 +1074,21 @@ async def whatsapp_send_test(
 
 # Include router
 app.include_router(api_router)
+
+@app.on_event("startup")
+async def check_config():
+    """Log warnings for missing critical configuration"""
+    missing = []
+    if not SMTP_HOST: missing.append("SMTP_HOST")
+    if not SMTP_USER: missing.append("SMTP_USER")
+    if not SMTP_PASS: missing.append("SMTP_PASS")
+    if not ADMIN_EMAIL_FROM: missing.append("ADMIN_EMAIL_FROM")
+    if not NOTIFY_TO: missing.append("NOTIFY_TO")
+    if missing:
+        logger.warning(f"⚠️  SMTP não configurado - emails desativados. Variáveis em falta: {', '.join(missing)}")
+        logger.warning("Configure estas variáveis no painel do Render → Environment Variables")
+    else:
+        logger.info(f"✅ SMTP configurado: {SMTP_HOST}:{SMTP_PORT} → {NOTIFY_TO}")
 
 @app.on_event("startup")
 async def start_whatsapp_service():
