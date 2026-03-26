@@ -8,7 +8,7 @@ import os
 from datetime import datetime, timedelta
 
 # Use the public URL from env
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://manual-reservations.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://kaisosushi-preview.preview.emergentagent.com').rstrip('/')
 
 # Admin credentials from backend/.env
 ADMIN_USER = "admin"

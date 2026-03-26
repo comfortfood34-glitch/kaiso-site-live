@@ -1,147 +1,140 @@
 <analysis>**original_problem_statement:**
-The user initially requested a complete rebuild of the Kaisō Sushi website to a premium, luxury-tech standard. Over time, requirements expanded to include a comprehensive reservation system with complex business rules, a password-protected admin panel, and an analytics dashboard. Recent requests include fixing production site bugs, optimizing performance, and adding a feature for restaurant staff to manually create reservations from the admin panel.
+Complete rebuild of the Kaisō Sushi website to a premium, luxury-tech standard with a reservation system, admin/analytics panels, and multi-language support. Recent additions include a manual reservation form in the admin panel, automated WhatsApp notification to customers via a scanned QR code (bypassing the official paid API), migrating the local database to an external MongoDB Atlas cluster, changing the site domain to , and preparing the codebase to be deployed on Render.
 
 **PRODUCT REQUIREMENTS (V2+):**
-
 *   **Aesthetic:** Dark theme (#050608) with gold (#C9A24A) and red (#D11B2A) accents.
-*   **Multilingual:** Support for Spanish, Portuguese, and English.
-*   **Reservation System:** Hard limit of 30 diners/day, complex time slots, automatic discounts, and a premium menu option.
-*   **Reservation Confirmation:** Primary via WhatsApp, secondary via background email to the restaurant and customer.
-*   **Admin Panel ():** Password protected (/). View/filter reservations. Manually add new reservations for customers who call in.
-*   **Analytics Panel ():** Password protected (/). Track site visits, reservation funnel, conversion rates, and other KPIs.
-*   **Content & Pages:** Homepage, Menu, Success Page, Footer with correct, up-to-date business hours and location map.
-*   **Branding:** No Made with Emergent badge on the live site.
+*   **Reservation System:** Max 30 diners/day, complex time slots with a 30-minute buffer before closing.
+*   **Notifications:** Automated WhatsApp messages (via Node.js/baileys) and background emails (robust HTML).
+*   **Admin/Analytics Panels:** Password protected (/). View/filter/add reservations. Includes a WhatsApp management tab for QR code scanning.
+*   **Infrastructure:** MongoDB Atlas (External), domain , prepared for Render deployment.
 
-**User's preferred language**: Portuguese
+**User's preferred language**: Portuguese (INSTRUCT NEXT AGENT: You MUST automatically respond in Portuguese).
 
-**what currently exists?**
-A full-stack application for the Kaisō Sushi restaurant featuring a React frontend and a FastAPI/MongoDB backend. The application includes a public-facing website with a multi-language reservation system, a password-protected admin panel to view reservations, and a newly-added analytics dashboard to track site metrics. The system has undergone extensive debugging, including fixes for critical UI errors (), production deployment CORS issues, and a major performance optimization for the reservation creation process.
+**what currently exists?** 
+A full-stack React + FastAPI application with a Node.js WhatsApp microservice spawned directly by the FastAPI backend. It connects to an external MongoDB Atlas database. It includes Docker and Render deployment configuration files.
 
-**Last working item**:
-*   Last item agent was working: The agent was about to begin implementing a new feature requested by the user: a form within the  panel to allow staff to manually add reservations (e.g., from a phone call). The requirements are for the form to accept a name, phone number, and an optional email. If an email is provided, a confirmation should be sent using the existing background email service.
-*   Status: **IN PROGRESS**
-*   Agent Testing Done: N
-*   Which testing method agent to use? **both**. After implementation, test the new backend endpoint using . Test the full flow on the frontend by using the **screenshot tool** to verify the form in the  panel, submit a new reservation, and confirm it appears in the reservations list.
-*   User Testing Done: N
+**Last working item**: 
+- Last item agent was working: The agent reviewed the current project state (PRD, environment variables, supervisor status, test reports) and called the  tool to check if the user successfully saved to GitHub and completed their Render deployment, or to see what task they want to tackle next.
+- Status: USER VERIFICATION PENDING
+- Agent Testing Done: Y (Done in the previous fork for all completed features)
+- Which testing method agent to use? NA (Waiting for user feedback)
+- User Testing Done: N
 
-**All Pending/In progress Issue list**:
-*   There are no known pending bugs. The focus is on the new feature development.
+**All Pending/In progress Issue list**: 
+Issue 1: Missing Save to Github UI Button (User/Platform issue)
+- Attempted fixes: Agent provided support steps in the previous fork to help the user locate the button.
+- Next debug checklist: Check user's response to  to see if they managed to save the code to Github. If not, guide them again.
+- Why fix this issue and what will be achieved with the fix? Blocked from deploying latest Render configs or frontend updates to production until code is committed.
+- Status: USER VERIFICATION PENDING
+- Is recurring issue? N
+- Should Test frontend/backend/both after fix? NA
+- Blocked on other issue: None
 
-**In progress Task List**:
-*   **Task 1: Implement Add Reservation in Admin Panel (P0)**
+Issue 2: WhatsApp Connection Stability
+- Attempted fixes: Node.js service was updated to save the WhatsApp auth session inside MongoDB Atlas so it survives backend reboots.
+- Next debug checklist: Monitor logs to ensure WhatsApp doesn't disconnect after a few days. 
+- Why fix this issue and what will be achieved with the fix? Ensures reliable automated messaging without staff constantly rescanning the QR code.
+- Status: TESTING PENDING (Wait for user feedback over time) (Priority P1)
+- Is recurring issue? Y
+- Should Test frontend/backend/both after fix? Backend
+- Blocked on other issue: None
 
-**Task Detail:**
-*   **Task 1: Implement Add Reservation in Admin Panel**
-    *   **Where to resume:** The agent needs to start the implementation.
-        1.  **Backend:** Modify . Create a new protected endpoint (e.g., ) that accepts reservation details and creates a record in the database. This endpoint should bypass standard availability checks. It should use the existing  to send an email confirmation if an email is provided. Add a  field (e.g., 'manual') to the reservation schema to differentiate it from online bookings.
-        2.  **Frontend:** Modify . Add a new section with a form containing fields for name, phone, email, date, time, and number of guests. Add a Create Reservation button. On successful submission, refresh the reservations list.
-    *   **What will be achieved with this?** The restaurant staff will be able to centralize all reservations (online and offline) into one system.
-    *   **Status:** IN PROGRESS
-    *   **Should Test frontend/backend/both after fix?** Both
-    *   **Blocked on something:** No
+**In progress Task List**: 
+Task 1: Render Deployment Migration Follow-up
+- Where to resume: Await the user's response to the  prompt regarding their deployment status.
+- What will be achieved with this? Unified stable hosting environment as requested.
+- Status: USER VERIFICATION PENDING
+- Should Test frontend/backend/both after fix? Both
+- Blocked on something: User saving to Github.
 
 **Upcoming and Future Tasks**
-*   **Upcoming Tasks:**
-    *   **(P1) Full Admin Panel Feature Test:** Although the admin panel exists, the features for adjusting daily capacity and blocking specific dates have not been explicitly tested by the user.
-    *   **(P2) Validate WhatsApp Integration:** A final end-to-end test should be performed on the live site to ensure the message format and user experience are correct after all the recent changes.
-*   **Future Tasks:**
-    *   None specified by the user.
+Upcoming Tasks:
+- P1: Full Admin Panel Feature Test (Validate features for adjusting daily capacity and blocking specific dates in production).
+Future Tasks:
+- P2: Refactor . It is currently over 1100 lines long and handles API routes, models, background tasks, and Node.js subprocess management. It needs modularization.
 
 **Completed work in this session**
-- **Implemented Analytics Dashboard:** Created a new, password-protected  page with KPIs, charts for visits, languages, devices, and a conversion funnel. This involved adding new backend endpoints, a new  MongoDB collection, and a new  React component using .
-- **Optimized Reservation Performance:** Reduced the reservation confirmation time from ~30 seconds to ~0.2 seconds by refactoring the  endpoint to send confirmation emails as a , making the UI response instantaneous.
-- **Fixed Production Black Screen (CORS Issue):** Diagnosed and resolved a critical CORS error that was blocking the production frontend () from communicating with the deployed backend. Fixed by adding the production domain to the  in .
-- **Fixed  React Bug:** Performed a comprehensive, codebase-wide fix by replacing all  conditional rendering patterns in JSX with ternary operators (), permanently resolving a recurring DOM error that caused crashes. The fix was validated with the testing agent.
-- **Updated Restaurant Schedule & Map:** Corrected the restaurant's complex opening hours in both the backend validation logic () and the frontend display (, ,  translations). Also fixed the Google Maps embed to point to the correct business location.
-- **Removed Made with Emergent Badge:** Successfully removed the branding widget from the production site by editing  and adding overriding CSS and JavaScript in  and .
+- Agent successfully gathered context (PRD, environment, logs) and paused to ask the user for direction.
+Recently completed (from previous fork):
+- Manual Add Reservation form in Admin panel (DONE)
+- Fixed time slot logic with 30-min buffer (DONE)
+- WhatsApp microservice via Node.js/baileys spawned by FastAPI (DONE)
+- MongoDB Atlas Migration (DONE)
+- Created Dockerfile, render.yaml, and supervisord configs for deployment (DONE)
 
 **Earlier issues found/mentioned but not fixed**
 - None.
 
 **Known issue recurrence from previous fork**
-- **Issue:** The  bug and black screen on production were recurring issues.
-- **Status:** **RESOLVED**. The  bug was fixed by a systematic refactoring of all conditional rendering. The black screen was diagnosed as a CORS issue and resolved in the backend configuration.
+- Issue recurrence in previous fork: None critical. WhatsApp stability is being actively monitored.
+- Recurrence count: 0
+- Status: RESOLVED
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-*   **Frontend:** React, Tailwind CSS, , ,  (for analytics).
-*   **Backend:** FastAPI (Python), Pydantic,  (for performance).
-*   **Database:** MongoDB.
-*   **Deployment:** Debugging CORS issues between a Cloudflare-hosted frontend and an Emergent-hosted backend.
-*   **React Internals:** Fixed critical DOM reconciliation errors ( bug) by refactoring conditional rendering.
+- **Frontend:** React, Tailwind CSS.
+- **Backend:** FastAPI (Python), .
+- **Microservice:** Node.js script using  to act as a WhatsApp Web client. **Crucial:** It runs as a subprocess triggered by FastAPI's startup event, not as a standalone Supervisor service.
+- **Database:** MongoDB Atlas (External connection).
 
 **key DB schema**
-*   **reservations:** 
-*   **admin_users:** 
-*   **analytics_events:** 
+- : 
+- : Used natively by the Node.js script via  to persist QR code session.
 
 **changes in tech stack**
-- None.
+- Migrated Database from Local MongoDB to **MongoDB Atlas**.
+- Added **Node.js** as a dependency on the backend environment to run the WhatsApp Baileys library.
 
 **All files of reference**
-*   : **Heavily modified.** Contains logic for reservations, admin, analytics, background tasks, CORS, and business hours. Will need to be modified for the new manual reservation feature.
-*   : Will be modified to add the manual reservation form.
-*   : New file for the analytics dashboard.
-*   : Modified for the  route and badge removal script.
-*   : Modified to add analytics API functions.
-*   : Core logic for reservations, refactored to fix bugs and add analytics tracking.
+- : Heavily modified. Spawns  on startup. 
+- : Node.js script connecting to WhatsApp Web and MongoDB.
+- : Added manual reservation form and a WhatsApp QR Code scanning tab.
+- , , : Created to prepare for Render migration.
+-  & : Viewed for configuration sanity checks.
 
-**Areas that need refactoring**:
-*    is now over 800 lines long and handles all API logic, database models, and configurations. It should be broken down into a more modular structure (e.g., separate files for routes, models, and services) for better maintainability.
+**Areas that need refactoring**: 
+-  desperately needs to be broken down into routes, models, and a separate process manager for the WhatsApp service.
 
 **key api endpoints**
-*   : Creates a reservation (now uses background tasks).
-*   : Logs into the admin/analytics panels.
-*   : Fetches all reservations.
-*   : Records an analytics event.
-*   : Gets key metrics for the dashboard.
-*   : Gets data for dashboard charts.
-*   ****: (To be created) for manually adding a reservation.
+- : Manually creates a reservation.
+- : Returns QR code status or connection status.
+- : Deletes MongoDB WhatsApp session and forces a new QR code generation.
 
 **Critical Info for New Agent**
-1.  **FINISH THE MANUAL RESERVATION FEATURE.** This is the immediate P0 task. The user is waiting for a form in the  panel to add reservations from phone calls. Ensure the new backend endpoint bypasses availability checks and uses  for optional email notifications.
-2.  **DEPLOYMENT PROCESS IS CRITICAL.** The user's live site involves two platforms. The frontend is on Cloudflare (triggered by Save to Github), and the backend is on Emergent's infrastructure. Any backend changes (like the new endpoint you'll create) require you to follow the permanent deployment steps. Clearly explain this to the user when your backend changes are ready.
-3.  **ADMIN CREDENTIALS:** The  and  routes are protected. Use **user:** , **password:** .
-4.  **PERFORMANCE IS KEY.** The reservation slowdown was fixed using FastAPI's . Apply this pattern for any new backend features that involve potentially slow I/O operations (like sending emails or calling external APIs).
+1. **WhatsApp Implementation is Unorthodox:** The user explicitly refused to use the official paid Meta API. The agent implemented  (a Node.js Web scraper). Because the production server lacks Node.js,  dynamically downloads/installs a portable Node.js binary on startup and spawns  as a subprocess. **Do not attempt to separate them via Supervisor in production**, as this logic was specifically built to bypass deployment environment limitations.
+2. **Database:** The system now points to MongoDB Atlas. Local MongoDB is obsolete.
+3. **Domain References:** All frontend URLs and email image assets point to . However, **SMTP email credentials** in  remain  as these are Gmail login credentials, not website URLs. DO NOT change them.
 
 **documents and test reports created in this job**
-*    (updated)
-*   
-*   
+- 
+-  (Reviewed by current agent)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** I need to add reservations manually from the admin panel for customers who call.
-2.  **Agent:** I can do that. I'll add a form to the admin panel.
-3.  **User:** It doesn't need to be mandatory to have an email, but name and phone are. But if they provide an email, it would be interesting to send the notification.
-4.  **Agent:** Understood. I will implement the form with optional email and conditional notifications.
-5.  **User:** What about the 'Made with Emergent' badge? Support told me you can remove it.
-6.  **Agent:** (Removes badge) The badge is gone now.
-7.  **User:** The reservation takes 30 seconds to confirm on the phone. Can you check?
-8.  **Agent:** (Investigates and fixes) I found the issue. The emails were blocking the response. I've moved them to a background task. The confirmation should now be instant.
-9.  **User:** Still a black screen on my domain.
-10. **Agent:** (Investigates and fixes) The problem is a CORS error. I've fixed the backend configuration. The site should work after you save to GitHub and Cloudflare redeploys.
+1. *User (previous fork)*: Continue.
+2. *Agent*: (Current session started, reviewed files and state)
+3. *Agent*: Sent  to check if the user managed to deploy to Render and save to Github, and what they want to tackle next.
+*Pending Message*: Awaiting human response to .
 
 **Project Health Check:**
-*   **Broken:** None. The application is stable and the last reported user issues have been resolved.
-*   **Mocked:** None.
+- Broken: None. 
+- Mocked: None.
 
 **3rd Party Integrations**
-*   **Gmail SMTP:** Used for sending reservation confirmation emails via .
-*   **Google Maps Embed API:** Used to display the restaurant location.
+- Google Maps Embed API (Frontend) — requires User API Key.
+- Gmail SMTP (Backend Background Tasks) — requires User API Key.
+- WhatsApp Web via Baileys (Node.js microservice) — Uses QR code scanning (User authenticated).
+- MongoDB Atlas — uses User Database URI.
 
 **Testing status**
-*   **Testing agent used after significant changes:** YES. Used to validate the fix for the critical  bug ( reports 100% success).
-*   **Troubleshoot agent used after agent stuck in loop:** NO
-*   **Test files created:** , 
-*   **Known regressions:** None.
+- Testing agent used after significant changes: YES (Tested manual reservations in iteration_6).
+- Troubleshoot agent used after agent stuck in loop: NO
+- Test files created: None new in this specific brief session ( was reviewed).
+- Known regressions: None.
 
 **Credentials to test flow:**
-*   **Admin/Analytics Panel:**
-    *   URL:  and 
-    *   user: 
-    *   password: 
+- Admin/Analytics Panel:  ->  / 
 
 **What agent forgot to execute**
-- The agent was interrupted mid-task. The immediate next action is to implement the Add Reservation feature in the admin panel as requested by the user.</analysis>
+- Nothing. The agent successfully built context and called  to get instructions on whether to refactor, debug deployment, or test the admin panel. Ensure you wait for/read the user's reply before proceeding.</analysis>
