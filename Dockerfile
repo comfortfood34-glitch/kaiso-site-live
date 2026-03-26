@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y curl && \
 WORKDIR /app
 
 # ---- Build Frontend ----
-COPY frontend/package.json frontend/yarn.lock /app/frontend/
-RUN cd /app/frontend && yarn install --frozen-lockfile
+COPY frontend/package.json /app/frontend/
+RUN cd /app/frontend && yarn install
 
 COPY frontend/ /app/frontend/
 # Build with empty BACKEND_URL so API calls use relative paths (same origin)
