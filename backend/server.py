@@ -431,6 +431,26 @@ async def root():
 async def health_check():
     return {"status": "ok"}
 
+@api_router.post("/admin/test-email")
+async def test_email(credentials: HTTPBasicCredentials = Depends(verify_admin)):
+    """Testa configuração SMTP e envia email de teste para NOTIFY_TO"""
+    config_status = {
+        "SMTP_HOST": SMTP_HOST or "❌ MISSING",
+        "SMTP_PORT": SMTP_PORT,
+        "SMTP_USER": SMTP_USER or "❌ MISSING",
+        "SMTP_PASS": "✅ SET" if SMTP_PASS else "❌ MISSING",
+        "ADMIN_EMAIL_FROM": ADMIN_EMAIL_FROM or "❌ MISSING",
+        "NOTIFY_TO": NOTIFY_TO or "❌ MISSING",
+    }
+    if not all([SMTP_HOST, SMTP_USER, SMTP_PASS, ADMIN_EMAIL_FROM, NOTIFY_TO]):
+        return {"success": False, "config": config_status, "error": "Variáveis SMTP em falta"}
+    try:
+        html = f"<h2>Teste SMTP - Kaisō Sushi</h2><p>Email de teste enviado em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p><p>Configuração SMTP funciona correctamente.</p>"
+        await send_email(NOTIFY_TO, "Teste SMTP - Kaisō Sushi", html)
+        return {"success": True, "config": config_status, "sent_to": NOTIFY_TO}
+    except Exception as e:
+        return {"success": False, "config": config_status, "error": str(e)}
+
 @api_router.get("/debug/email-config")
 async def debug_email_config():
     """Temporary debug endpoint - remove after fixing"""
