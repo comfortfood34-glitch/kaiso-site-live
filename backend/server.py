@@ -432,8 +432,10 @@ async def health_check():
     return {"status": "ok"}
 
 @api_router.get("/admin/test-email")
-async def test_email(credentials: HTTPBasicCredentials = Depends(verify_admin)):
-    """Testa configuração SMTP e envia email de teste para NOTIFY_TO"""
+async def test_email(token: str = ""):
+    """Testa configuração SMTP - aceder com ?token=<ADMIN_PASSWORD>"""
+    if not token or token != ADMIN_PASSWORD:
+        return {"error": "Adicione ?token=SUA_PASSWORD_ADMIN ao URL"}
     config_status = {
         "SMTP_HOST": SMTP_HOST or "MISSING",
         "SMTP_PORT": SMTP_PORT,
@@ -445,7 +447,7 @@ async def test_email(credentials: HTTPBasicCredentials = Depends(verify_admin)):
     if not all([SMTP_HOST, SMTP_USER, SMTP_PASS, ADMIN_EMAIL_FROM, NOTIFY_TO]):
         return {"success": False, "config": config_status, "error": "Variaveis SMTP em falta"}
     try:
-        html = f"<h2>Teste SMTP - Kaiso Sushi</h2><p>Email de teste enviado em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p><p>Configuracao SMTP funciona correctamente.</p>"
+        html = f"<h2>Teste SMTP - Kaiso Sushi</h2><p>Enviado em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>"
         await send_email(NOTIFY_TO, "Teste SMTP - Kaiso Sushi", html)
         return {"success": True, "config": config_status, "sent_to": NOTIFY_TO, "message": "Email enviado! Verifique a caixa de entrada e pasta spam."}
     except Exception as e:
