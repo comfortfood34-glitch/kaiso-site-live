@@ -1,12 +1,12 @@
-frontend/
 .git/
 .emergent/
-*.md
 test_reports/
 memory/
 __pycache__/
 *.pyc
-.env
+backend/.env
+frontend/.env
+frontend/node_modules/
 whatsapp-service/node_modules/
 whatsapp-service/auth_session/
 whatsapp-service/node/
