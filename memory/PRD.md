@@ -9,16 +9,12 @@ Complete rebuild of the Kaisō Sushi website to a premium, luxury-tech standard 
 - **WhatsApp:** Node.js + baileys (auto-installed, runs as subprocess of backend)
 - **Database:** MongoDB Atlas (cluster0.qdzhihd.mongodb.net / kaiso_reservas)
 - **Email:** Gmail SMTP via aiosmtplib (BackgroundTasks)
-- **Hosting:** Render (Docker Web Service) - Single container serves everything
+- **Hosting:** Render (Docker Web Service) → https://kaiso-sushi.onrender.com
 
-## Render Deployment Architecture
-```
-[Internet] → [Render Web Service (Docker)]
-                ├── React Frontend (static files served by FastAPI)
-                ├── FastAPI Backend (/api/*)
-                └── WhatsApp Node.js Service (spawned by FastAPI on startup)
-                      └── MongoDB Atlas (external)
-```
+## Production URLs
+- **Site:** https://kaiso-sushi.onrender.com
+- **Admin:** https://kaiso-sushi.onrender.com/admin
+- **API:** https://kaiso-sushi.onrender.com/api/health
 
 ## Schedule
 - Mon: CLOSED
@@ -42,16 +38,18 @@ Complete rebuild of the Kaisō Sushi website to a premium, luxury-tech standard 
 - Updated weekend schedule
 - Performance optimization (BackgroundTasks)
 - Production CORS fix, removeChild bug fix
-- **Render deployment configuration (Dockerfile, start.sh, render.yaml)** ✅ 2026-03-26
-- **Frontend served by FastAPI for single-container deploy** ✅ 2026-03-26
-- **Deployment guide created (DEPLOY_GUIDE.md)** ✅ 2026-03-26
+- Render deployment (Dockerfile, start.sh, render.yaml) ✅ 2026-03-26
+- Frontend served by FastAPI for single-container deploy ✅ 2026-03-26
+- LIVE on Render: https://kaiso-sushi.onrender.com ✅ 2026-03-26
 
 ## Key Deployment Files
 - `/app/Dockerfile` - Multi-stage build (frontend + backend + WhatsApp)
 - `/app/deploy/start.sh` - Generates .env from Render env vars, starts uvicorn
 - `/app/render.yaml` - Render Infrastructure-as-Code
-- `/app/DEPLOY_GUIDE.md` - Step-by-step guide for the user
+- `/app/DEPLOY_GUIDE.md` - Step-by-step guide
 
 ## Backlog
-- P1: Test admin capacity adjustment and date blocking features
+- P1: Test admin capacity adjustment and date blocking features in production
+- P1: Configure custom domain (kaisosushicordoba.com) on Render
 - P2: Refactor server.py into modular structure (1100+ lines)
+- P2: Upgrade Render plan from Free to Starter ($7/mês) to avoid sleep mode
