@@ -1,5 +1,5 @@
 // Menu data - Kaisō Sushi España
-// Fotos reais do kaisosushi.es
+// Fotos reais do kaisosushicordoba.com
 
 export const menuCategories = [
   {

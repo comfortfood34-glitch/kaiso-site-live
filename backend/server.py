@@ -299,7 +299,7 @@ def get_reservation_email_html(reservation: Reservation, lang: str = "es") -> st
 <tr><td align="center" style="padding:30px 10px;">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" bgcolor="#0D0D0D" style="background-color:#0D0D0D;border:1px solid #1A1A1A;max-width:600px;width:100%;">
 <tr><td style="padding:30px;text-align:center;border-bottom:1px solid #C9A24A;">
-<img src="https://kaisosushiespanha.com/assets/logo-kaiso.png" alt="Kaiso Sushi" width="120" height="auto" style="display:block;margin:0 auto 10px;max-width:120px;height:auto;"/>
+<img src="https://kaisosushicordoba.com/assets/logo-kaiso.png" alt="Kaiso Sushi" width="120" height="auto" style="display:block;margin:0 auto 10px;max-width:120px;height:auto;"/>
 <p style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:3px;margin:10px 0 0;">{source_label} - Nueva Reserva</p>
 </td></tr>
 <tr><td style="padding:25px 30px;">
@@ -364,7 +364,7 @@ def get_client_confirmation_email(reservation: Reservation) -> str:
 <tr><td align="center" style="padding:30px 10px;">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" bgcolor="#0D0D0D" style="background-color:#0D0D0D;border:1px solid #1A1A1A;max-width:600px;width:100%;">
 <tr><td style="padding:30px;text-align:center;border-bottom:1px solid #C9A24A;">
-<img src="https://kaisosushiespanha.com/assets/logo-kaiso.png" alt="Kaiso Sushi" width="120" height="auto" style="display:block;margin:0 auto 10px;max-width:120px;height:auto;"/>
+<img src="https://kaisosushicordoba.com/assets/logo-kaiso.png" alt="Kaiso Sushi" width="120" height="auto" style="display:block;margin:0 auto 10px;max-width:120px;height:auto;"/>
 <h2 style="color:#C9A24A;font-size:20px;margin:10px 0 5px;font-family:Arial,Helvetica,sans-serif;">Reserva Confirmada</h2>
 <p style="color:#888;font-size:13px;margin:0;">Gracias por elegir Kaiso Sushi, {reservation.customer_name}!</p>
 </td></tr>
@@ -572,7 +572,7 @@ async def generate_whatsapp_message(
 🕐 Hora: {time}
 {tasting_text}{obs_text}
 
-_Enviado desde kaisosushi.es_"""
+_Enviado desde kaisosushicordoba.com_"""
     
     import urllib.parse
     encoded = urllib.parse.quote(message)
