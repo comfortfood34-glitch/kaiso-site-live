@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: kaiso-sushi-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    region: frankfurt
+    healthCheckPath: /api/health
+    envVars:
+      - key: MONGO_URL
+        sync: false
+      - key: DB_NAME
+        value: kaiso_reservas
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: ADMIN_USER
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: ADMIN_EMAIL_FROM
+        sync: false
+      - key: NOTIFY_TO
+        sync: false
+      - key: CC_TO
+        sync: false
+      - key: PORT
+        value: "8001"

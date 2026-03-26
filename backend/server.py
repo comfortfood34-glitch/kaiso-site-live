@@ -412,6 +412,10 @@ def get_client_confirmation_email(reservation: Reservation) -> str:
 async def root():
     return {"message": "Kaisō Sushi Reservation API", "status": "online"}
 
+@api_router.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
 @api_router.get("/config")
 async def get_public_config():
     """Configuração pública do restaurante"""

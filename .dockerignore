@@ -1,0 +1,13 @@
+frontend/
+.git/
+.emergent/
+*.md
+test_reports/
+memory/
+__pycache__/
+*.pyc
+.env
+whatsapp-service/node_modules/
+whatsapp-service/auth_session/
+whatsapp-service/node/
+whatsapp-service/whatsapp.pid
