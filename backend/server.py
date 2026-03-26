@@ -245,8 +245,10 @@ async def is_blackout_date(date_str: str) -> bool:
 # EMAIL FUNCTIONS
 # ========================
 async def send_email(to_email: str, subject: str, html_content: str, cc_email: str = None):
-    """Envia email via SMTP Gmail"""
-    try:
+    """Envia email via SMTP Gmail - uses thread to avoid async issues"""
+    import smtplib, ssl
+    
+    def _send():
         message = MIMEMultipart("alternative")
         message["From"] = f"{RESTAURANT_NAME} <{ADMIN_EMAIL_FROM}>"
         message["To"] = to_email
@@ -261,34 +263,28 @@ async def send_email(to_email: str, subject: str, html_content: str, cc_email: s
         if cc_email:
             recipients.append(cc_email)
         
-        # Use port 465 with SSL (more reliable on cloud platforms like Render)
-        # Fall back to port 587 with STARTTLS if configured
         port = SMTP_PORT or 465
+        context = ssl.create_default_context()
+        
         if port == 465:
-            await aiosmtplib.send(
-                message,
-                hostname=SMTP_HOST,
-                port=465,
-                use_tls=True,
-                username=SMTP_USER,
-                password=SMTP_PASS,
-                timeout=30,
-            )
+            with smtplib.SMTP_SSL(SMTP_HOST, port, context=context, timeout=30) as server:
+                server.login(SMTP_USER, SMTP_PASS)
+                server.sendmail(ADMIN_EMAIL_FROM, recipients, message.as_string())
         else:
-            await aiosmtplib.send(
-                message,
-                hostname=SMTP_HOST,
-                port=port,
-                start_tls=True,
-                username=SMTP_USER,
-                password=SMTP_PASS,
-                timeout=30,
-            )
+            with smtplib.SMTP(SMTP_HOST, port, timeout=30) as server:
+                server.starttls(context=context)
+                server.login(SMTP_USER, SMTP_PASS)
+                server.sendmail(ADMIN_EMAIL_FROM, recipients, message.as_string())
+        
+        return True
+    
+    try:
+        result = await asyncio.get_event_loop().run_in_executor(None, _send)
         logger.info(f"Email enviado para {to_email}")
         return True
     except Exception as e:
-        logger.error(f"Erro ao enviar email: {str(e)}")
-        return False
+        logger.error(f"Erro ao enviar email para {to_email}: {str(e)}")
+        raise e
 
 def get_reservation_email_html(reservation: Reservation, lang: str = "es") -> str:
     """Gera HTML do email de reserva - para o restaurante"""
