@@ -454,7 +454,10 @@ async def debug_test_email():
             "TESTE - Kaisō Sushi Email",
             "<h1>Teste de Email</h1><p>Email enviado com sucesso do Render!</p>",
         )
-        return {"status": "sent", "to": NOTIFY_TO}
+        if result:
+            return {"status": "sent", "to": NOTIFY_TO}
+        else:
+            return {"status": "failed", "message": "send_email returned False - check logs"}
     except Exception as e:
         return {"status": "error", "error": str(e)}
 
