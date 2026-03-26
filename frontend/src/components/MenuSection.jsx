@@ -145,13 +145,13 @@ export default function MenuSection() {
                       <WhatsAppIcon size={14} />
                     </button>
                     <a
-                      href="https://kaisosushicordoba.com/"
+                      href="https://kaisosushiespanha.com/"
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
                       className="border border-kaiso-gold text-kaiso-gold px-3 py-2 text-xs hover:bg-kaiso-gold hover:text-black transition-colors flex items-center gap-1"
                       data-testid={`website-btn-${item.id}`}
-                      title="Ver en kaisosushicordoba.com"
+                      title="Ver en kaisosushiespanha.com"
                     >
                       <ExternalLink size={14} />
                     </a>
@@ -236,7 +236,7 @@ export default function MenuSection() {
                     {lang === 'es' ? 'Pedir por WhatsApp' : lang === 'pt' ? 'Pedir por WhatsApp' : 'Order via WhatsApp'}
                   </button>
                   <a
-                    href="https://kaisosushicordoba.com/"
+                    href="https://kaisosushiespanha.com/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="border border-kaiso-gold text-kaiso-gold py-3 px-6 hover:bg-kaiso-gold hover:text-black transition-colors flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wider"
