@@ -25,6 +25,7 @@ export default function ReservationSystem({ onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [reservation, setReservation] = useState(null);
+  const overlayRef = React.useRef(null);
   
   const [form, setForm] = useState({
     customer_name: '',
@@ -130,8 +131,15 @@ export default function ReservationSystem({ onClose }) {
   const canSelectTasting = availability?.tasting_available && 
     (!selectedTime || availability?.tasting_slots?.includes(selectedTime));
 
+  // Scroll to top when step changes (fixes black screen on mobile)
+  React.useEffect(() => {
+    if (overlayRef.current) {
+      overlayRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [step]);
+
   return (
-    <div className="fixed inset-0 bg-black/95 z-50 flex items-start justify-center overflow-y-auto" onClick={(e) => e.target === e.currentTarget && step < 4 && onClose()}>
+    <div ref={overlayRef} className="fixed inset-0 bg-black/95 z-50 flex items-start justify-center overflow-y-auto" onClick={(e) => e.target === e.currentTarget && step < 4 && onClose()}>
       <div className="bg-kaiso-bg border border-kaiso-border w-full max-w-2xl my-4 sm:my-8 min-h-0" onClick={(e) => e.stopPropagation()} data-testid="reservation-system">
         {/* Header */}
         <div className="border-b border-kaiso-border p-6 flex items-center justify-between">
