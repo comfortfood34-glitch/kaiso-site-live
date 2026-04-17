@@ -47,11 +47,11 @@ const translations = {
       // Desconto
       discount_notice: "De martes a jueves, disfruta de un 10% de ventaja en tu reserva. Una cortesía de la casa para quienes eligen vivir Kaisō entre semana.",
       discount_applied: "10% aplicado (Mar–Jue)",
-      // Degustação
-      tasting_title: "Menú Degustación Premium",
-      tasting_desc: "Menú para pareja. Más de 10 pases, bebidas incluidas y postre.",
-      tasting_price: "€65,90 por pareja",
-      tasting_availability: "Disponible de martes a jueves, de 19:00 a 21:00.",
+      // Rodizio
+      tasting_title: "Rodizio de sushis premium",
+      tasting_desc: "Comer a voluntad.",
+      tasting_price: "€19,90 por persona",
+      tasting_availability: "Disponible en horario de reservas.",
       tasting_allergies: "Alergias / restricciones alimentarias"
     },
     // Delivery
