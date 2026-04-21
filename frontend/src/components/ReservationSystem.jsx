@@ -71,12 +71,9 @@ export default function ReservationSystem({ onClose }) {
 
   const handleTimeSelect = (time) => {
     setSelectedTime(time);
-    // Check if tasting is available for this time
-    if (form.has_tasting_menu && availability) {
-      const isTastingTime = availability.tasting_slots?.includes(time);
-      if (!isTastingTime) {
-        setForm(prev => ({ ...prev, has_tasting_menu: false }));
-      }
+    // Auto-desmarca rodízio se o horário seleccionado não for elegível
+    if (form.has_tasting_menu && !isRodizioSlot(selectedDate, time)) {
+      setForm(prev => ({ ...prev, has_tasting_menu: false }));
     }
     setStep(2);
   };
@@ -127,9 +124,17 @@ export default function ReservationSystem({ onClose }) {
   const today = startOfDay(new Date());
   const maxDate = addDays(today, 60);
   
-  // Check if tasting is available for selected date/time
-  const canSelectTasting = availability?.tasting_available && 
-    (!selectedTime || availability?.tasting_slots?.includes(selectedTime));
+  // Rodízio: apenas Ter/Qua/Qui (day 2/3/4) entre 20:00 e 22:30
+  const isRodizioSlot = (date, time) => {
+    if (!date || !time) return false;
+    const day = date.getDay();
+    if (![2, 3, 4].includes(day)) return false;
+    const [h, m] = time.split(':').map(Number);
+    const mins = h * 60 + m;
+    return mins >= 1200 && mins <= 1350; // 20:00=1200, 22:30=1350
+  };
+
+  const canSelectTasting = isRodizioSlot(selectedDate, selectedTime);
 
   // Scroll to top when step changes (fixes black screen on mobile)
   React.useEffect(() => {
@@ -241,11 +246,11 @@ export default function ReservationSystem({ onClose }) {
                       <button
                         key={time}
                         onClick={() => handleTimeSelect(time)}
-                        className={`p-3 border text-center text-sm transition-all ${selectedTime === time ? 'bg-kaiso-gold text-black border-kaiso-gold' : 'border-kaiso-border hover:border-kaiso-gold text-kaiso-text'} ${availability.tasting_slots?.includes(time) ? 'ring-1 ring-kaiso-gold/30' : ''}`}
+                        className={`p-3 border text-center text-sm transition-all ${selectedTime === time ? 'bg-kaiso-gold text-black border-kaiso-gold' : 'border-kaiso-border hover:border-kaiso-gold text-kaiso-text'} ${isRodizioSlot(selectedDate, time) ? 'ring-1 ring-kaiso-gold/30' : ''}`}
                         data-testid={`time-${time.replace(':', '')}`}
                       >
                         <span>{time}</span>
-                        {availability.tasting_slots?.includes(time) ? <Sparkles size={10} className="inline ml-1 text-kaiso-gold" /> : null}
+                        {isRodizioSlot(selectedDate, time) ? <Sparkles size={10} className="inline ml-1 text-kaiso-gold" /> : null}
                       </button>
                     ))}
                   </div>
