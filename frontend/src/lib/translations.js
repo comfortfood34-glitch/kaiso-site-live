@@ -45,13 +45,12 @@ const translations = {
       // Aviso horário
       hours_notice: "Reservas atendidas de 08:00 a 21:00. Fuera de este horario, confirmaremos en el siguiente tramo disponible.",
       // Desconto
-      discount_notice: "De martes a jueves, disfruta de un 10% de ventaja en tu reserva. Una cortesía de la casa para quienes eligen vivir Kaisō entre semana.",
-      discount_applied: "10% aplicado (Mar–Jue)",
-      // Rodizio
-      tasting_title: "Rodizio de sushis premium",
-      tasting_desc: "Comer a voluntad.",
-      tasting_price: "€19,90 por persona",
-      tasting_availability: "Disponible en horario de reservas.",
+      discount_notice: "",
+      discount_applied: "",
+      tasting_title: "¿Desea incluir Rodízio Premium Kaisō de 44,90 por 19,90?",
+      tasting_desc: "",
+      tasting_price: "",
+      tasting_availability: "",
       tasting_allergies: "Alergias / restricciones alimentarias"
     },
     // Delivery
@@ -138,12 +137,12 @@ const translations = {
       success_title: "Reserva Recebida!",
       success_message: "Recebemos sua solicitação. Confirmaremos em breve.",
       hours_notice: "Reservas atendidas das 08:00 às 21:00. Fora desse horário, confirmaremos no próximo período disponível.",
-      discount_notice: "De terça a quinta, aproveite 10% de vantagem na sua reserva. Uma cortesia da casa para quem escolhe viver o Kaisō durante a semana.",
-      discount_applied: "10% aplicado (Ter–Qui)",
-      tasting_title: "Menu Degustação Premium",
-      tasting_desc: "Menu para casal. Mais de 10 etapas, bebidas inclusas e sobremesa.",
-      tasting_price: "€65,90 por casal",
-      tasting_availability: "Disponível de terça a quinta, das 19:00 às 21:00.",
+      discount_notice: "",
+      discount_applied: "",
+      tasting_title: "Deseja incluir Rodízio Premium Kaisō de 44,90 por 19,90?",
+      tasting_desc: "",
+      tasting_price: "",
+      tasting_availability: "",
       tasting_allergies: "Alergias / restrições alimentares"
     },
     delivery: {
@@ -226,12 +225,12 @@ const translations = {
       success_title: "Reservation Received!",
       success_message: "We have received your request. We will confirm shortly.",
       hours_notice: "Reservations are handled from 08:00 to 21:00. Outside these hours, we will confirm during the next available window.",
-      discount_notice: "Tuesday to Thursday, enjoy a 10% advantage on your reservation — a house courtesy for those who choose the Kaisō experience midweek.",
-      discount_applied: "10% applied (Tue–Thu)",
-      tasting_title: "Premium Tasting Menu",
-      tasting_desc: "Menu for couples. Over 10 courses, beverages included, plus dessert.",
-      tasting_price: "€65.90 per couple",
-      tasting_availability: "Available Tuesday to Thursday, 19:00–21:00.",
+      discount_notice: "",
+      discount_applied: "",
+      tasting_title: "Would you like to add Kaisō Premium Rodízio for €19.90 instead of €44.90?",
+      tasting_desc: "",
+      tasting_price: "",
+      tasting_availability: "",
       tasting_allergies: "Allergies / dietary restrictions"
     },
     delivery: {

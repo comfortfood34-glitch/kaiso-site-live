@@ -118,7 +118,7 @@ export default function ReservationSystem({ onClose }) {
   };
 
   const handleWhatsApp = () => {
-    const message = `Hola Kaisō! Reserva confirmada:\n\nNombre: ${form.customer_name}\nFecha: ${selectedDate ? format(selectedDate, 'dd/MM/yyyy') : ''}\nHora: ${selectedTime}\nPersonas: ${form.guests}${form.has_tasting_menu ? '\nMenú Degustación Premium' : ''}${form.observations ? `\nObs: ${form.observations}` : ''}`;
+    const message = `Hola Kaisō! Reserva confirmada:\n\nNombre: ${form.customer_name}\nFecha: ${selectedDate ? format(selectedDate, 'dd/MM/yyyy') : ''}\nHora: ${selectedTime}\nPersonas: ${form.guests}${form.has_tasting_menu ? '\nRodízio Premium Kaisō (44,90 → 19,90)' : ''}${form.observations ? `\nObs: ${form.observations}` : ''}`;
     window.open(`https://wa.me/34673036835?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -140,7 +140,7 @@ export default function ReservationSystem({ onClose }) {
   }, [step]);
 
   return (
-    <div ref={overlayRef} className="fixed inset-0 bg-black/95 z-50 flex items-start justify-center overflow-y-auto" onClick={(e) => e.target === e.currentTarget && step < 4 && onClose()}>
+    <div ref={overlayRef} className="fixed inset-0 bg-black/95 z-50 flex items-start justify-center overflow-y-auto" onClick={(e) => e.target === e.currentTarget && step < 4 && !loading && onClose()}>
       <div className="bg-kaiso-bg border border-kaiso-border w-full max-w-2xl my-4 sm:my-8 min-h-0" onClick={(e) => e.stopPropagation()} data-testid="reservation-system">
         {/* Header */}
         <div className="border-b border-kaiso-border p-6 flex items-center justify-between">
@@ -198,17 +198,8 @@ export default function ReservationSystem({ onClose }) {
                 onSelect={handleDateSelect}
                 locale={dateLocale}
                 disabled={[{ before: today }, { after: maxDate }, { dayOfWeek: [1] }]}
-                modifiers={{ discount: (date) => [2, 3, 4].includes(date.getDay()) }}
-                modifiersClassNames={{ discount: 'discount-day' }}
                 className="kaiso-calendar"
               />
-              {/* Discount Notice */}
-              <div className="mt-6 p-4 border border-kaiso-gold/30 max-w-md">
-                <div className="flex items-start gap-3">
-                  <Sparkles size={16} className="text-kaiso-gold flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-kaiso-muted leading-relaxed">{t.reservation.discount_notice}</p>
-                </div>
-              </div>
             </div>
           ) : null}
 
@@ -219,11 +210,6 @@ export default function ReservationSystem({ onClose }) {
                 <p className="text-kaiso-gold font-serif text-lg">
                   {format(selectedDate, "EEEE, d 'de' MMMM", { locale: dateLocale })}
                 </p>
-                {availability.has_discount ? (
-                  <span className="inline-block mt-2 text-xs text-kaiso-gold bg-kaiso-gold/10 px-3 py-1">
-                    {t.reservation.discount_applied}
-                  </span>
-                ) : null}
                 <p className="text-kaiso-muted text-sm mt-2">{availability.remaining_capacity} {t.reservation.remaining}</p>
               </div>
 
@@ -281,12 +267,6 @@ export default function ReservationSystem({ onClose }) {
                   <span className="text-kaiso-muted">{t.reservation.time}:</span>
                   <span className="text-kaiso-gold">{selectedTime}</span>
                 </div>
-                {availability?.has_discount ? (
-                  <div className="flex justify-between text-sm mt-2">
-                    <span className="text-kaiso-muted">Descuento:</span>
-                    <span className="text-kaiso-gold">-10%</span>
-                  </div>
-                ) : null}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -375,9 +355,9 @@ export default function ReservationSystem({ onClose }) {
                         <Sparkles size={14} className="text-kaiso-gold" />
                         <span className="text-kaiso-gold font-medium">{t.reservation.tasting_title}</span>
                       </div>
-                      <p className="text-xs text-kaiso-muted mt-1">{t.reservation.tasting_desc}</p>
-                      <p className="text-kaiso-gold text-sm mt-1">{t.reservation.tasting_price}</p>
-                      <p className="text-xs text-kaiso-muted mt-1">{t.reservation.tasting_availability}</p>
+                      {t.reservation.tasting_desc ? <p className="text-xs text-kaiso-muted mt-1">{t.reservation.tasting_desc}</p> : null}
+                      {t.reservation.tasting_price ? <p className="text-kaiso-gold text-sm mt-1">{t.reservation.tasting_price}</p> : null}
+                      {t.reservation.tasting_availability ? <p className="text-xs text-kaiso-muted mt-1">{t.reservation.tasting_availability}</p> : null}
                     </div>
                   </label>
                   
@@ -440,12 +420,6 @@ export default function ReservationSystem({ onClose }) {
                     <span className="text-kaiso-gold">€{(Math.max(1, Math.ceil(form.guests / 2)) * 65.90).toFixed(2)}</span>
                   </div>
                 ) : null}
-                {availability?.has_discount ? (
-                  <div className="flex justify-between">
-                    <span className="text-kaiso-muted">Descuento</span>
-                    <span className="text-kaiso-gold">{t.reservation.discount_applied}</span>
-                  </div>
-                ) : null}
               </div>
 
               <div className="flex flex-col gap-3 mt-6">
@@ -495,22 +469,6 @@ export default function ReservationSystem({ onClose }) {
                 <p className="text-kaiso-gold text-xs uppercase tracking-wider text-center mt-3 pt-3 border-t border-kaiso-border">Reserva Confirmada</p>
               </div>
 
-              {/* QR Code - prominent */}
-              <div className="bg-kaiso-card border border-kaiso-gold/30 p-4 max-w-sm mx-auto mb-4">
-                <p className="text-kaiso-gold font-serif text-base mb-3">10% Descuento Delivery</p>
-                <div className="bg-white p-3 mx-auto w-32 h-32 flex items-center justify-center mb-3">
-                  <img 
-                    src="/assets/qr-delivery.png" 
-                    alt="QR Code Delivery"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <p className="text-kaiso-muted text-xs">
-                  {lang === 'es' ? 'Escanea para 10% de descuento en delivery'
-                  : lang === 'pt' ? 'Escaneie para 10% de desconto no delivery'
-                  : 'Scan for 10% off delivery'}
-                </p>
-              </div>
 
               {/* WhatsApp button */}
               <button
