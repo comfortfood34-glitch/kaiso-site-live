@@ -43,7 +43,7 @@ const translations = {
       success_title: "¡Reserva Recibida!",
       success_message: "Hemos recibido su solicitud. Le confirmaremos a la brevedad.",
       // Aviso horário
-      hours_notice: "Reservas atendidas de 08:00 a 21:00. Fuera de este horario, confirmaremos en el siguiente tramo disponible.",
+      hours_notice: "Reservas atendidas de 20:00 a 22:30. Fuera de este horario, confirmaremos en el siguiente tramo disponible.",
       // Desconto
       discount_notice: "",
       discount_applied: "",
@@ -136,7 +136,7 @@ const translations = {
       confirm_whatsapp: "Confirmar por WhatsApp",
       success_title: "Reserva Recebida!",
       success_message: "Recebemos sua solicitação. Confirmaremos em breve.",
-      hours_notice: "Reservas atendidas das 08:00 às 21:00. Fora desse horário, confirmaremos no próximo período disponível.",
+      hours_notice: "Reservas atendidas das 20:00 às 22:30. Fora desse horário, confirmaremos no próximo período disponível.",
       discount_notice: "",
       discount_applied: "",
       tasting_title: "Deseja incluir Rodízio Premium Kaisō de 44,90 por 19,90?",
@@ -224,7 +224,7 @@ const translations = {
       confirm_whatsapp: "Confirm via WhatsApp",
       success_title: "Reservation Received!",
       success_message: "We have received your request. We will confirm shortly.",
-      hours_notice: "Reservations are handled from 08:00 to 21:00. Outside these hours, we will confirm during the next available window.",
+      hours_notice: "Reservations are handled from 20:00 to 22:30. Outside these hours, we will confirm during the next available window.",
       discount_notice: "",
       discount_applied: "",
       tasting_title: "Would you like to add Kaisō Premium Rodízio for €19.90 instead of €44.90?",
