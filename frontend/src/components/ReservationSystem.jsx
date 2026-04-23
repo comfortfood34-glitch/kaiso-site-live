@@ -26,7 +26,13 @@ export default function ReservationSystem({ onClose }) {
   const [error, setError] = useState(null);
   const [reservation, setReservation] = useState(null);
   const overlayRef = React.useRef(null);
-  
+
+  // Bloqueia scroll do body no mobile ao abrir o modal
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
   const [form, setForm] = useState({
     customer_name: '',
     customer_phone: '',

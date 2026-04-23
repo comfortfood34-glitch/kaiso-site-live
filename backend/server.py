@@ -213,6 +213,15 @@ def is_tasting_available(date_str: str, time_str: str) -> bool:
     
     return start_minutes <= time_minutes <= end_minutes
 
+def is_urgent_reservation(reservation_date: str, reservation_time: str) -> bool:
+    """Retorna True se a reserva é em menos de 30 minutos a partir de agora"""
+    try:
+        dt = datetime.strptime(f"{reservation_date} {reservation_time}", "%Y-%m-%d %H:%M")
+        diff_minutes = (dt - datetime.now()).total_seconds() / 60
+        return 0 <= diff_minutes <= 30
+    except Exception:
+        return False
+
 def calculate_estimated_value(guests: int, has_tasting: bool, has_discount: bool) -> float:
     """Calcula valor estimado do rodízio - €19.90 por pessoa"""
     if has_tasting:
@@ -666,14 +675,19 @@ async def create_reservation(input: ReservationCreate):
     doc['created_at'] = doc['created_at'].isoformat()
     await db.reservations.insert_one(doc)
     
+    urgent = is_urgent_reservation(reservation.reservation_date, reservation.reservation_time)
+
     # Enviar emails em BACKGROUND (não bloqueia a resposta)
     async def send_emails_background():
         try:
             email_html = get_reservation_email_html(reservation)
-            await send_email(NOTIFY_TO, f"Nueva Reserva: {reservation.customer_name} - {reservation.reservation_date}", email_html, CC_TO)
+            subject = f"Nueva Reserva: {reservation.customer_name} - {reservation.reservation_date} {reservation.reservation_time}"
+            if urgent:
+                subject = f"⚠️ URGENTE (<30 min): {reservation.customer_name} - {reservation.reservation_time}"
+            await send_email(NOTIFY_TO, subject, email_html, CC_TO)
         except Exception as e:
             logger.error(f"Erro ao enviar email empresa: {e}")
-        
+
         if reservation.customer_email:
             try:
                 client_html = get_client_confirmation_email(reservation)
@@ -688,6 +702,24 @@ async def create_reservation(input: ReservationCreate):
             "reservation_time": reservation.reservation_time,
             "guests": reservation.guests
         })
+
+        # Aviso urgente ao restaurante se reserva em menos de 30 min
+        if urgent:
+            urgent_message = (
+                f"⚠️ *RESERVA URGENTE - Kaisō Sushi*\n\n"
+                f"Reserva em menos de 30 minutos!\n\n"
+                f"Cliente: {reservation.customer_name}\n"
+                f"Hora: {reservation.reservation_time}\n"
+                f"Pessoas: {reservation.guests}\n"
+                f"Tel: {reservation.customer_phone}"
+            )
+            await send_whatsapp_notification(RESTAURANT_PHONE, {
+                "customer_name": f"⚠️ URGENTE — {reservation.customer_name}",
+                "reservation_date": reservation.reservation_date,
+                "reservation_time": reservation.reservation_time,
+                "guests": reservation.guests,
+                "_raw_message": urgent_message
+            })
     
     asyncio.create_task(send_emails_background())
     
@@ -1053,7 +1085,10 @@ async def get_analytics_stats(
 async def send_whatsapp_notification(phone: str, reservation_data: dict):
     """Send WhatsApp notification via local WhatsApp service"""
     try:
-        message = f"""*RESERVA CONFIRMADA - Kaisō Sushi*
+        if reservation_data.get('_raw_message'):
+            message = reservation_data['_raw_message']
+        else:
+            message = f"""*RESERVA CONFIRMADA - Kaisō Sushi*
 
 Nombre: {reservation_data.get('customer_name', '')}
 Fecha: {reservation_data.get('reservation_date', '')}
