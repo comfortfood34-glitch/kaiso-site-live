@@ -128,7 +128,7 @@ export default function ReservationSystem({ onClose }) {
   const isRodizioSlot = (date, time) => {
     if (!date || !time) return false;
     const day = date.getDay();
-    if (![2, 3, 4].includes(day)) return false;
+    if (day !== 3) return false; // só quarta-feira
     const [h, m] = time.split(':').map(Number);
     const mins = h * 60 + m;
     return mins >= 1200 && mins <= 1350; // 20:00=1200, 22:30=1350

@@ -76,7 +76,7 @@ DISCOUNT_DAYS = [1, 2, 3]
 DISCOUNT_PERCENTAGE = 10
 
 # Degustação disponível apenas Ter-Qui, 19:00-21:00
-TASTING_DAYS = [1, 2, 3]
+TASTING_DAYS = [2]  # só quarta-feira
 TASTING_START = "20:00"
 TASTING_END = "22:30"
 
@@ -646,7 +646,7 @@ async def create_reservation(input: ReservationCreate):
     # Validar degustação
     if input.has_tasting_menu:
         if not is_tasting_available(input.reservation_date, input.reservation_time):
-            raise HTTPException(status_code=400, detail="Rodízio Premium solo disponible Martes-Jueves, 20:00-22:30")
+            raise HTTPException(status_code=400, detail="Rodízio Premium solo disponible los Miércoles, 20:00-22:30")
     
     # Calcular desconto e valor
     has_discount = is_discount_day(input.reservation_date)
