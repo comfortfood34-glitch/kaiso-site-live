@@ -29,7 +29,7 @@ export default function MenuSection() {
   };
 
   return (
-    <section id="carta" className="relative py-24 md:py-32 px-6 bg-kaiso-card" data-testid="menu-section">
+    <section id="carta" className="relative py-20 md:py-28 px-6 bg-kaiso-card" data-testid="menu-section">
       {/* Faint restaurant background */}
       <div className="absolute inset-0 opacity-5">
         <div 
@@ -54,16 +54,16 @@ export default function MenuSection() {
         </div>
 
         {/* Category Tabs */}
-        <div className="flex overflow-x-auto gap-2 mb-8 pb-4 scrollbar-hide">
+        <div className="flex overflow-x-auto gap-2 mb-8 pb-2 scrollbar-hide">
           {menuCategories.map(cat => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
               data-testid={`menu-tab-${cat.id}`}
-              className={`px-4 py-2 whitespace-nowrap text-sm transition-all ${
-                activeCategory === cat.id 
-                  ? 'bg-kaiso-gold text-black' 
-                  : 'border border-kaiso-border text-kaiso-muted hover:border-kaiso-gold'
+              className={`px-5 py-2.5 whitespace-nowrap text-xs uppercase tracking-[0.12em] transition-all ${
+                activeCategory === cat.id
+                  ? 'bg-kaiso-gold text-black font-semibold'
+                  : 'border border-kaiso-border text-kaiso-muted hover:border-kaiso-gold hover:text-kaiso-text'
               }`}
             >
               {getText(cat.name)}
@@ -81,42 +81,42 @@ export default function MenuSection() {
         {/* Menu Items Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {activeItems.map(item => (
-            <div 
+            <div
               key={item.id}
               data-testid={`menu-item-${item.id}`}
-              className="bg-kaiso-bg border border-kaiso-border hover:border-kaiso-gold/50 transition-all group cursor-pointer"
+              className="bg-kaiso-bg border border-kaiso-border hover:border-kaiso-gold/50 hover:shadow-[0_4px_24px_rgba(201,162,74,0.10)] hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer flex flex-col"
               onClick={() => setSelectedItem(item)}
             >
-              {/* Image */}
-              <div className="relative h-48 overflow-hidden">
-                <div 
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
+              {/* Image — fixed height */}
+              <div className="relative h-48 overflow-hidden shrink-0">
+                <div
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
                   style={{ backgroundImage: `url('${item.image}')` }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-kaiso-bg via-transparent to-transparent" />
-                
+
                 {/* Discount Badge */}
                 {item.discount ? (
-                  <div className="absolute top-3 right-3 bg-kaiso-red text-white text-xs px-2 py-1 font-bold">
+                  <div className="absolute top-3 right-3 bg-kaiso-gold text-black text-[10px] px-2 py-1 font-bold uppercase tracking-wider">
                     <span>-{item.discount}%</span>
                   </div>
                 ) : null}
               </div>
 
-              {/* Content */}
-              <div className="p-4">
+              {/* Content — flex col to align price at bottom */}
+              <div className="p-4 flex flex-col flex-1">
                 <h3 className="font-serif text-lg text-kaiso-text mb-1">{item.name}</h3>
                 {item.description ? (
-                  <p className="text-kaiso-muted text-sm mb-3 line-clamp-2">{getText(item.description)}</p>
-                ) : null}
-                
+                  <p className="text-kaiso-muted text-sm mb-3 line-clamp-2 flex-1">{getText(item.description)}</p>
+                ) : <div className="flex-1" />}
+
                 {/* Allergens */}
                 {(item.allergens && item.allergens.length > 0) ? (
                   <div className="flex flex-wrap gap-1 mb-3">
                     {item.allergens.map(a => (
-                      <span 
-                        key={a} 
-                        className="text-xs bg-kaiso-card px-2 py-1 text-kaiso-muted"
+                      <span
+                        key={a}
+                        className="text-xs bg-kaiso-card px-2 py-1 text-kaiso-muted/80"
                         title={allergenInfo[a]?.[lang] || a}
                       >
                         {allergenInfo[a]?.icon || '⚠️'} {allergenInfo[a]?.[lang] || a}
@@ -125,15 +125,15 @@ export default function MenuSection() {
                   </div>
                 ) : null}
 
-                {/* Price */}
-                <div className="flex items-center justify-between">
+                {/* Price + action buttons — always at bottom */}
+                <div className="flex items-center justify-between mt-auto pt-3 border-t border-kaiso-border/50">
                   <div className="flex items-baseline gap-2">
                     <span className="text-kaiso-gold font-serif text-xl">€{item.price.toFixed(2)}</span>
                     {item.originalPrice ? (
                       <span className="text-kaiso-muted text-sm line-through">€{item.originalPrice.toFixed(2)}</span>
                     ) : null}
                   </div>
-                  
+
                   {/* Two buttons: WhatsApp + Website */}
                   <div className="flex gap-2">
                     <button

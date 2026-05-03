@@ -7,6 +7,7 @@ import ReservationSystem from "./components/ReservationSystem";
 import AdminPanel from "./components/AdminPanel";
 import AnalyticsPanel from "./components/AnalyticsPanel";
 import MenuSection from "./components/MenuSection";
+import BuffetPromoSection from "./components/BuffetPromoSection";
 import { trackEvent } from "./lib/api";
 
 // WhatsApp SVG Icon component
@@ -299,7 +300,7 @@ const AboutSection = () => {
   const c = content[lang] || content.es;
   
   return (
-    <section className="relative py-24 md:py-32 px-6" data-testid="about-section">
+    <section className="relative py-20 md:py-28 px-6" data-testid="about-section">
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div>
@@ -318,16 +319,18 @@ const AboutSection = () => {
             </ul>
             <p className="text-kaiso-gold font-serif text-lg italic">{c.slogan}</p>
           </div>
-          <div className="space-y-4">
-            <div className="relative h-[300px] overflow-hidden">
-              <img src="/assets/salon-kaiso.png" alt="Kaisō Restaurant" className="w-full h-full object-cover" />
+          {/* Editorial image grid: 1 hero + 2 smaller */}
+          <div className="flex flex-col gap-3">
+            <div className="relative overflow-hidden h-[320px]">
+              <img src="/assets/salon-kaiso.png" alt="Kaisō Restaurant" className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" />
+              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-kaiso-bg to-transparent" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="h-[200px] overflow-hidden">
-                <img src="/assets/chef-kaiso.png" alt="Chef Kaisō" className="w-full h-full object-cover" />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="overflow-hidden h-[180px]">
+                <img src="/assets/chef-kaiso.png" alt="Chef Kaisō" className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" />
               </div>
-              <div className="h-[200px] overflow-hidden">
-                <img src="/assets/art-kaiso.png" alt="Kaisō Art" className="w-full h-full object-cover" />
+              <div className="overflow-hidden h-[180px]">
+                <img src="/assets/art-kaiso.png" alt="Kaisō Art" className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" />
               </div>
             </div>
           </div>
@@ -342,7 +345,7 @@ const LocationSection = () => {
   const { lang } = useLanguage();
   
   return (
-    <section id="ubicacion" className="py-24 md:py-32 px-6 bg-kaiso-card" data-testid="location-section">
+    <section id="ubicacion" className="py-20 md:py-28 px-6 bg-kaiso-card" data-testid="location-section">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">
@@ -354,16 +357,19 @@ const LocationSection = () => {
           </h2>
         </div>
         <div className="grid md:grid-cols-2 gap-8 items-stretch">
-          <div className="bg-kaiso-bg border border-kaiso-border p-8 flex flex-col justify-center">
+          {/* Address card — premium */}
+          <div className="bg-kaiso-bg border border-kaiso-border p-8 flex flex-col justify-center relative overflow-hidden">
+            {/* Gold top accent line */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-kaiso-gold/60 to-transparent" />
             <h3 className="font-serif text-2xl text-kaiso-gold mb-6">Kaisō Sushi</h3>
-            <div className="space-y-4 text-kaiso-muted">
+            <div className="space-y-5 text-kaiso-muted">
               <p className="flex items-start gap-3">
-                <MapPin size={18} className="text-kaiso-gold mt-1 shrink-0" />
-                Av. de Barcelona, 19, 14010 Córdoba, España
+                <MapPin size={18} className="text-kaiso-gold mt-0.5 shrink-0" />
+                <span>Av. de Barcelona, 19<br />14010 Córdoba, España</span>
               </p>
               <p className="flex items-start gap-3">
-                <Clock size={18} className="text-kaiso-gold mt-1 shrink-0" />
-                <span>
+                <Clock size={18} className="text-kaiso-gold mt-0.5 shrink-0" />
+                <span className="text-sm leading-relaxed">
                   {lang === 'es' ? 'Mar–Jue: 12:00–14:00, 20:00–23:00' : lang === 'pt' ? 'Ter–Qui: 12:00–14:00, 20:00–23:00' : 'Tue–Thu: 12:00–14:00, 20:00–23:00'}<br/>
                   {lang === 'es' ? 'Vie–Sáb: 13:00–15:30, 20:00–23:30' : lang === 'pt' ? 'Sex–Sáb: 13:00–15:30, 20:00–23:30' : 'Fri–Sat: 13:00–15:30, 20:00–23:30'}<br/>
                   {lang === 'es' ? 'Dom: 13:00–15:30, 20:00–23:00' : lang === 'pt' ? 'Dom: 13:00–15:30, 20:00–23:00' : 'Sun: 13:00–15:30, 20:00–23:00'}<br/>
@@ -376,7 +382,8 @@ const LocationSection = () => {
               </p>
             </div>
           </div>
-          <div className="h-[350px] md:h-auto min-h-[300px]">
+          {/* Map with premium wrapper */}
+          <div className="h-[350px] md:h-auto min-h-[300px] border border-kaiso-gold/20 overflow-hidden relative">
             <iframe
               title="Kaisō Sushi Location"
               src="https://maps.google.com/maps?q=Kaiso+Sushi+Av+de+Barcelona+19+Cordoba+Espa%C3%B1a&t=&z=16&ie=UTF8&iwloc=&output=embed"
@@ -386,8 +393,11 @@ const LocationSection = () => {
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              className="grayscale"
+              className="grayscale opacity-80"
             />
+            {/* Thin gold corner overlays */}
+            <div className="absolute top-0 left-0 w-8 h-8 border-t border-l border-kaiso-gold/50 pointer-events-none" />
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-b border-r border-kaiso-gold/50 pointer-events-none" />
           </div>
         </div>
       </div>
@@ -405,7 +415,7 @@ const DeliverySection = () => {
   const { t } = useLanguage();
   
   return (
-    <section id="entrega" className="py-24 md:py-32 px-6" data-testid="delivery-section">
+    <section id="entrega" className="py-20 md:py-28 px-6" data-testid="delivery-section">
       <div className="max-w-4xl mx-auto text-center">
         <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.delivery.title}</span>
         <p className="text-kaiso-gold/50 text-xs tracking-[0.3em] mt-1">デリバリー</p>
@@ -431,7 +441,7 @@ const FranchiseSection = () => {
   const { t } = useLanguage();
   
   return (
-    <section className="py-24 md:py-32 px-6 bg-kaiso-card" data-testid="franchise-section">
+    <section className="py-20 md:py-28 px-6 bg-kaiso-card" data-testid="franchise-section">
       <div className="max-w-4xl mx-auto">
         <div className="border border-kaiso-gold/30 p-12 text-center">
           <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.franchise.title}</span>
@@ -550,6 +560,7 @@ const HomePage = () => {
       <Navigation onReserve={handleOpenReservation} />
       <HeroSection onReserve={handleOpenReservation} />
       <AboutSection />
+      <BuffetPromoSection onReserve={handleOpenReservation} />
       <CartaSection />
       <DeliverySection />
       <FranchiseSection />
