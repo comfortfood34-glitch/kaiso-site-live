@@ -500,6 +500,65 @@ def get_client_confirmation_email(reservation: Reservation) -> str:
 </html>"""
 
 
+def get_client_cancellation_email(reservation) -> str:
+    """Email de cancelamento para o cliente"""
+    return f"""<!DOCTYPE html><html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Cancelación de Reserva - Kaiso Sushi</title></head>
+<body style="margin:0;padding:0;background-color:#0A0A0A;font-family:Arial,Helvetica,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0A0A0A;">
+<tr><td align="center" style="padding:24px 12px;">
+<table width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;background-color:#111;border:1px solid #222;">
+  <tr><td style="padding:36px 36px 28px;text-align:center;background-color:#0D0D0D;border-bottom:2px solid #D11B2A;">
+    <img src="https://kaisosushiespanha.com/assets/logo-kaiso.png" alt="Kaiso Sushi" width="110" style="display:block;margin:0 auto 20px;max-width:110px;">
+    <div style="display:inline-block;background-color:#3D0000;border:1px solid #D11B2A;padding:6px 20px;margin-bottom:16px;">
+      <p style="margin:0;color:#FF6B6B;font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:3px;">&#10007; Reserva Cancelada</p>
+    </div>
+    <h1 style="margin:0 0 8px;color:#E5E5E5;font-size:22px;font-weight:normal;">Hola, {reservation.customer_name}!</h1>
+    <p style="margin:0;color:#666;font-size:14px;">Tu reserva en Kaiso Sushi ha sido cancelada.</p>
+  </td></tr>
+  <tr><td style="padding:28px 36px 0;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0D0D0D;border:1px solid #2A2A2A;">
+      <tr>
+        <td style="padding:24px;text-align:center;border-right:1px solid #2A2A2A;width:50%;">
+          <p style="margin:0 0 6px;color:#666;font-size:10px;text-transform:uppercase;letter-spacing:2px;">Fecha</p>
+          <p style="margin:0;color:#FF6B6B;font-size:24px;font-weight:bold;">{reservation.reservation_date}</p>
+        </td>
+        <td style="padding:24px;text-align:center;width:50%;">
+          <p style="margin:0 0 6px;color:#666;font-size:10px;text-transform:uppercase;letter-spacing:2px;">Hora</p>
+          <p style="margin:0;color:#FF6B6B;font-size:24px;font-weight:bold;">{reservation.reservation_time}</p>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" style="padding:16px 24px;border-top:1px solid #1A1A1A;text-align:center;background-color:#0A0A0A;">
+          <p style="margin:0;color:#888;font-size:13px;">
+            <span style="color:#FF6B6B;font-weight:bold;font-size:18px;">{reservation.guests}</span>
+            &nbsp;persona{'s' if reservation.guests != 1 else ''} &nbsp;&bull;&nbsp; {RESTAURANT_NAME}
+          </p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+  <tr><td style="padding:24px 36px;text-align:center;">
+    <p style="margin:0 0 16px;color:#888;font-size:13px;">Si deseas hacer una nueva reserva o tienes alguna consulta:</p>
+    <table cellpadding="0" cellspacing="0" border="0" align="center">
+      <tr><td style="background-color:#25D366;padding:14px 32px;">
+        <a href="https://wa.me/34673036835" style="color:#FFFFFF;text-decoration:none;font-weight:bold;font-size:13px;text-transform:uppercase;letter-spacing:2px;">
+          &#128172; Contactar por WhatsApp
+        </a>
+      </td></tr>
+    </table>
+  </td></tr>
+  <tr><td style="padding:20px 36px;border-top:1px solid #1A1A1A;text-align:center;">
+    <p style="margin:0 0 4px;color:#555;font-size:12px;font-weight:bold;">{RESTAURANT_NAME}</p>
+    <p style="margin:0 0 4px;color:#444;font-size:11px;">{RESTAURANT_ADDRESS}</p>
+    <p style="margin:0;color:#444;font-size:11px;">{RESTAURANT_PHONE}</p>
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>"""
+
+
 # ========================
 # API ROUTES - PUBLIC
 # ========================
@@ -843,18 +902,85 @@ async def admin_update_reservation(
 ):
     """Atualiza reserva (admin)"""
     update_data = {k: v for k, v in update.model_dump().items() if v is not None}
-    
+
     if not update_data:
         raise HTTPException(status_code=400, detail="Nenhum dado para atualizar")
-    
+
+    # Fetch existing reservation before updating (needed for cancel notifications)
+    existing = await db.reservations.find_one({"id": reservation_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Reserva não encontrada")
+
     result = await db.reservations.update_one(
         {"id": reservation_id},
         {"$set": update_data}
     )
-    
+
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Reserva não encontrada")
-    
+
+    # Detect cancellation and send notifications
+    new_status = update_data.get("status")
+    old_status = existing.get("status")
+
+    if new_status == "cancelada" and old_status != "cancelada":
+        if existing.get("cancellation_notified"):
+            logger.info(f"order_cancel_skipped_duplicate reservation_id={reservation_id}")
+        else:
+            # Mark notified before spawning task to prevent duplicates on concurrent requests
+            await db.reservations.update_one(
+                {"id": reservation_id},
+                {"$set": {"cancellation_notified": True}}
+            )
+
+            # Build Reservation object from existing data for email templates
+            try:
+                if isinstance(existing.get("created_at"), str):
+                    existing["created_at"] = datetime.fromisoformat(existing["created_at"])
+                reservation_obj = Reservation(**existing)
+            except Exception as e:
+                logger.error(f"order_cancel_notification_start reservation_id={reservation_id} — erro ao montar objeto: {e}")
+                reservation_obj = None
+
+            if reservation_obj:
+                async def send_cancel_notifications_background(res=reservation_obj, rid=reservation_id):
+                    logger.info(f"order_cancel_notification_start reservation_id={rid}")
+
+                    # Staff email
+                    try:
+                        email_html = get_reservation_email_html(res)
+                        subject = f"❌ Reserva CANCELADA: {res.customer_name} - {res.reservation_date} {res.reservation_time}"
+                        await send_email(NOTIFY_TO, subject, email_html, CC_TO)
+                        logger.info(f"order_cancel_staff_sent reservation_id={rid}")
+                    except Exception as e:
+                        logger.error(f"Erro email cancelamento staff reservation_id={rid}: {e}")
+
+                    # Customer email
+                    if res.customer_email:
+                        try:
+                            cancel_html = get_client_cancellation_email(res)
+                            await send_email(res.customer_email, "Cancelación de Reserva - Kaisō Sushi", cancel_html)
+                            logger.info(f"order_cancel_customer_sent reservation_id={rid}")
+                        except Exception as e:
+                            logger.error(f"Erro email cancelamento cliente reservation_id={rid}: {e}")
+
+                    # WhatsApp to customer
+                    if res.customer_phone:
+                        cancel_message = (
+                            f"❌ *RESERVA CANCELADA - Kaisō Sushi*\n\n"
+                            f"Hola {res.customer_name},\n"
+                            f"Tu reserva del {res.reservation_date} a las {res.reservation_time} "
+                            f"para {res.guests} persona{'s' if res.guests != 1 else ''} "
+                            f"ha sido cancelada.\n\n"
+                            f"Para cualquier consulta:\n"
+                            f"{RESTAURANT_PHONE}\n\n"
+                            f"_{RESTAURANT_NAME}_"
+                        )
+                        await send_whatsapp_notification(res.customer_phone, {"_raw_message": cancel_message})
+                        logger.info(f"order_cancel_whatsapp_sent reservation_id={rid}")
+
+                asyncio.create_task(send_cancel_notifications_background())
+
     return {"message": "Reserva atualizada", "id": reservation_id}
 
 @api_router.get("/admin/stats")
