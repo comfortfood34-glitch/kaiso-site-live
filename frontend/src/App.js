@@ -211,8 +211,7 @@ const FilosofiaSection = () => {
   return (
     <section id="filosofia" className="py-28 md:py-40 px-6" style={{ backgroundColor: '#F5F0E8' }}>
       <div className="max-w-xl mx-auto text-center">
-        <p className="text-5xl mb-3" style={{ color: 'rgba(10,10,10,0.15)', fontFamily: 'serif' }}>哲学</p>
-        <p className="text-xs uppercase tracking-[0.5em] mb-20" style={{ color: 'rgba(10,10,10,0.35)' }}>Tetsugaku</p>
+        <p className="text-5xl mb-20" style={{ color: 'rgba(10,10,10,0.10)', fontFamily: 'serif' }}>融</p>
 
         <div className="space-y-5 mb-14">
           <p className="font-serif text-2xl md:text-3xl leading-snug" style={{ color: '#0A0A0A' }}>

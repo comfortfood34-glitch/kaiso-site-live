@@ -13,10 +13,10 @@ const translations = {
       experiencia: "Experiencia"
     },
     hero: {
-      badge: "KAISŌ SIGNATURE STANDARD",
+      badge: "KAISŌ SUSHI FUSION",
       headline: "kaisō",
-      subtitle: "Edomae · Córdoba · Solo reservas",
-      subheadline: "Alta cocina japonesa de autor en el corazón de Córdoba",
+      subtitle: "Japanese Fusion · Córdoba · Solo reservas",
+      subheadline: "Experiencia gastronómica japonesa contemporánea en el corazón de Córdoba",
       cta_reservar: "Reservar mesa",
       cta_carta: "Ver Carta"
     },
@@ -78,38 +78,38 @@ const translations = {
       location: "Ubicación"
     },
     filosofia: {
-      line1: "El sushi no necesita explicación.",
-      line2: "Solo necesita atención.",
-      text1: "En Kaisō usamos pescado trabajado con técnica japonesa clásica. No fusión. No interpretación. Honestidad de ingrediente.",
-      text2: "Cada pieza tarda años en aprender. Tarda segundos en desaparecer. Eso es lo que servimos."
+      line1: "No seguimos tradición.",
+      line2: "Creamos experiencias.",
+      text1: "En Kaisō respetamos la técnica japonesa. Pero creemos que la innovación forma parte de la evolución gastronómica.",
+      text2: "Cada pieza nace de la precisión. Cada sabor rompe expectativas. Eso es lo que servimos."
     },
     chef: {
       label: "El Chef",
-      text1: "Doce años perfeccionando arroz. Fermentación. Acidez. Temperatura. Precisión absoluta.",
-      text2: "Leandro Crispim no aprendió a hacer sushi. Lo estudió. Cada lote, cada corte, cada grano de arroz trabajado con hangiri y vinagre rojo akazu es el resultado de una obsesión técnica que no tiene fin.",
+      text1: "Doce años perfeccionando una idea. Técnica. Creatividad. Precisión. Sin límites.",
+      text2: "Leandro Crispim no busca imitar la tradición. Busca superarla. Cada lote, cada corte, cada combinación es el resultado de años de estudio técnico y de una libertad creativa que define la identidad de Kaisō.",
       details: [
-        "Sushi madurado 48 horas",
-        "Arroz preparado con hangiri y vinagre akazu",
-        "Control riguroso de temperatura y acidez",
-        "Técnica Edomae clásica"
+        "Ingredientes frescos de temporada",
+        "Arroz preparado con técnica japonesa",
+        "Fusión contemporánea premium",
+        "Precisión al servicio de la creatividad"
       ]
     },
     tecnica: {
       label: "La Técnica",
       caption1: "Precisión de corte",
       caption2: "Materia prima",
-      headline: "No tenemos carta fija. Tenemos lo que llegó esta mañana.",
-      subtext: "El ingrediente dicta la experiencia. Nunca al revés."
+      headline: "No tenemos carta fija. Tenemos lo que imaginamos hoy.",
+      subtext: "La técnica sostiene la experiencia. La creatividad la define."
     },
     carta_editorial: {
       label: "La Carta",
       headline: "Una selección",
       nigiri_title: "Nigiris de Temporada",
-      nigiri_desc: "Lo que el mar trajo. Lo que el arroz conoce.",
+      nigiri_desc: "Lo que el mar trajo. Interpretado.",
       omakase_title: "Experiencia Omakase",
-      omakase_desc: "Deja que el chef decida. Disponible bajo reserva previa.",
+      omakase_desc: "Deja que el chef cree. Disponible bajo reserva previa.",
       rolls_title: "Makis de Autor",
-      rolls_desc: "Equilibrio entre Japón y el Mediterráneo.",
+      rolls_desc: "Equilibrio entre Japón y el Mediterráneo. Nuestra firma.",
       sake_title: "Sake & Vinos",
       sake_desc: "Selección pequeña. Curada.",
       note: "La carta completa está disponible en el restaurante."
@@ -143,10 +143,10 @@ const translations = {
       experiencia: "Experiência"
     },
     hero: {
-      badge: "KAISŌ SIGNATURE STANDARD",
+      badge: "KAISŌ SUSHI FUSION",
       headline: "kaisō",
-      subtitle: "Edomae · Córdoba · Apenas reservas",
-      subheadline: "Alta gastronomia japonesa autoral no coração de Córdoba",
+      subtitle: "Japanese Fusion · Córdoba · Apenas reservas",
+      subheadline: "Experiência gastronômica japonesa contemporânea no coração de Córdoba",
       cta_reservar: "Reservar mesa",
       cta_carta: "Ver Cardápio"
     },
@@ -208,38 +208,38 @@ const translations = {
       location: "Localização"
     },
     filosofia: {
-      line1: "O sushi não precisa de explicação.",
-      line2: "Só precisa de atenção.",
-      text1: "No Kaisō usamos peixe trabalhado com técnica japonesa clássica. Sem fusão. Sem interpretação. Honestidade do ingrediente.",
-      text2: "Cada peça leva anos para aprender. Leva segundos para desaparecer. É isso que servimos."
+      line1: "Não seguimos tradição.",
+      line2: "Criamos experiências.",
+      text1: "No Kaisō respeitamos a técnica japonesa. Mas acreditamos que a inovação faz parte da evolução gastronômica.",
+      text2: "Cada peça nasce da precisão. Cada sabor quebra expectativas. É isso que servimos."
     },
     chef: {
       label: "O Chef",
-      text1: "Doze anos aperfeiçoando arroz. Fermentação. Acidez. Temperatura. Precisão absoluta.",
-      text2: "Leandro Crispim não aprendeu a fazer sushi. Estudou. Cada lote, cada corte, cada grão de arroz trabalhado com hangiri e vinagre vermelho akazu é o resultado de uma obsessão técnica sem fim.",
+      text1: "Doze anos aperfeiçoando uma ideia. Técnica. Criatividade. Precisão. Sem limites.",
+      text2: "Leandro Crispim não busca imitar a tradição. Busca superá-la. Cada lote, cada corte, cada combinação é o resultado de anos de estudo técnico e de uma liberdade criativa que define a identidade do Kaisō.",
       details: [
-        "Sushi maturado 48 horas",
-        "Arroz preparado com hangiri e vinagre akazu",
-        "Controle rigoroso de temperatura e acidez",
-        "Técnica Edomae clássica"
+        "Ingredientes frescos de temporada",
+        "Arroz preparado com técnica japonesa",
+        "Fusão contemporânea premium",
+        "Precisão a serviço da criatividade"
       ]
     },
     tecnica: {
       label: "A Técnica",
       caption1: "Precisão de corte",
       caption2: "Matéria-prima",
-      headline: "Não temos cardápio fixo. Temos o que chegou esta manhã.",
-      subtext: "O ingrediente dita a experiência. Nunca o contrário."
+      headline: "Não temos cardápio fixo. Temos o que imaginamos hoje.",
+      subtext: "A técnica sustenta a experiência. A criatividade a define."
     },
     carta_editorial: {
       label: "O Cardápio",
       headline: "Uma seleção",
       nigiri_title: "Nigiris de Temporada",
-      nigiri_desc: "O que o mar trouxe. O que o arroz conhece.",
+      nigiri_desc: "O que o mar trouxe. Interpretado.",
       omakase_title: "Experiência Omakase",
-      omakase_desc: "Deixe o chef decidir. Disponível com reserva prévia.",
+      omakase_desc: "Deixe o chef criar. Disponível com reserva prévia.",
       rolls_title: "Makis de Autor",
-      rolls_desc: "Equilíbrio entre o Japão e o Mediterrâneo.",
+      rolls_desc: "Equilíbrio entre o Japão e o Mediterrâneo. Nossa assinatura.",
       sake_title: "Sake & Vinhos",
       sake_desc: "Seleção pequena. Curada.",
       note: "O cardápio completo está disponível no restaurante."
@@ -273,10 +273,10 @@ const translations = {
       experiencia: "Experience"
     },
     hero: {
-      badge: "KAISŌ SIGNATURE STANDARD",
+      badge: "KAISŌ SUSHI FUSION",
       headline: "kaisō",
-      subtitle: "Edomae · Córdoba · Reservations only",
-      subheadline: "Signature Japanese haute cuisine in the heart of Córdoba",
+      subtitle: "Japanese Fusion · Córdoba · Reservations only",
+      subheadline: "Contemporary Japanese fusion dining in the heart of Córdoba",
       cta_reservar: "Reserve a table",
       cta_carta: "View Menu"
     },
@@ -338,38 +338,38 @@ const translations = {
       location: "Location"
     },
     filosofia: {
-      line1: "Sushi needs no explanation.",
-      line2: "Only attention.",
-      text1: "At Kaisō we use fish worked with classic Japanese technique. No fusion. No interpretation. Ingredient honesty.",
-      text2: "Each piece takes years to learn. It takes seconds to disappear. That is what we serve."
+      line1: "We don't follow tradition.",
+      line2: "We create experiences.",
+      text1: "At Kaisō we respect Japanese technique. But we believe innovation is part of gastronomic evolution.",
+      text2: "Each piece is born from precision. Each flavor breaks expectations. That is what we serve."
     },
     chef: {
       label: "The Chef",
-      text1: "Twelve years perfecting rice. Fermentation. Acidity. Temperature. Absolute precision.",
-      text2: "Leandro Crispim didn't learn to make sushi. He studied it. Each batch, each cut, each grain of rice worked with hangiri and akazu red vinegar is the result of a technical obsession without end.",
+      text1: "Twelve years perfecting one idea. Technique. Creativity. Precision. No limits.",
+      text2: "Leandro Crispim doesn't seek to imitate tradition. He seeks to surpass it. Each batch, each cut, each combination is the result of years of technical study and a creative freedom that defines the identity of Kaisō.",
       details: [
-        "Sushi aged 48 hours",
-        "Rice prepared with hangiri and akazu vinegar",
-        "Rigorous control of temperature and acidity",
-        "Classic Edomae technique"
+        "Fresh seasonal ingredients",
+        "Rice prepared with Japanese technique",
+        "Contemporary premium fusion",
+        "Precision in service of creativity"
       ]
     },
     tecnica: {
       label: "The Craft",
       caption1: "Cutting precision",
       caption2: "Raw material",
-      headline: "We have no fixed menu. We have what arrived this morning.",
-      subtext: "The ingredient dictates the experience. Never the other way around."
+      headline: "We have no fixed menu. We have what we imagined today.",
+      subtext: "Technique sustains the experience. Creativity defines it."
     },
     carta_editorial: {
       label: "The Menu",
       headline: "A selection",
       nigiri_title: "Seasonal Nigiris",
-      nigiri_desc: "What the sea brought. What the rice knows.",
+      nigiri_desc: "What the sea brought. Interpreted.",
       omakase_title: "Omakase Experience",
-      omakase_desc: "Let the chef decide. Available with prior reservation.",
+      omakase_desc: "Let the chef create. Available with prior reservation.",
       rolls_title: "Signature Rolls",
-      rolls_desc: "Balance between Japan and the Mediterranean.",
+      rolls_desc: "Balance between Japan and the Mediterranean. Our signature.",
       sake_title: "Sake & Wines",
       sake_desc: "Small selection. Curated.",
       note: "The full menu is available at the restaurant."
