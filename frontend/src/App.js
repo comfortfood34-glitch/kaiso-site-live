@@ -342,7 +342,7 @@ const AboutSection = () => {
 
 // Location / Map Section
 const LocationSection = () => {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
   
   return (
     <section id="ubicacion" className="py-20 md:py-28 px-6 bg-kaiso-card" data-testid="location-section">
@@ -370,10 +370,9 @@ const LocationSection = () => {
               <p className="flex items-start gap-3">
                 <Clock size={18} className="text-kaiso-gold mt-0.5 shrink-0" />
                 <span className="text-sm leading-relaxed">
-                  {lang === 'es' ? 'Mar–Jue: 12:00–14:00, 20:00–23:00' : lang === 'pt' ? 'Ter–Qui: 12:00–14:00, 20:00–23:00' : 'Tue–Thu: 12:00–14:00, 20:00–23:00'}<br/>
-                  {lang === 'es' ? 'Vie–Sáb: 13:00–15:30, 20:00–23:30' : lang === 'pt' ? 'Sex–Sáb: 13:00–15:30, 20:00–23:30' : 'Fri–Sat: 13:00–15:30, 20:00–23:30'}<br/>
-                  {lang === 'es' ? 'Dom: 13:00–15:30, 20:00–23:00' : lang === 'pt' ? 'Dom: 13:00–15:30, 20:00–23:00' : 'Sun: 13:00–15:30, 20:00–23:00'}<br/>
-                  <span className="text-kaiso-red">{lang === 'es' ? 'Lunes cerrado' : lang === 'pt' ? 'Segunda fechado' : 'Monday closed'}</span>
+                  {t.footer.tue}: 20:00–23:30<br/>
+                  {t.footer.wed_sun}: 13:30–15:30 | 20:00–23:30<br/>
+                  <span className="text-kaiso-red">{t.footer.closed}</span>
                 </span>
               </p>
               <p className="flex items-center gap-3">
@@ -484,13 +483,8 @@ const Footer = () => {
           <div>
             <h4 className="text-xs uppercase tracking-widest text-kaiso-text mb-4">{t.footer.hours_title}</h4>
             <div className="space-y-2 text-sm text-kaiso-muted">
-              <p><span className="text-kaiso-gold">{t.footer.lunch_label}:</span></p>
-              <p>{t.footer.tue_thu}: 12:00–14:00</p>
-              <p>{t.footer.fri_sun}: 13:00–15:30</p>
-              <p className="mt-3"><span className="text-kaiso-gold">{t.footer.dinner_label}:</span></p>
-              <p>{t.footer.tue_thu}: 20:00–23:00</p>
-              <p>{t.footer.fri_sat}: 20:00–23:30</p>
-              <p>{t.footer.sun}: 20:00–23:00</p>
+              <p>{t.footer.tue}: 20:00–23:30</p>
+              <p>{t.footer.wed_sun}: 13:30–15:30 | 20:00–23:30</p>
               <p className="text-kaiso-red mt-3">{t.footer.closed}</p>
             </div>
           </div>
