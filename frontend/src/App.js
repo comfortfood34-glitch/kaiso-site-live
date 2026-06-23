@@ -20,7 +20,7 @@ const LanguageContext = createContext();
 export const useLanguage = () => useContext(LanguageContext);
 
 const LanguageProvider = ({ children }) => {
-  const [lang, setLang] = useState(() => localStorage.getItem('kaiso_lang') || 'es');
+  const [lang, setLang] = useState(() => localStorage.getItem('kaiso_lang') || 'pt');
 
   const changeLang = (newLang) => {
     setLang(newLang);
