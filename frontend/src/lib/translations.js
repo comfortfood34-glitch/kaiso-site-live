@@ -1,7 +1,6 @@
 // Kaisō Sushi - Sistema de Traduções ES/PT/EN
 const translations = {
   es: {
-    // Nav
     nav: {
       inicio: "Inicio",
       carta: "Carta",
@@ -11,7 +10,6 @@ const translations = {
       contacto: "Contacto",
       franquicias: "Franquicias"
     },
-    // Hero
     hero: {
       badge: "KAISŌ SIGNATURE STANDARD",
       headline: "Donde la precisión se encuentra con el sabor",
@@ -19,7 +17,6 @@ const translations = {
       cta_reservar: "Reservar Mesa",
       cta_carta: "Ver Carta"
     },
-    // Reservation
     reservation: {
       title: "Reservar Mesa",
       subtitle: "Una experiencia gastronómica única",
@@ -42,9 +39,7 @@ const translations = {
       confirm_whatsapp: "Confirmar por WhatsApp",
       success_title: "¡Reserva Recibida!",
       success_message: "Hemos recibido su solicitud. Le confirmaremos a la brevedad.",
-      // Aviso horário
       hours_notice: "Reservas atendidas de 20:00 a 22:30. Fuera de este horario, confirmaremos en el siguiente tramo disponible.",
-      // Desconto
       discount_notice: "",
       discount_applied: "",
       tasting_title: "¿Desea incluir Rodízio Premium Kaisō de 44,90 por 19,90?",
@@ -53,25 +48,24 @@ const translations = {
       tasting_availability: "",
       tasting_allergies: "Alergias / restricciones alimentarias"
     },
-    // Delivery
     delivery: {
       title: "Entrega a Domicilio",
       headline: "Servicio Propio de Entrega",
       description: "Entrega con estafeta propia. No utilizamos Uber Eats ni Glovo. Calidad garantizada hasta tu puerta.",
       cta: "Pedir por WhatsApp"
     },
-    // Franchise
     franchise: {
       title: "Franquicias",
       headline: "Únete a la Familia Kaisō",
       description: "Descubre las oportunidades de franquicia con Grupo Kaisō España.",
       cta: "Más Información"
     },
-    // Footer
     footer: {
       hours_title: "Horarios",
       lunch_label: "Almuerzo",
       dinner_label: "Cena",
+      tue: "Mar",
+      wed_sun: "Mié–Dom",
       tue_thu: "Mar–Jue",
       fri_sat: "Vie–Sáb",
       fri_sun: "Vie–Dom",
@@ -80,7 +74,6 @@ const translations = {
       contact: "Contacto",
       location: "Ubicación"
     },
-    // Admin
     admin: {
       title: "Panel de Administración",
       reservations: "Reservas",
@@ -161,6 +154,8 @@ const translations = {
       hours_title: "Horários",
       lunch_label: "Almoço",
       dinner_label: "Jantar",
+      tue: "Ter",
+      wed_sun: "Qua–Dom",
       tue_thu: "Ter–Qui",
       fri_sat: "Sex–Sáb",
       fri_sun: "Sex–Dom",
@@ -249,6 +244,8 @@ const translations = {
       hours_title: "Hours",
       lunch_label: "Lunch",
       dinner_label: "Dinner",
+      tue: "Tue",
+      wed_sun: "Wed–Sun",
       tue_thu: "Tue–Thu",
       fri_sat: "Fri–Sat",
       fri_sun: "Fri–Sun",
