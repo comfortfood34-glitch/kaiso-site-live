@@ -389,6 +389,24 @@ export default function ReservationSystem({ onClose }) {
                 />
               </div>
 
+              {/* Policy Acceptance - MANDATORY */}
+              <div className="border border-kaiso-border/50 p-4 bg-kaiso-card/50 mt-4">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="policy_accepted"
+                    checked={form.policy_accepted}
+                    onChange={handleInputChange}
+                    className="mt-1 accent-kaiso-gold"
+                    required
+                    data-testid="input-policy-accepted"
+                  />
+                  <span className="text-sm text-kaiso-muted">
+                    Acepto la política de no-show y los términos de reserva
+                  </span>
+                </label>
+              </div>
+
               {/* Tasting Menu Option */}
               {canSelectTasting ? (
                 <div className="border border-kaiso-gold/30 p-4 mt-4">

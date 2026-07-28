@@ -58,6 +58,9 @@ else:
     if RESERVATION_MODE not in ['legacy', 'plugin', 'maintenance']:
         raise RuntimeError(f"Invalid RESERVATION_MODE '{_reservation_mode_raw}'. Must be: legacy, plugin, or maintenance")
 
+# Plugin Mode Configuration Validation (will be validated after logger setup)
+_plugin_url_for_validation = os.environ.get('KAISOSYSTEM_PLUGIN_URL') if RESERVATION_MODE == 'plugin' else None
+
 # Restaurant Configuration
 RESTAURANT_NAME = "Kaisō Sushi"
 RESTAURANT_PHONE = "+34 673 036 835"
@@ -117,6 +120,22 @@ security = HTTPBasic()
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# Validate Plugin Mode Configuration
+if RESERVATION_MODE == 'plugin':
+    if not _plugin_url_for_validation:
+        raise RuntimeError("KAISOSYSTEM_PLUGIN_URL must be set when RESERVATION_MODE=plugin")
+    if not (_plugin_url_for_validation.startswith('http://') or _plugin_url_for_validation.startswith('https://')):
+        raise RuntimeError(f"KAISOSYSTEM_PLUGIN_URL must start with http:// or https://")
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(_plugin_url_for_validation)
+        if not parsed.netloc:
+            raise RuntimeError(f"KAISOSYSTEM_PLUGIN_URL must have valid hostname")
+    except Exception as e:
+        if 'must' in str(e):
+            raise
+        raise RuntimeError(f"KAISOSYSTEM_PLUGIN_URL validation failed: {str(e)}")
 
 
 # ========================
