@@ -670,6 +670,91 @@ async def get_public_config():
         "tasting_hours": {"start": TASTING_START, "end": TASTING_END}
     }
 
+def adapt_plugin_availability_response(plugin_response: dict, date_str: str) -> dict:
+    """
+    Adapt plugin API response to frontend contract.
+
+    Plugin returns: {"available": bool, "slots": [{"time": "HH:MM", "remaining_people": N}]}
+    Frontend expects: lunch_slots, dinner_slots, remaining_capacity
+    """
+    # Validate response structure
+    if not isinstance(plugin_response, dict):
+        raise ValueError("Plugin response must be a dictionary")
+
+    if "available" not in plugin_response:
+        raise ValueError("Plugin response missing 'available' field")
+
+    available = plugin_response.get("available", False)
+    slots = plugin_response.get("slots", [])
+
+    # Validate slots is a list
+    if not isinstance(slots, list):
+        raise ValueError("Plugin response 'slots' must be a list")
+
+    # If not available, return minimal response with empty arrays
+    if not available:
+        return {
+            "available": False,
+            "date": date_str,
+            "remaining_capacity": 0,
+            "lunch_slots": [],
+            "dinner_slots": [],
+            "reason": plugin_response.get("reason", "Indisponível"),
+            "slots": slots
+        }
+
+    # If available but no slots, return error
+    if not slots:
+        return {
+            "available": True,
+            "date": date_str,
+            "remaining_capacity": 0,
+            "lunch_slots": [],
+            "dinner_slots": [],
+            "slots": slots
+        }
+
+    # Separate slots by meal type and calculate capacity
+    lunch_slots = []
+    dinner_slots = []
+    remaining_capacity = 0
+
+    for slot in slots:
+        if not isinstance(slot, dict) or "time" not in slot:
+            continue
+
+        time_str = slot.get("time", "")
+        remaining = slot.get("remaining_people", 0)
+
+        # Parse time (HH:MM format)
+        try:
+            hour = int(time_str.split(":")[0])
+        except (ValueError, IndexError):
+            continue
+
+        # Categorize: lunch < 17:00, dinner >= 17:00
+        if hour < 17:
+            lunch_slots.append(time_str)
+        else:
+            dinner_slots.append(time_str)
+
+        # Track max capacity
+        if remaining > remaining_capacity:
+            remaining_capacity = remaining
+
+    # Sort slots for consistent ordering
+    lunch_slots.sort()
+    dinner_slots.sort()
+
+    return {
+        "available": True,
+        "date": date_str,
+        "remaining_capacity": remaining_capacity,
+        "lunch_slots": lunch_slots,
+        "dinner_slots": dinner_slots,
+        "slots": slots  # Preserve original slots
+    }
+
 @api_router.get("/availability/{date_str}")
 async def get_availability(date_str: str, guests: int = Query(1, ge=1, le=MAX_GUESTS_PER_RESERVATION)):
     """Retorna disponibilidade para uma data"""
@@ -682,7 +767,12 @@ async def get_availability(date_str: str, guests: int = Query(1, ge=1, le=MAX_GU
         client = get_plugin_client()
         success, response, error = await client.get_availability(date=date_str, guests=guests)
         if success:
-            return response
+            try:
+                adapted = adapt_plugin_availability_response(response, date_str)
+                return adapted
+            except (ValueError, TypeError) as e:
+                logging.error(f"Plugin response adaptation failed: {type(e).__name__}")
+                raise HTTPException(status_code=502, detail="Formato de resposta inválido do plugin")
         if "timeout" in error.lower():
             raise HTTPException(status_code=503, detail="Sistema de reservas temporariamente indisponível")
         raise HTTPException(status_code=502, detail="Erro ao consultar disponibilidade")
