@@ -6,6 +6,7 @@ import { Calendar, Clock, Users, X, ArrowLeft, ArrowRight, Check, Info, Sparkles
 import { useLanguage } from '../App';
 import { getAvailability, createReservation, getWhatsAppMessage, trackEvent } from '../lib/api';
 import { normalizeReservationResponse } from '../lib/normalizeReservationResponse';
+import PolicyModal from './PolicyModal';
 import 'react-day-picker/style.css';
 
 // WhatsApp SVG Icon
@@ -26,6 +27,7 @@ export default function ReservationSystem({ onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [reservation, setReservation] = useState(null);
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
   const idempotencyKeyRef = React.useRef(null);
   const lastPayloadRef = React.useRef(null);
   const overlayRef = React.useRef(null);
@@ -397,12 +399,20 @@ export default function ReservationSystem({ onClose }) {
                     name="policy_accepted"
                     checked={form.policy_accepted}
                     onChange={handleInputChange}
-                    className="mt-1 accent-kaiso-gold"
+                    className="mt-1 accent-kaiso-gold flex-shrink-0"
                     required
                     data-testid="input-policy-accepted"
                   />
                   <span className="text-sm text-kaiso-muted">
-                    Acepto la política de no-show y los términos de reserva
+                    He leído y acepto la{' '}
+                    <button
+                      type="button"
+                      onClick={() => setShowPolicyModal(true)}
+                      className="text-kaiso-gold hover:text-kaiso-gold-light transition-colors underline cursor-pointer"
+                      data-testid="policy-view-link"
+                    >
+                      Política de Reservas y No-Show
+                    </button>
                   </span>
                 </label>
               </div>
@@ -558,6 +568,12 @@ export default function ReservationSystem({ onClose }) {
           ) : null}
         </div>
       </div>
+
+      {/* Policy Modal */}
+      <PolicyModal
+        isOpen={showPolicyModal}
+        onClose={() => setShowPolicyModal(false)}
+      />
     </div>
   );
 }
