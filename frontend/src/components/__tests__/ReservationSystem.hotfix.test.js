@@ -237,7 +237,7 @@ describe('ReservationSystem - Hotfix Validation Tests (Part 1)', () => {
     expect(screen.getByText(/20:00|20h|8:00 PM/i)).toBeInTheDocument();
   });
 
-  test('Policy acceptance required before reservation', async () => {
+  test('Policy acceptance required before reservation - form blocks without checkbox', async () => {
     const mockOnClose = jest.fn();
     const user = userEvent.setup();
 
@@ -261,21 +261,31 @@ describe('ReservationSystem - Hotfix Validation Tests (Part 1)', () => {
     await user.type(phoneInput, '+55 11 9999-9999');
     await user.type(emailInput, 'joao@example.com');
 
+    // Try to continue WITHOUT checking policy
     const continueBtn = screen.getByTestId('continue-button');
     await user.click(continueBtn);
 
+    // Should still be on details page (required validation prevents submission)
+    await waitFor(() => {
+      expect(screen.getByTestId('step-details')).toBeInTheDocument();
+    });
+
+    // Confirm button should NOT appear yet
+    expect(screen.queryByTestId('confirm-button')).not.toBeInTheDocument();
+
+    // Now mark the policy checkbox
+    const policyCheckbox = screen.getByTestId('input-policy-accepted');
+    await user.click(policyCheckbox);
+
+    // Now continue should work
+    await user.click(continueBtn);
+
+    // Should advance to confirm page
     await waitFor(() => {
       expect(screen.getByTestId('confirm-button')).toBeInTheDocument();
     });
 
-    // Try to confirm without accepting policy
-    const confirmBtn = screen.getByTestId('confirm-button');
-    await user.click(confirmBtn);
-
-    await waitFor(() => {
-      expect(screen.getByText(/Debe aceptar la política/i)).toBeInTheDocument();
-    });
-
+    // Should NOT have called createReservation yet
     expect(api.createReservation).not.toHaveBeenCalled();
   });
 });
