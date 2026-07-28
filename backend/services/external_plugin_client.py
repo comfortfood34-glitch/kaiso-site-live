@@ -95,15 +95,15 @@ class ExternalPluginClient:
                     return True, data, None
                 elif response.status_code == 401:
                     error = "Plugin API authentication failed"
-                    logger.error(f"{error}: {response.text}")
+                    logger.error(f"{error} (status 401)")
                     return False, None, error
                 elif response.status_code == 400:
-                    error = f"Plugin API bad request: {response.json().get('detail', response.text)}"
-                    logger.error(error)
+                    error = "Plugin API bad request"
+                    logger.error(f"{error} (status 400)")
                     return False, None, error
                 else:
                     error = f"Plugin API error: {response.status_code}"
-                    logger.error(f"{error}: {response.text}")
+                    logger.error(error)
                     return False, None, error
 
         except httpx.TimeoutException:
@@ -111,8 +111,8 @@ class ExternalPluginClient:
             logger.error(error)
             return False, None, error
         except Exception as e:
-            error = f"Plugin API connection error: {str(e)}"
-            logger.error(error)
+            error = "Plugin API connection error"
+            logger.error(f"{error} ({type(e).__name__})")
             return False, None, error
 
     async def create_reservation(
@@ -180,21 +180,20 @@ class ExternalPluginClient:
                     data = response.json()
                     return True, data, None
                 elif response.status_code == 400:
-                    error = f"Plugin API validation error: {response.json().get('detail', response.text)}"
-                    logger.error(error)
+                    error = "Plugin API validation error"
+                    logger.error(f"{error} (status 400)")
                     return False, None, error
                 elif response.status_code == 401:
                     error = "Plugin API authentication failed"
-                    logger.error(f"{error}: {response.text}")
+                    logger.error(f"{error} (status 401)")
                     return False, None, error
                 elif response.status_code == 409:
-                    # Idempotency conflict (same key, different payload)
-                    error = f"Plugin API conflict: {response.json().get('detail', 'Request body mismatch')}"
-                    logger.error(error)
+                    error = "Plugin API conflict (idempotency mismatch)"
+                    logger.error(f"{error} (status 409)")
                     return False, None, error
                 else:
                     error = f"Plugin API error: {response.status_code}"
-                    logger.error(f"{error}: {response.text}")
+                    logger.error(error)
                     return False, None, error
 
         except httpx.TimeoutException:
@@ -202,8 +201,8 @@ class ExternalPluginClient:
             logger.error(error)
             return False, None, error
         except Exception as e:
-            error = f"Plugin API connection error: {str(e)}"
-            logger.error(error)
+            error = "Plugin API connection error"
+            logger.error(f"{error} ({type(e).__name__})")
             return False, None, error
 
 

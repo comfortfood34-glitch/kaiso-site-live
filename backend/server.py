@@ -137,6 +137,10 @@ if RESERVATION_MODE == 'plugin':
             raise
         raise RuntimeError(f"KAISOSYSTEM_PLUGIN_URL validation failed: {str(e)}")
 
+    api_key = os.environ.get('KAISOSYSTEM_API_KEY')
+    if not api_key or not api_key.strip():
+        raise RuntimeError("KAISOSYSTEM_API_KEY must be set and non-empty when RESERVATION_MODE=plugin")
+
 
 # ========================
 # MODELS
