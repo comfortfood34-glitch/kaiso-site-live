@@ -10,8 +10,11 @@ const api = axios.create({
 
 // Public endpoints
 export const getConfig = async () => (await api.get('/config')).data;
-export const getAvailability = async (date) => (await api.get(`/availability/${date}`)).data;
-export const createReservation = async (data) => (await api.post('/reservations', data)).data;
+export const getAvailability = async (date, guests = 1) => (await api.get(`/availability/${date}?guests=${guests}`)).data;
+export const createReservation = async (data, idempotencyKey) => {
+  const config = idempotencyKey ? { headers: { 'Idempotency-Key': idempotencyKey } } : {};
+  return (await api.post('/reservations', data, config)).data;
+};
 export const getWhatsAppMessage = async (params) => {
   const query = new URLSearchParams(params).toString();
   return (await api.get(`/whatsapp-message?${query}`)).data;

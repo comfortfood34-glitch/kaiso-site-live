@@ -5,6 +5,7 @@ import { DayPicker } from 'react-day-picker';
 import { Calendar, Clock, Users, X, ArrowLeft, ArrowRight, Check, Info, Sparkles } from 'lucide-react';
 import { useLanguage } from '../App';
 import { getAvailability, createReservation, getWhatsAppMessage, trackEvent } from '../lib/api';
+import { normalizeReservationResponse } from '../lib/normalizeReservationResponse';
 import 'react-day-picker/style.css';
 
 // WhatsApp SVG Icon
@@ -25,6 +26,8 @@ export default function ReservationSystem({ onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [reservation, setReservation] = useState(null);
+  const idempotencyKeyRef = React.useRef(null);
+  const lastPayloadRef = React.useRef(null);
   const overlayRef = React.useRef(null);
 
   // Bloqueia scroll do body no mobile ao abrir o modal
@@ -40,22 +43,25 @@ export default function ReservationSystem({ onClose }) {
     guests: 2,
     observations: '',
     has_tasting_menu: false,
-    tasting_allergies: ''
+    tasting_allergies: '',
+    policy_accepted: false
   });
 
   const dateLocale = { es, pt, en: enUS }[lang] || es;
 
   useEffect(() => {
     if (selectedDate) {
-      loadAvailability(format(selectedDate, 'yyyy-MM-dd'));
+      loadAvailability(format(selectedDate, 'yyyy-MM-dd'), form.guests);
+      // Clear time slot if it's no longer available after guests change
+      setSelectedTime(null);
     }
-  }, [selectedDate]);
+  }, [selectedDate, form.guests]);
 
-  const loadAvailability = async (dateStr) => {
+  const loadAvailability = async (dateStr, guestCount) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAvailability(dateStr);
+      const data = await getAvailability(dateStr, guestCount);
       setAvailability(data);
       if (!data.available) {
         setError(data.reason);
@@ -92,15 +98,36 @@ export default function ReservationSystem({ onClose }) {
     }));
   };
 
+  const generateIdempotencyKey = (payload) => {
+    // Serialize complete payload for comparison
+    const payloadStr = JSON.stringify(payload);
+
+    // Reuse key if payload hasn't changed
+    if (lastPayloadRef.current === payloadStr && idempotencyKeyRef.current) {
+      return idempotencyKeyRef.current;
+    }
+
+    // Generate new key if payload changed or first attempt
+    const newKey = crypto.randomUUID();
+    idempotencyKeyRef.current = newKey;
+    lastPayloadRef.current = payloadStr;
+    return newKey;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStep(3); // Go to confirmation
   };
 
   const handleConfirm = async () => {
+    if (!form.policy_accepted) {
+      setError('Debe aceptar la política de reservas para continuar');
+      return;
+    }
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const reservationData = {
         ...form,
@@ -108,11 +135,24 @@ export default function ReservationSystem({ onClose }) {
         reservation_date: format(selectedDate, 'yyyy-MM-dd'),
         reservation_time: selectedTime
       };
-      
-      const result = await createReservation(reservationData);
-      setReservation(result);
-      trackEvent({ event_type: 'reservation_complete', page: '/', language: lang, screen_width: window.innerWidth });
-      setStep(4); // Success - show QR code page
+
+      // Generate idempotency key (reuse if payload unchanged)
+      const key = generateIdempotencyKey(reservationData);
+
+      const result = await createReservation(reservationData, key);
+
+      try {
+        const completeReservation = normalizeReservationResponse(result, reservationData);
+        setReservation(completeReservation);
+        trackEvent({ event_type: 'reservation_complete', page: '/', language: lang, screen_width: window.innerWidth });
+        setStep(4); // Success - show QR code page
+        // Clear idempotency state only after successful creation
+        idempotencyKeyRef.current = null;
+        lastPayloadRef.current = null;
+      } catch (normalizeError) {
+        setError(normalizeError);
+        return;
+      }
     } catch (err) {
       setError(err.response?.data?.detail || 'Error al crear la reserva');
     } finally {
