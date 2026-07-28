@@ -1,6 +1,6 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, Query, Request
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Query, Request, Header
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi.responses import StreamingResponse, FileResponse, HTMLResponse
+from fastapi.responses import StreamingResponse, FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -23,6 +23,9 @@ import httpx
 import subprocess
 import signal
 
+# Import external plugin client for plugin mode
+from services.external_plugin_client import get_plugin_client
+
 WHATSAPP_SERVICE_URL = "http://localhost:8002"
 whatsapp_process = None
 
@@ -44,6 +47,16 @@ ADMIN_EMAIL_FROM = os.environ.get('ADMIN_EMAIL_FROM')
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
 NOTIFY_TO = os.environ.get('NOTIFY_TO')
 CC_TO = os.environ.get('CC_TO')
+
+# Reservation System Mode
+# "legacy" = local database, "plugin" = external plugin API, "maintenance" = unavailable
+_reservation_mode_raw = os.environ.get('RESERVATION_MODE')
+if _reservation_mode_raw is None:
+    RESERVATION_MODE = 'legacy'
+else:
+    RESERVATION_MODE = _reservation_mode_raw.strip().lower()
+    if RESERVATION_MODE not in ['legacy', 'plugin', 'maintenance']:
+        raise RuntimeError(f"Invalid RESERVATION_MODE '{_reservation_mode_raw}'. Must be: legacy, plugin, or maintenance")
 
 # Restaurant Configuration
 RESTAURANT_NAME = "Kaisō Sushi"
@@ -119,6 +132,7 @@ class ReservationCreate(BaseModel):
     observations: Optional[str] = ""
     has_tasting_menu: bool = False
     tasting_allergies: Optional[str] = ""
+    policy_accepted: bool = Field(..., description="Cliente debe aceptar la política de no-show")
 
 class ManualReservationCreate(BaseModel):
     customer_name: str = Field(..., min_length=2, max_length=100)
@@ -634,42 +648,57 @@ async def get_public_config():
     }
 
 @api_router.get("/availability/{date_str}")
-async def get_availability(date_str: str):
+async def get_availability(date_str: str, guests: int = Query(1, ge=1, le=MAX_GUESTS_PER_RESERVATION)):
     """Retorna disponibilidade para uma data"""
+    # Mode: maintenance
+    if RESERVATION_MODE == "maintenance":
+        raise HTTPException(status_code=503, detail="Sistema de reservas em manutenção")
+
+    # Mode: plugin (delegate to external API)
+    if RESERVATION_MODE == "plugin":
+        client = get_plugin_client()
+        success, response, error = await client.get_availability(date=date_str, guests=guests)
+        if success:
+            return response
+        if "timeout" in error.lower():
+            raise HTTPException(status_code=503, detail="Sistema de reservas temporariamente indisponível")
+        raise HTTPException(status_code=502, detail="Erro ao consultar disponibilidade")
+
+    # Mode: legacy (local logic)
     # Validar formato
     try:
         dt = datetime.strptime(date_str, "%Y-%m-%d")
     except ValueError:
         raise HTTPException(status_code=400, detail="Formato de data inválido. Use YYYY-MM-DD")
-    
+
     # Verificar se não é data passada
     if dt.date() < datetime.now().date():
         raise HTTPException(status_code=400, detail="Não é possível reservar datas passadas")
-    
+
     # Verificar blackout
     if await is_blackout_date(date_str):
         return {"available": False, "reason": "Data bloqueada pelo restaurante", "slots": []}
-    
+
     # Verificar se é segunda (fechado)
     schedule = get_day_schedule(date_str)
     if not schedule:
         return {"available": False, "reason": "Restaurante fechado às segundas-feiras", "slots": []}
-    
+
     # Verificar capacidade
     capacity = await get_daily_capacity()
     current_guests = await get_current_guests(date_str)
     remaining = capacity - current_guests
-    
+
     if remaining <= 0:
         return {"available": False, "reason": "Capacidade esgotada para esta data", "remaining_capacity": 0, "slots": []}
-    
+
     # Gerar slots
-    lunch_slots = generate_time_slots(schedule["lunch"][0], schedule["lunch"][1], buffer_minutes=LAST_RESERVATION_BUFFER) if schedule["lunch"] else []
+    lunch_slots = generate_time_slots(schedule["lunch"][0], schedule["lunch"][1], buffer_minutes=LAST_RESERVATION_BUFFER) if schedule.get("lunch") else []
     dinner_slots = generate_time_slots(schedule["dinner"][0], schedule["dinner"][1], buffer_minutes=LAST_RESERVATION_BUFFER)
-    
+
     # Verificar desconto
     has_discount = is_discount_day(date_str)
-    
+
     return {
         "available": True,
         "date": date_str,
@@ -684,42 +713,123 @@ async def get_availability(date_str: str):
     }
 
 @api_router.post("/reservations")
-async def create_reservation(input: ReservationCreate):
+async def create_reservation(input: ReservationCreate, idempotency_key: str = Header(default=None, alias="Idempotency-Key")):
     """Criar nova reserva"""
+    # Mode: maintenance
+    if RESERVATION_MODE == "maintenance":
+        raise HTTPException(status_code=503, detail="Sistema de reservas em manutenção")
+
+    # Mode: plugin (delegate to external API)
+    if RESERVATION_MODE == "plugin":
+        # Plugin mode requires Idempotency-Key header
+        if not idempotency_key or idempotency_key.strip() == "":
+            raise HTTPException(status_code=400, detail="Idempotency-Key header obrigatório em modo plugin")
+
+        # Plugin mode requires policy_accepted=True
+        if not input.policy_accepted:
+            raise HTTPException(status_code=400, detail="Debe aceptar la política de reservas para continuar")
+
+        client = get_plugin_client()
+        # Preserve all observations: original + tasting menu data
+        observations_parts = []
+        if input.observations:
+            observations_parts.append(input.observations)
+        if input.has_tasting_menu:
+            observations_parts.append("[Menu degustación: sí]")
+            if input.tasting_allergies:
+                observations_parts.append(f"[Alergias: {input.tasting_allergies}]")
+            else:
+                observations_parts.append("[Alergias: não informadas]")
+        observations = " ".join(observations_parts)
+
+        success, response, error = await client.create_reservation(
+            customer_name=input.customer_name,
+            customer_phone=input.customer_phone,
+            customer_email=input.customer_email,
+            date=input.reservation_date,
+            time=input.reservation_time,
+            guests=input.guests,
+            observations=observations,
+            idempotency_key=idempotency_key
+        )
+        if success:
+            # Validate response structure and required fields
+            if not isinstance(response, dict):
+                logger.error("[PLUGIN_INVALID_RESPONSE] type=%s", type(response).__name__)
+                raise HTTPException(status_code=502, detail="Erro ao criar reserva: resposta inválida do plugin")
+
+            if not response:
+                logger.error("[PLUGIN_INVALID_RESPONSE] empty_dict=true")
+                raise HTTPException(status_code=502, detail="Erro ao criar reserva: resposta vazia do plugin")
+
+            # Validate required fields
+            reservation_id = response.get("reservation_id")
+            status = response.get("status")
+
+            if not reservation_id or not isinstance(reservation_id, str) or not reservation_id.strip():
+                logger.error("[PLUGIN_INVALID_RESPONSE] missing_or_empty_reservation_id=true")
+                raise HTTPException(status_code=502, detail="Erro ao criar reserva: identificador ausente")
+
+            if not status or status not in ["pending", "confirmed"]:
+                logger.error("[PLUGIN_INVALID_RESPONSE] invalid_status=true")
+                raise HTTPException(status_code=502, detail="Erro ao criar reserva: status inválido")
+
+            # Normalize response: add input fields that frontend expects
+            normalized_response = {
+                **response,  # preserve reservation_id, status, message from plugin
+                "reservation_date": input.reservation_date,
+                "reservation_time": input.reservation_time,
+                "guests": input.guests,
+                "customer_name": input.customer_name
+            }
+
+            # Return 201 Created status on successful plugin reservation
+            return JSONResponse(status_code=201, content=normalized_response)
+        if "timeout" in error.lower():
+            raise HTTPException(status_code=503, detail="Sistema de reservas temporariamente indisponível")
+        elif "409" in error or "conflict" in error.lower():
+            raise HTTPException(status_code=409, detail="Idempotência: requisição duplicada com dados diferentes")
+        raise HTTPException(status_code=502, detail=f"Erro ao criar reserva: {error}")
+
+    # Mode: legacy (local logic)
+    # Validar se aceitou a política
+    if not input.policy_accepted:
+        raise HTTPException(status_code=400, detail="Debe aceptar la política de reservas para continuar")
+
     # Validar data
     schedule = get_day_schedule(input.reservation_date)
     if not schedule:
         raise HTTPException(status_code=400, detail="Restaurante cerrado los lunes")
-    
+
     # Verificar blackout
     if await is_blackout_date(input.reservation_date):
         raise HTTPException(status_code=400, detail="Esta fecha no está disponible para reservas")
-    
+
     # Verificar capacidade
     capacity = await get_daily_capacity()
     current_guests = await get_current_guests(input.reservation_date)
-    
+
     if current_guests + input.guests > capacity:
         remaining = capacity - current_guests
         raise HTTPException(status_code=400, detail=f"Capacidad agotada para esta fecha. Plazas disponibles: {remaining}")
-    
+
     # Validar horário
-    lunch_slots = generate_time_slots(schedule["lunch"][0], schedule["lunch"][1], buffer_minutes=LAST_RESERVATION_BUFFER) if schedule["lunch"] else []
+    lunch_slots = generate_time_slots(schedule["lunch"][0], schedule["lunch"][1], buffer_minutes=LAST_RESERVATION_BUFFER) if schedule.get("lunch") else []
     dinner_slots = generate_time_slots(schedule["dinner"][0], schedule["dinner"][1], buffer_minutes=LAST_RESERVATION_BUFFER)
     all_slots = lunch_slots + dinner_slots
-    
+
     if input.reservation_time not in all_slots:
         raise HTTPException(status_code=400, detail=f"Horario no disponible. Horarios válidos: {all_slots}")
-    
+
     # Validar degustação
     if input.has_tasting_menu:
         if not is_tasting_available(input.reservation_date, input.reservation_time):
             raise HTTPException(status_code=400, detail="Rodízio Premium solo disponible los Miércoles, 20:00-22:30")
-    
+
     # Calcular desconto e valor
     has_discount = is_discount_day(input.reservation_date)
     estimated_value = calculate_estimated_value(input.guests, input.has_tasting_menu, has_discount)
-    
+
     # Criar reserva - AUTO-ACEITAR se dentro dos horários permitidos
     reservation = Reservation(
         **input.model_dump(),
@@ -728,12 +838,12 @@ async def create_reservation(input: ReservationCreate):
         estimated_value=estimated_value,
         status="confirmada"  # AUTO-ACEITAR todas as reservas válidas
     )
-    
+
     # Salvar no banco
     doc = reservation.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     await db.reservations.insert_one(doc)
-    
+
     urgent = is_urgent_reservation(reservation.reservation_date, reservation.reservation_time)
 
     # Enviar emails em BACKGROUND (não bloqueia a resposta)
@@ -779,9 +889,9 @@ async def create_reservation(input: ReservationCreate):
                 "guests": reservation.guests,
                 "_raw_message": urgent_message
             })
-    
+
     asyncio.create_task(send_emails_background())
-    
+
     return reservation
 
 @api_router.get("/whatsapp-message")
