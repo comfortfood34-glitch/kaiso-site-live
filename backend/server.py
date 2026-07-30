@@ -25,6 +25,7 @@ import signal
 
 # Import external plugin client for plugin mode
 from services.external_plugin_client import get_plugin_client
+from services.whatsapp_outbox import get_outbox_service
 
 WHATSAPP_SERVICE_URL = "http://localhost:8002"
 whatsapp_process = None
@@ -896,7 +897,30 @@ async def create_reservation(input: ReservationCreate, idempotency_key: str = He
                 "customer_name": input.customer_name
             }
 
+            # Create pending outbox message for deferred customer WhatsApp
+            reservation_code = response.get("reservation_code", "")
+            outbox = get_outbox_service(db)
+            outbox_ok, outbox_err = await outbox.create_pending_message(
+                reservation_id=reservation_id,
+                phone=input.customer_phone,
+                customer_name=input.customer_name,
+                date=input.reservation_date,
+                time=input.reservation_time,
+                guests=input.guests,
+                reservation_code=reservation_code,
+                restaurant_name=RESTAURANT_NAME,
+                locale="pt",  # Default locale
+            )
+
+            if not outbox_ok:
+                logger.warning(f"[PLUGIN_OUTBOX_CREATE_FAILED] rid={reservation_id[:8]} error={outbox_err}")
+                # Don't fail the entire request - outbox creation is async
+            else:
+                # Start background processing immediately
+                asyncio.create_task(_process_outbox_messages())
+
             # Return 201 Created status on successful plugin reservation
+            # Frontend gets response immediately, regardless of WhatsApp status
             return JSONResponse(status_code=201, content=normalized_response)
         if "timeout" in error.lower():
             raise HTTPException(status_code=503, detail="Sistema de reservas temporariamente indisponível")
@@ -1029,6 +1053,50 @@ _Enviado desde kaisosushiespanha.com_"""
     import urllib.parse
     encoded = urllib.parse.quote(message)
     return {"whatsapp_url": f"https://wa.me/34673036835?text={encoded}"}
+
+
+async def _process_outbox_messages():
+    """Background task to process pending WhatsApp outbox messages."""
+    try:
+        outbox = get_outbox_service(db)
+        stats = await outbox.send_pending_messages()
+        logger.info(f"[OUTBOX_PROCESSING] processed={stats['processed']} sent={stats['sent']} failed={stats['failed']}")
+    except Exception as e:
+        logger.error(f"[OUTBOX_PROCESSING_ERROR] error={type(e).__name__} detail={str(e)}")
+
+
+@api_router.post("/admin/outbox/process")
+async def admin_process_outbox(credentials: HTTPBasicCredentials = Depends(verify_admin)):
+    """Manually trigger outbox processing (admin endpoint)."""
+    try:
+        outbox = get_outbox_service(db)
+        stats = await outbox.send_pending_messages()
+        return {
+            "status": "processed",
+            "stats": stats,
+        }
+    except Exception as e:
+        logger.error(f"[OUTBOX_ADMIN_ERROR] {e}")
+        raise HTTPException(status_code=500, detail="Erro ao processar outbox")
+
+
+@api_router.get("/admin/outbox/status")
+async def admin_outbox_status(credentials: HTTPBasicCredentials = Depends(verify_admin)):
+    """Get outbox status summary (admin endpoint)."""
+    try:
+        pending = await db.whatsapp_outbox.count_documents({"state": "pending"})
+        sent = await db.whatsapp_outbox.count_documents({"state": "sent"})
+        failed = await db.whatsapp_outbox.count_documents({"state": "failed"})
+
+        return {
+            "status": "ok",
+            "pending": pending,
+            "sent": sent,
+            "failed": failed,
+        }
+    except Exception as e:
+        logger.error(f"[OUTBOX_STATUS_ERROR] {e}")
+        raise HTTPException(status_code=500, detail="Erro ao obter status do outbox")
 
 
 # ========================
