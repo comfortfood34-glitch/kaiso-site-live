@@ -25,6 +25,10 @@ import signal
 
 # Import external plugin client for plugin mode
 from services.external_plugin_client import get_plugin_client
+# Import WhatsApp outbox services
+from services.whatsapp_outbox import get_whatsapp_outbox
+from services.whatsapp_outbox_recovery import get_recovery_scheduler, start_recovery_scheduler, stop_recovery_scheduler
+from scripts.create_indexes import ensure_whatsapp_outbox_indexes
 
 WHATSAPP_SERVICE_URL = "http://localhost:8002"
 whatsapp_process = None
@@ -68,6 +72,20 @@ RESTAURANT_ADDRESS = "Av. de Barcelona, 19, 14010 Córdoba, Espanha"
 DEFAULT_DAILY_CAPACITY = 30
 MAX_GUESTS_PER_RESERVATION = 12
 LAST_RESERVATION_BUFFER = 30  # Minutos antes do fecho - não aceitar reservas
+
+# Multi-tenant WhatsApp Outbox Configuration
+# RESTAURANT_ID is required in plugin mode, obtained from secure server config (never from client)
+_restaurant_id_raw = os.environ.get('RESTAURANT_ID')
+if RESERVATION_MODE == 'plugin':
+    if not _restaurant_id_raw:
+        raise RuntimeError("RESTAURANT_ID must be set when RESERVATION_MODE=plugin")
+    RESTAURANT_ID = _restaurant_id_raw.strip()
+    try:
+        uuid.UUID(RESTAURANT_ID)
+    except ValueError:
+        raise RuntimeError(f"RESTAURANT_ID must be a valid UUID, got: {RESTAURANT_ID}")
+else:
+    RESTAURANT_ID = _restaurant_id_raw if _restaurant_id_raw else "2b537b99-c9f1-479c-8cc5-8597fbb6a1bb"
 
 # Tasting Menu
 TASTING_MENU_PRICE = 19.90
@@ -1433,6 +1451,13 @@ async def get_analytics_stats(
 # ========================
 async def send_whatsapp_notification(phone: str, reservation_data: dict):
     """Send WhatsApp notification via local WhatsApp service"""
+    def mask_phone(full_phone: str) -> str:
+        """Mask phone to last 4 digits for privacy"""
+        if not full_phone:
+            return "****"
+        return f"{'*' * (len(full_phone) - 4)}{full_phone[-4:]}"
+
+    masked_phone = mask_phone(phone)
     try:
         if reservation_data.get('_raw_message'):
             message = reservation_data['_raw_message']
@@ -1456,13 +1481,13 @@ _{RESTAURANT_ADDRESS}_"""
                 "message": message
             })
             if resp.status_code == 200:
-                logger.info(f"WhatsApp enviado para {phone}")
+                logger.info(f"[WHATSAPP_SENT] phone={masked_phone} reservation={reservation_data.get('id', 'unknown')[:8]}")
                 return True
             else:
-                logger.warning(f"WhatsApp falhou para {phone}: {resp.text}")
+                logger.warning(f"[WHATSAPP_FAILED] phone={masked_phone} status={resp.status_code} reservation={reservation_data.get('id', 'unknown')[:8]}")
                 return False
     except Exception as e:
-        logger.error(f"Erro WhatsApp: {e}")
+        logger.error(f"[WHATSAPP_ERROR] phone={masked_phone} error={str(e)[:100]}")
         return False
 
 @api_router.get("/admin/whatsapp/status")
@@ -1548,6 +1573,27 @@ async def whatsapp_send_test(
 
 # Include router
 app.include_router(api_router)
+
+@app.on_event("startup")
+async def initialize_whatsapp_outbox():
+    """Initialize WhatsApp outbox indexes and recovery scheduler on startup"""
+    try:
+        # Create/verify all outbox indexes
+        success = await ensure_whatsapp_outbox_indexes(db)
+        if not success:
+            logger.error("[OUTBOX_STARTUP] Failed to create indexes - outbox may not work correctly")
+            return
+
+        # Get singleton outbox instance
+        outbox = get_whatsapp_outbox(db)
+        logger.info(f"[OUTBOX_STARTUP] Initialized for restaurant_id={RESTAURANT_ID}")
+
+        # Initialize recovery scheduler
+        scheduler = get_recovery_scheduler(outbox)
+        await start_recovery_scheduler()
+        logger.info("[OUTBOX_RECOVERY] Recovery scheduler started")
+    except Exception as e:
+        logger.error(f"[OUTBOX_STARTUP_ERROR] {str(e)[:200]}")
 
 @app.on_event("startup")
 async def check_config():
@@ -1642,6 +1688,15 @@ async def start_whatsapp_service():
         logger.info(f"WhatsApp service started (PID: {whatsapp_process.pid})")
     except Exception as e:
         logger.error(f"Failed to start WhatsApp service: {e}")
+
+@app.on_event("shutdown")
+async def shutdown_whatsapp_outbox():
+    """Stop recovery scheduler gracefully on shutdown"""
+    try:
+        await stop_recovery_scheduler()
+        logger.info("[OUTBOX_SHUTDOWN] Recovery scheduler stopped")
+    except Exception as e:
+        logger.error(f"[OUTBOX_SHUTDOWN_ERROR] {str(e)[:200]}")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
