@@ -43,6 +43,10 @@ export function normalizeReservationResponse(response, inputData) {
   const normalized = {
     ...inputData,
     ...response,
+    // Ensure both id and reservation_id are present (canonical contract)
+    id: response.id || response.reservation_id,
+    reservation_id: response.reservation_id || response.id,
+    // Complete date/time fields from input if not in response
     reservation_date: response.reservation_date || inputData.reservation_date,
     reservation_time: response.reservation_time || inputData.reservation_time,
     guests: response.guests !== undefined ? response.guests : inputData.guests,

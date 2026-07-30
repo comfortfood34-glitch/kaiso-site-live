@@ -896,7 +896,26 @@ async def create_reservation(input: ReservationCreate, idempotency_key: str = He
                 "customer_name": input.customer_name
             }
 
+            # PLUGIN MODE: Send WhatsApp confirmation to customer (local, not KaisoSystem)
+            # This is the initial confirmation. KaisoSystem sends subsequent notifications.
+            phone_normalized = input.customer_phone.strip().replace(" ", "").replace("-", "").replace("(", "").replace(")", "").replace("+", "")
+            if not (phone_normalized.startswith("34") or phone_normalized.startswith("55") or phone_normalized.startswith("351")):
+                phone_normalized = f"34{phone_normalized}"  # Default to Spain +34
+
+            try:
+                whatsapp_result = await send_whatsapp_notification(
+                    f"+{phone_normalized}",
+                    normalized_response
+                )
+                if whatsapp_result:
+                    logger.info(f"[PLUGIN_WHATSAPP_SENT] reservation_id={reservation_id[:8]} key={idempotency_key[:16]}")
+                else:
+                    logger.warning(f"[PLUGIN_WHATSAPP_FAILED] reservation_id={reservation_id[:8]} result=False")
+            except Exception as e:
+                logger.error(f"[PLUGIN_WHATSAPP_ERROR] reservation_id={reservation_id[:8]} error={str(e)[:100]}")
+
             # Return 201 Created status on successful plugin reservation
+            # (WhatsApp failure does not block response — reservation already created in KaisoSystem)
             return JSONResponse(status_code=201, content=normalized_response)
         if "timeout" in error.lower():
             raise HTTPException(status_code=503, detail="Sistema de reservas temporariamente indisponível")
