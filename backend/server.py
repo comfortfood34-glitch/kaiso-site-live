@@ -26,8 +26,13 @@ import signal
 # Import external plugin client for plugin mode
 from services.external_plugin_client import get_plugin_client
 
+# Import WhatsApp outbox services
+from services.outbox_integration import create_outbox_event_for_reservation, trigger_immediate_processing
+from services.outbox_scheduler import get_scheduler
+
 WHATSAPP_SERVICE_URL = "http://localhost:8002"
 whatsapp_process = None
+outbox_scheduler = None
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -896,6 +901,28 @@ async def create_reservation(input: ReservationCreate, idempotency_key: str = He
                 "customer_name": input.customer_name
             }
 
+            # Create WhatsApp outbox event (fire and forget, doesn't block HTTP 201)
+            try:
+                reservation_id = response.get("reservation_id")
+                if reservation_id:
+                    outbox_created = await create_outbox_event_for_reservation(
+                        db=db,
+                        reservation_id=reservation_id,
+                        phone=input.customer_phone,
+                        customer_name=input.customer_name,
+                        date=input.reservation_date,
+                        time=input.reservation_time,
+                        guests=input.guests,
+                    )
+                    if outbox_created:
+                        logger.info(f"[PLUGIN_OUTBOX_CREATED] reservation={reservation_id[:8]}")
+                        # Trigger immediate background processing (fire and forget)
+                        trigger_immediate_processing(db, send_whatsapp_notification)
+                    else:
+                        logger.warning(f"[PLUGIN_OUTBOX_FAILED] reservation={reservation_id[:8]}")
+            except Exception as exc:
+                logger.warning(f"[PLUGIN_OUTBOX_ERROR] error={type(exc).__name__}: {exc}")
+
             # Return 201 Created status on successful plugin reservation
             return JSONResponse(status_code=201, content=normalized_response)
         if "timeout" in error.lower():
@@ -1643,8 +1670,43 @@ async def start_whatsapp_service():
     except Exception as e:
         logger.error(f"Failed to start WhatsApp service: {e}")
 
+@app.on_event("startup")
+async def init_outbox():
+    """Initialize WhatsApp outbox indexes and scheduler for plugin mode."""
+    global outbox_scheduler
+
+    if RESERVATION_MODE != "plugin":
+        logger.info("[OUTBOX] disabled (not in plugin mode)")
+        return
+
+    try:
+        from services.outbox_indexes import create_outbox_indexes
+        await create_outbox_indexes(db)
+        logger.info("[STARTUP] WhatsApp outbox indexes initialized")
+    except Exception as e:
+        logger.error(f"[STARTUP] Failed to initialize outbox indexes (CRITICAL): {e}")
+        raise
+
+    try:
+        outbox_scheduler = get_scheduler(db, send_whatsapp_notification)
+        await outbox_scheduler.start()
+        logger.info("[STARTUP] WhatsApp outbox scheduler started")
+    except Exception as e:
+        logger.error(f"[STARTUP] Failed to start outbox scheduler: {e}")
+        raise
+
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    global outbox_scheduler
+
+    if outbox_scheduler:
+        try:
+            await outbox_scheduler.stop()
+            logger.info("[SHUTDOWN] WhatsApp outbox scheduler stopped")
+        except Exception as e:
+            logger.warning(f"[SHUTDOWN] Failed to stop outbox scheduler: {e}")
+
     # DON'T kill WhatsApp service - it runs independently
     client.close()
 
