@@ -104,13 +104,13 @@ class WhatsAppOutbox:
 
             try:
                 sent = await send_fn(
-                    phone=msg["phone"],
-                    data={
+                    msg["phone"],
+                    {
                         "customer_name": msg["customer_name"],
                         "reservation_date": msg["date"],
                         "reservation_time": msg["time"],
                         "guests": msg["guests"],
-                    }
+                    },
                 )
 
                 if sent:

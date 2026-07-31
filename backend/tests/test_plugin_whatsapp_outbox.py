@@ -4,6 +4,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timezone
 from motor.motor_asyncio import AsyncIOMotorDatabase
+from fastapi.testclient import TestClient
 
 from services.whatsapp_outbox import get_outbox_service
 from services.outbox_integration import create_outbox_event_for_reservation, trigger_immediate_processing
@@ -124,7 +125,7 @@ async def test_scheduler_processes_and_marks_sent(mock_db):
     })
     mock_db.whatsapp_outbox.update_one = AsyncMock()
 
-    async def mock_send(phone, data):
+    async def mock_send(phone, reservation_data):
         return True
 
     outbox = get_outbox_service(mock_db)
@@ -162,7 +163,7 @@ async def test_scheduler_marks_failed_with_retry(mock_db):
     })
     mock_db.whatsapp_outbox.update_one = AsyncMock()
 
-    async def mock_send_fail(phone, data):
+    async def mock_send_fail(phone, reservation_data):
         return False
 
     outbox = get_outbox_service(mock_db)
@@ -191,3 +192,88 @@ async def test_recovery_abandoned_claims(mock_db):
 
     assert stats["recovered"] >= 1
     assert mock_db.whatsapp_outbox.update_one.call_count >= 1
+
+
+@pytest.mark.asyncio
+async def test_send_function_with_real_signature(mock_db):
+    """Test send_fn callback uses real signature: (phone, reservation_data)."""
+    pending_msg = {
+        "_id": "msg-real-sig",
+        "phone": "+34612345678",
+        "customer_name": "Test User",
+        "date": "2026-08-20",
+        "time": "20:00",
+        "guests": 4,
+        "state": "pending",
+        "retry_count": 0,
+        "max_retries": 3,
+        "processing_started_at": None,
+        "claim_token": None,
+        "next_retry_at": datetime.now(timezone.utc),
+        "reservation_id": "res-real-sig-001",
+    }
+
+    mock_db.whatsapp_outbox.find = MagicMock()
+    mock_db.whatsapp_outbox.find().to_list = AsyncMock(return_value=[pending_msg])
+    mock_db.whatsapp_outbox.find_one_and_update = AsyncMock(return_value={
+        **pending_msg,
+        "state": "processing",
+        "claim_token": "claim-token-real",
+    })
+    mock_db.whatsapp_outbox.update_one = AsyncMock()
+
+    call_args = []
+
+    async def mock_send_real_sig(phone, reservation_data):
+        """Mock with real signature: positional args, no kwargs."""
+        call_args.append((phone, reservation_data))
+        return True
+
+    outbox = get_outbox_service(mock_db)
+    stats = await outbox.claim_and_process_pending(mock_send_real_sig)
+
+    assert stats["sent"] >= 1
+    assert len(call_args) >= 1
+    phone, res_data = call_args[0]
+    assert phone == "+34612345678"
+    assert res_data["customer_name"] == "Test User"
+    assert res_data["reservation_date"] == "2026-08-20"
+    assert res_data["reservation_time"] == "20:00"
+    assert res_data["guests"] == 4
+
+
+@pytest.mark.asyncio
+async def test_idempotency_same_reservation_no_duplicate_outbox(mock_db):
+    """Test that retry with same Idempotency-Key doesn't duplicate outbox event."""
+    from pymongo.errors import DuplicateKeyError
+
+    mock_db.whatsapp_outbox.insert_one = AsyncMock()
+
+    # First call: succeeds
+    result1 = await create_outbox_event_for_reservation(
+        db=mock_db,
+        reservation_id="res-idempotent-001",
+        phone="+34612345678",
+        customer_name="Idempotent Test",
+        date="2026-08-25",
+        time="19:30",
+        guests=2,
+    )
+    assert result1 is True
+    assert mock_db.whatsapp_outbox.insert_one.call_count == 1
+
+    # Second call (retry): same reservation_id should trigger DuplicateKeyError
+    mock_db.whatsapp_outbox.insert_one.side_effect = DuplicateKeyError("duplicate key")
+    result2 = await create_outbox_event_for_reservation(
+        db=mock_db,
+        reservation_id="res-idempotent-001",  # Same ID
+        phone="+34612345678",
+        customer_name="Idempotent Test",
+        date="2026-08-25",
+        time="19:30",
+        guests=2,
+    )
+
+    # Still returns True (idempotent): no duplicate
+    assert result2 is True
+    assert mock_db.whatsapp_outbox.insert_one.call_count == 2  # Tried twice, both logged

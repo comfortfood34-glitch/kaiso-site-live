@@ -1684,15 +1684,16 @@ async def init_outbox():
         await create_outbox_indexes(db)
         logger.info("[STARTUP] WhatsApp outbox indexes initialized")
     except Exception as e:
-        logger.warning(f"[STARTUP] Failed to initialize outbox indexes: {e}")
+        logger.error(f"[STARTUP] Failed to initialize outbox indexes (CRITICAL): {e}")
+        raise
 
     try:
         outbox_scheduler = get_scheduler(db, send_whatsapp_notification)
         await outbox_scheduler.start()
         logger.info("[STARTUP] WhatsApp outbox scheduler started")
     except Exception as e:
-        logger.warning(f"[STARTUP] Failed to start outbox scheduler: {e}")
-        outbox_scheduler = None
+        logger.error(f"[STARTUP] Failed to start outbox scheduler: {e}")
+        raise
 
 
 @app.on_event("shutdown")
