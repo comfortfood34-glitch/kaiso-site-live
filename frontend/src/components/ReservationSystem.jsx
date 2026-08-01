@@ -34,8 +34,11 @@ export default function ReservationSystem({ onClose }) {
 
   // Bloqueia scroll do body no mobile ao abrir o modal
   useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
   }, []);
 
   const [form, setForm] = useState({
@@ -193,8 +196,8 @@ export default function ReservationSystem({ onClose }) {
   }, [step]);
 
   return (
-    <div ref={overlayRef} className="fixed inset-0 bg-black/95 z-50 flex items-start justify-center overflow-y-auto" onClick={(e) => e.target === e.currentTarget && step < 4 && !loading && onClose()}>
-      <div className="bg-kaiso-bg border border-kaiso-border w-full max-w-2xl my-4 sm:my-8 min-h-0" onClick={(e) => e.stopPropagation()} data-testid="reservation-system">
+    <div ref={overlayRef} className="fixed inset-0 bg-black/95 z-50 flex items-start justify-center overflow-y-auto" onClick={(e) => e.target === e.currentTarget && step < 4 && !loading && onClose()} translate="no">
+      <div className="bg-kaiso-bg border border-kaiso-border w-full max-w-2xl my-4 sm:my-8 min-h-0" onClick={(e) => e.stopPropagation()} data-testid="reservation-system" translate="no">
         {/* Header */}
         <div className="border-b border-kaiso-border p-6 flex items-center justify-between">
           <div className="flex items-center gap-4">

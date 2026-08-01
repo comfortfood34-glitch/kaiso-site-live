@@ -90,6 +90,7 @@ export default function PolicyModal({ isOpen, onClose }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="policy-modal-title"
+      translate="no"
     >
       <div
         className="bg-kaiso-bg border border-kaiso-border w-full max-w-2xl my-4 relative"
