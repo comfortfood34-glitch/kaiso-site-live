@@ -11,6 +11,8 @@ node_modules/
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+package-lock.json
+frontend/package-lock.json
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
