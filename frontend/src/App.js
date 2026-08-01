@@ -6,6 +6,7 @@ import translations from "./lib/translations";
 import ReservationSystem from "./components/ReservationSystem";
 import AdminPanel from "./components/AdminPanel";
 import AnalyticsPanel from "./components/AnalyticsPanel";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { trackEvent } from "./lib/api";
 
 const WhatsAppIcon = ({ size = 18, className = "" }) => (
@@ -582,15 +583,17 @@ const HomePage = () => {
 
 function App() {
   return (
-    <LanguageProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/admin" element={<AdminPanel />} />
-          <Route path="/analytics" element={<AnalyticsPanel />} />
-        </Routes>
-      </BrowserRouter>
-    </LanguageProvider>
+    <ErrorBoundary>
+      <LanguageProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/analytics" element={<AnalyticsPanel />} />
+          </Routes>
+        </BrowserRouter>
+      </LanguageProvider>
+    </ErrorBoundary>
   );
 }
 
