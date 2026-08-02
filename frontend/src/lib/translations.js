@@ -3,7 +3,7 @@ const translations = {
   es: {
     nav: {
       inicio: "Inicio",
-      carta: "Carta",
+      carta: "Menú",
       reservas: "Reservas",
       ubicacion: "Ubicación",
       entrega: "Entrega",
@@ -75,7 +75,8 @@ const translations = {
       wed_sun: "Mié–Dom",
       closed: "Lun · Cerrado",
       contact: "Contacto",
-      location: "Ubicación"
+      location: "Ubicación",
+      digital_menu: "Carta digital"
     },
     filosofia: {
       line1: "No seguimos tradición.",
@@ -102,17 +103,30 @@ const translations = {
       subtext: "La técnica sostiene la experiencia. La creatividad la define."
     },
     carta_editorial: {
-      label: "La Carta",
-      headline: "Una selección",
-      nigiri_title: "Nigiris de Temporada",
+      label: "LA CARTA",
+      headline: "Una selección que cambia con nuestra creatividad",
+      intro: "Descubre nigiris de temporada, makis de autor, entrantes, platos calientes y experiencias creadas para compartir.",
+      nigiri_title: "Nigiris de temporada",
       nigiri_desc: "Lo que el mar trajo. Interpretado.",
       omakase_title: "Experiencia Omakase",
       omakase_desc: "Deja que el chef cree. Disponible bajo reserva previa.",
-      rolls_title: "Makis de Autor",
+      rolls_title: "Makis de autor",
       rolls_desc: "Equilibrio entre Japón y el Mediterráneo. Nuestra firma.",
-      sake_title: "Sake & Vinos",
+      sake_title: "Entrantes y cocina caliente",
       sake_desc: "Selección pequeña. Curada.",
-      note: "La carta completa está disponible en el restaurante."
+      note: "Consulta platos, precios y promociones en nuestra carta digital.",
+      cta_menu: "Ver menú completo",
+      cta_reserve: "Reservar mesa"
+    },
+    institutional: {
+      label: "MÁS QUE SUSHI",
+      headline: "Una experiencia Kaisō",
+      desc1: "Técnica japonesa, producto fresco y creatividad sin límites.",
+      desc2: "Cada pieza se prepara con precisión para transformar una comida en una experiencia.",
+      pillar1: "Técnica japonesa",
+      pillar2: "Producto seleccionado",
+      pillar3: "Creatividad de autor",
+      cta: "Descubrir el menú"
     },
     admin: {
       title: "Panel de Administración",
@@ -133,7 +147,7 @@ const translations = {
   pt: {
     nav: {
       inicio: "Início",
-      carta: "Cardápio",
+      carta: "Menu",
       reservas: "Reservas",
       ubicacion: "Localização",
       entrega: "Delivery",
@@ -205,7 +219,8 @@ const translations = {
       wed_sun: "Qua–Dom",
       closed: "Seg · Fechado",
       contact: "Contato",
-      location: "Localização"
+      location: "Localização",
+      digital_menu: "Menu digital"
     },
     filosofia: {
       line1: "Não seguimos tradição.",
@@ -232,17 +247,30 @@ const translations = {
       subtext: "A técnica sustenta a experiência. A criatividade a define."
     },
     carta_editorial: {
-      label: "O Cardápio",
-      headline: "Uma seleção",
-      nigiri_title: "Nigiris de Temporada",
+      label: "O MENU",
+      headline: "Uma seleção que muda com nossa criatividade",
+      intro: "Descubra nigiris de temporada, makis de autor, entradas, pratos quentes e experiências criadas para compartilhar.",
+      nigiri_title: "Nigiris de temporada",
       nigiri_desc: "O que o mar trouxe. Interpretado.",
       omakase_title: "Experiência Omakase",
       omakase_desc: "Deixe o chef criar. Disponível com reserva prévia.",
-      rolls_title: "Makis de Autor",
+      rolls_title: "Makis de autor",
       rolls_desc: "Equilíbrio entre o Japão e o Mediterrâneo. Nossa assinatura.",
-      sake_title: "Sake & Vinhos",
+      sake_title: "Entradas e cozinha quente",
       sake_desc: "Seleção pequena. Curada.",
-      note: "O cardápio completo está disponível no restaurante."
+      note: "Consulte pratos, preços e promoções em nosso menu digital.",
+      cta_menu: "Ver menu completo",
+      cta_reserve: "Reservar mesa"
+    },
+    institutional: {
+      label: "MAIS QUE SUSHI",
+      headline: "Uma experiência Kaisō",
+      desc1: "Técnica japonesa, produto fresco e criatividade sem limites.",
+      desc2: "Cada peça é preparada com precisão para transformar uma refeição em uma experiência.",
+      pillar1: "Técnica japonesa",
+      pillar2: "Produto selecionado",
+      pillar3: "Criatividade de autor",
+      cta: "Descobrir o menu"
     },
     admin: {
       title: "Painel de Administração",
@@ -335,7 +363,8 @@ const translations = {
       wed_sun: "Wed–Sun",
       closed: "Mon · Closed",
       contact: "Contact",
-      location: "Location"
+      location: "Location",
+      digital_menu: "Digital menu"
     },
     filosofia: {
       line1: "We don't follow tradition.",
@@ -362,17 +391,30 @@ const translations = {
       subtext: "Technique sustains the experience. Creativity defines it."
     },
     carta_editorial: {
-      label: "The Menu",
-      headline: "A selection",
-      nigiri_title: "Seasonal Nigiris",
+      label: "THE MENU",
+      headline: "A selection that changes with our creativity",
+      intro: "Discover seasonal nigiris, signature rolls, appetizers, hot dishes and experiences created to share.",
+      nigiri_title: "Seasonal nigiris",
       nigiri_desc: "What the sea brought. Interpreted.",
       omakase_title: "Omakase Experience",
       omakase_desc: "Let the chef create. Available with prior reservation.",
-      rolls_title: "Signature Rolls",
+      rolls_title: "Signature rolls",
       rolls_desc: "Balance between Japan and the Mediterranean. Our signature.",
-      sake_title: "Sake & Wines",
+      sake_title: "Appetizers and hot dishes",
       sake_desc: "Small selection. Curated.",
-      note: "The full menu is available at the restaurant."
+      note: "Check out dishes, prices and promotions in our digital menu.",
+      cta_menu: "View full menu",
+      cta_reserve: "Reserve a table"
+    },
+    institutional: {
+      label: "MORE THAN SUSHI",
+      headline: "A Kaisō Experience",
+      desc1: "Japanese technique, fresh product and unlimited creativity.",
+      desc2: "Each piece is prepared with precision to transform a meal into an experience.",
+      pillar1: "Japanese technique",
+      pillar2: "Selected product",
+      pillar3: "Author's creativity",
+      cta: "Discover the menu"
     },
     admin: {
       title: "Admin Panel",
