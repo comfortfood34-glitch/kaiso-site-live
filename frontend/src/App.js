@@ -335,18 +335,25 @@ const EditorialCartaSection = ({ onReserve }) => {
     { key: 'sake' },
   ];
 
+  const handleMenuClick = () => {
+    window.open('https://kaisosushicordoba.com/', '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <section id="carta" className="py-28 md:py-40 px-6 bg-kaiso-bg">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-20">
           <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.carta_editorial.label}</span>
           <p className="text-kaiso-gold/30 text-xs tracking-[0.3em] mt-1">お品書き</p>
-          <h2 className="font-serif text-4xl md:text-5xl text-kaiso-text mt-5">
+          <h2 className="font-serif text-4xl md:text-5xl text-kaiso-text mt-5 mb-6">
             {t.carta_editorial.headline}
           </h2>
+          <p className="text-kaiso-muted text-base leading-relaxed max-w-2xl mx-auto">
+            {t.carta_editorial.intro}
+          </p>
         </div>
 
-        <div className="grid md:grid-cols-2 max-w-3xl mx-auto" style={{ gap: '1px', backgroundColor: '#1A1A1A' }}>
+        <div className="grid md:grid-cols-2 max-w-3xl mx-auto mb-16" style={{ gap: '1px', backgroundColor: '#1A1A1A' }}>
           {categories.map((cat) => (
             <div key={cat.key} className="bg-kaiso-bg p-10 md:p-12">
               <p className="text-kaiso-gold/30 text-xl mb-4">〇</p>
@@ -360,15 +367,76 @@ const EditorialCartaSection = ({ onReserve }) => {
           ))}
         </div>
 
-        <div className="text-center mt-16">
+        <div className="text-center">
           <p className="text-kaiso-muted/50 text-sm italic mb-10">
             {t.carta_editorial.note}
           </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={handleMenuClick}
+              className="border border-kaiso-gold text-kaiso-gold px-10 py-3 text-xs uppercase tracking-[0.3em] hover:bg-kaiso-gold hover:text-black transition-all duration-300"
+              aria-label={t.carta_editorial.cta_menu}
+            >
+              {t.carta_editorial.cta_menu}
+            </button>
+            <button
+              onClick={onReserve}
+              className="border border-kaiso-gold text-kaiso-gold px-10 py-3 text-xs uppercase tracking-[0.3em] hover:bg-kaiso-gold hover:text-black transition-all duration-300"
+              aria-label={t.carta_editorial.cta_reserve}
+            >
+              {t.carta_editorial.cta_reserve}
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// Institutional Section
+const InstitutionalSection = ({ onMenuClick }) => {
+  const { t } = useLanguage();
+
+  const pillars = [
+    { key: 'pillar1' },
+    { key: 'pillar2' },
+    { key: 'pillar3' },
+  ];
+
+  return (
+    <section className="py-28 md:py-40 px-6 bg-kaiso-bg">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-20">
+          <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.institutional.label}</span>
+          <h2 className="font-serif text-4xl md:text-5xl text-kaiso-text mt-5 mb-10">
+            {t.institutional.headline}
+          </h2>
+          <p className="text-kaiso-muted text-base leading-relaxed max-w-2xl mx-auto mb-4">
+            {t.institutional.desc1}
+          </p>
+          <p className="text-kaiso-muted text-base leading-relaxed max-w-2xl mx-auto">
+            {t.institutional.desc2}
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-16">
+          {pillars.map((pillar, idx) => (
+            <div key={idx} className="text-center">
+              <p className="text-kaiso-gold/30 text-2xl mb-4">◆</p>
+              <h3 className="font-serif text-lg text-kaiso-text">
+                {t.institutional[pillar.key]}
+              </h3>
+            </div>
+          ))}
+        </div>
+
+        <div className="text-center">
           <button
-            onClick={onReserve}
+            onClick={onMenuClick}
             className="border border-kaiso-gold text-kaiso-gold px-10 py-3 text-xs uppercase tracking-[0.3em] hover:bg-kaiso-gold hover:text-black transition-all duration-300"
+            aria-label={t.institutional.cta}
           >
-            {t.hero.cta_reservar}
+            {t.institutional.cta}
           </button>
         </div>
       </div>
@@ -486,7 +554,7 @@ const Footer = () => {
   return (
     <footer className="bg-kaiso-bg border-t border-kaiso-border py-16 px-6" data-testid="footer">
       <div className="max-w-7xl mx-auto">
-        <div className="grid md:grid-cols-3 gap-12 mb-12">
+        <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div>
             <img src="/assets/logo-kaiso.png" alt="Kaisō" className="h-10 w-auto mb-4 opacity-80 object-contain" />
             <p className="text-kaiso-muted/30 text-xs tracking-[0.3em] mt-3">海藻</p>
@@ -525,6 +593,21 @@ const Footer = () => {
               <p className="text-kaiso-red mt-4">{t.footer.closed}</p>
             </div>
           </div>
+
+          <div>
+            <h4 className="text-kaiso-text/60 text-[10px] uppercase tracking-[0.3em] mb-6">{t.footer.location}</h4>
+            <div className="space-y-4">
+              <a
+                href="https://kaisosushicordoba.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-kaiso-muted hover:text-kaiso-gold transition-colors text-sm"
+                aria-label={t.footer.digital_menu}
+              >
+                {t.footer.digital_menu}
+              </a>
+            </div>
+          </div>
         </div>
 
         <div className="border-t border-kaiso-border pt-8 flex justify-between items-center">
@@ -543,11 +626,46 @@ const Footer = () => {
   );
 };
 
+// Bottom Menu Bar (Mobile)
+const BottomMenuBar = ({ onMenuClick, onReserve, showReservation }) => {
+  const { t } = useLanguage();
+
+  if (showReservation) {
+    return null;
+  }
+
+  return (
+    <div
+      className="fixed bottom-0 left-0 right-0 lg:hidden bg-kaiso-bg border-t border-kaiso-border py-4 px-6 flex gap-3"
+      style={{
+        paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
+        zIndex: 30,
+      }}
+    >
+      <button
+        onClick={onMenuClick}
+        className="flex-1 border border-kaiso-gold/50 text-kaiso-gold px-4 py-3 text-xs uppercase tracking-[0.2em] hover:bg-kaiso-gold/10 transition-all duration-300"
+        aria-label={t.carta_editorial.cta_menu}
+      >
+        {t.carta_editorial.cta_menu}
+      </button>
+      <button
+        onClick={onReserve}
+        className="flex-1 border border-kaiso-gold text-kaiso-gold px-4 py-3 text-xs uppercase tracking-[0.2em] hover:bg-kaiso-gold hover:text-black transition-all duration-300"
+        aria-label={t.carta_editorial.cta_reserve}
+      >
+        {t.carta_editorial.cta_reserve}
+      </button>
+    </div>
+  );
+};
+
 // Main Home Page
 const HomePage = () => {
   const [showReservation, setShowReservation] = useState(false);
   const { lang } = useLanguage();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     trackEvent({
       event_type: 'page_view',
@@ -563,16 +681,27 @@ const HomePage = () => {
     setShowReservation(true);
   };
 
+  const handleMenuClick = () => {
+    window.open('https://kaisosushicordoba.com/', '_blank', 'noopener,noreferrer');
+  };
+
   return (
-    <div className="min-h-screen bg-kaiso-bg text-kaiso-text">
+    <div className="min-h-screen bg-kaiso-bg text-kaiso-text pb-20 lg:pb-0">
       <Navigation onReserve={handleOpenReservation} />
       <HeroSection onReserve={handleOpenReservation} />
       <FilosofiaSection />
       <ChefSection />
       <TecnicaSection />
       <EditorialCartaSection onReserve={handleOpenReservation} />
+      <InstitutionalSection onMenuClick={handleMenuClick} />
       <LocationSection />
       <Footer />
+
+      <BottomMenuBar
+        onMenuClick={handleMenuClick}
+        onReserve={handleOpenReservation}
+        showReservation={showReservation}
+      />
 
       {showReservation ? (
         <ReservationSystem onClose={() => setShowReservation(false)} />
