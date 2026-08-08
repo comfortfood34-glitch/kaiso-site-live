@@ -159,7 +159,7 @@ const Navigation = ({ onReserve }) => {
 };
 
 // Hero Section
-const HeroSection = ({ onReserve }) => {
+const HeroSection = ({ onReserve, onMenuClick }) => {
   const { t } = useLanguage();
   const [subtitleVisible, setSubtitleVisible] = useState(false);
 
@@ -167,6 +167,10 @@ const HeroSection = ({ onReserve }) => {
     const timer = setTimeout(() => setSubtitleVisible(true), 1400);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleWhatsApp = () => {
+    window.open('https://wa.me/34673036835', '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden" data-testid="hero-section">
@@ -185,17 +189,39 @@ const HeroSection = ({ onReserve }) => {
           className="h-20 md:h-28 lg:h-32 w-auto mx-auto mb-10 opacity-95"
         />
 
-        <p className={`text-kaiso-muted text-xs md:text-sm tracking-[0.5em] uppercase mb-14 transition-opacity duration-1000 ${subtitleVisible ? 'opacity-100' : 'opacity-0'}`}>
+        <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl text-kaiso-text mb-6 leading-tight">
+          {t.hero.headline}
+        </h1>
+
+        <p className={`text-kaiso-muted text-sm md:text-base leading-relaxed mb-8 max-w-2xl mx-auto transition-opacity duration-1000 ${subtitleVisible ? 'opacity-100' : 'opacity-0'}`}>
           {t.hero.subtitle}
         </p>
 
-        <button
-          onClick={onReserve}
-          className="border border-kaiso-gold text-kaiso-gold px-12 py-4 text-xs uppercase tracking-[0.3em] hover:bg-kaiso-gold hover:text-black transition-all duration-300"
-          data-testid="hero-reserve-button"
-        >
-          {t.hero.cta_reservar}
-        </button>
+        <p className="text-kaiso-gold/70 text-xs md:text-sm tracking-[0.2em] uppercase mb-12">
+          {t.hero.location}
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+          <button
+            onClick={onReserve}
+            className="border border-kaiso-gold text-kaiso-gold px-10 py-3 text-xs uppercase tracking-[0.3em] hover:bg-kaiso-gold hover:text-black transition-all duration-300"
+            data-testid="hero-reserve-button"
+          >
+            {t.hero.cta_reservar}
+          </button>
+          <button
+            onClick={onMenuClick}
+            className="border border-kaiso-gold/50 text-kaiso-gold px-10 py-3 text-xs uppercase tracking-[0.3em] hover:border-kaiso-gold hover:bg-kaiso-gold/10 transition-all duration-300"
+          >
+            {t.hero.cta_menu}
+          </button>
+          <button
+            onClick={handleWhatsApp}
+            className="border border-kaiso-gold/50 text-kaiso-gold px-10 py-3 text-xs uppercase tracking-[0.3em] hover:border-kaiso-gold hover:bg-kaiso-gold/10 transition-all duration-300"
+          >
+            {t.hero.cta_whatsapp}
+          </button>
+        </div>
       </div>
 
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2">
@@ -205,30 +231,65 @@ const HeroSection = ({ onReserve }) => {
   );
 };
 
-// Filosofia Section
-const FilosofiaSection = () => {
+// Presentación Kaiso Section
+const PresentacionKaisoSection = () => {
   const { t } = useLanguage();
 
   return (
-    <section id="filosofia" className="py-28 md:py-40 px-6" style={{ backgroundColor: '#F5F0E8' }}>
-      <div className="max-w-xl mx-auto text-center">
-        <p className="text-5xl mb-20" style={{ color: 'rgba(10,10,10,0.10)', fontFamily: 'serif' }}>融</p>
+    <section className="py-28 md:py-40 px-6 bg-kaiso-bg">
+      <div className="max-w-3xl mx-auto text-center">
+        <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">Kaisō Sushi Córdoba</span>
+        <h2 className="font-serif text-3xl md:text-4xl text-kaiso-text mt-5 mb-8">
+          Presentación
+        </h2>
+        <p className="text-kaiso-muted text-base leading-relaxed">
+          Bienvenido a Kaisō Sushi Córdoba. Un espacio donde la técnica japonesa, la creatividad y la pasión por la gastronomía se reúnen en cada pieza preparada al momento.
+        </p>
+      </div>
+    </section>
+  );
+};
 
-        <div className="space-y-5 mb-14">
-          <p className="font-serif text-2xl md:text-3xl leading-snug" style={{ color: '#0A0A0A' }}>
-            {t.filosofia.line1}
-          </p>
-          <p className="font-serif text-2xl md:text-3xl leading-snug" style={{ color: '#0A0A0A' }}>
-            {t.filosofia.line2}
-          </p>
-        </div>
+// Historia Section
+const HistoriaSection = () => {
+  const { t } = useLanguage();
 
-        <div className="w-8 h-[1px] mx-auto mb-14" style={{ backgroundColor: '#C9A24A' }} />
+  return (
+    <section className="py-28 md:py-40 px-6" style={{ backgroundColor: '#F5F0E8' }}>
+      <div className="max-w-3xl mx-auto text-center">
+        <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.historia.label}</span>
+        <h2 className="font-serif text-3xl md:text-4xl text-kaiso-text mt-5 mb-10">
+          {t.historia.headline}
+        </h2>
+        <p className="text-kaiso-muted text-base leading-relaxed mb-8 whitespace-pre-wrap">
+          {t.historia.text}
+        </p>
+        <div className="w-8 h-[1px] mx-auto mb-8" style={{ backgroundColor: '#C9A24A' }} />
+        <p className="text-kaiso-gold text-sm uppercase tracking-[0.2em]">
+          {t.historia.countries}
+        </p>
+      </div>
+    </section>
+  );
+};
 
-        <div className="space-y-5 text-base leading-relaxed" style={{ color: 'rgba(10,10,10,0.55)' }}>
-          <p>{t.filosofia.text1}</p>
-          <p>{t.filosofia.text2}</p>
-        </div>
+// Aniversario Section
+const AniversarioSection = () => {
+  const { t } = useLanguage();
+
+  return (
+    <section className="py-28 md:py-40 px-6 bg-kaiso-bg">
+      <div className="max-w-3xl mx-auto text-center">
+        <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">Agosto 2026</span>
+        <h2 className="font-serif text-3xl md:text-4xl text-kaiso-text mt-5 mb-8">
+          {t.aniversario.headline}
+        </h2>
+        <p className="text-kaiso-muted text-base leading-relaxed mb-10">
+          {t.aniversario.text}
+        </p>
+        <p className="text-kaiso-gold/70 text-sm italic">
+          {t.aniversario.tagline}
+        </p>
       </div>
     </section>
   );
@@ -239,7 +300,7 @@ const ChefSection = () => {
   const { t } = useLanguage();
 
   return (
-    <section id="experiencia" className="py-28 md:py-40 px-6 bg-kaiso-bg">
+    <section id="experiencia" className="py-28 md:py-40 px-6" style={{ backgroundColor: '#F5F0E8' }}>
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div className="relative overflow-hidden" style={{ aspectRatio: '3/4', maxWidth: '440px', margin: '0 auto' }}>
@@ -253,14 +314,13 @@ const ChefSection = () => {
 
           <div className="md:pl-8">
             <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.chef.label}</span>
-            <p className="text-kaiso-gold/30 text-xs tracking-[0.3em] mt-1">料理長</p>
-            <h2 className="font-serif text-4xl md:text-5xl text-kaiso-text mt-5 mb-10">
+            <h2 className="font-serif text-3xl md:text-4xl text-kaiso-text mt-5 mb-8">
               Leandro Crispim
             </h2>
-            <p className="text-kaiso-muted text-lg leading-relaxed mb-5 font-serif italic">
+            <p className="text-kaiso-muted text-base leading-relaxed mb-6">
               {t.chef.text1}
             </p>
-            <p className="text-kaiso-muted leading-relaxed mb-10">
+            <p className="text-kaiso-muted text-base leading-relaxed mb-10">
               {t.chef.text2}
             </p>
             <div className="space-y-4 border-t border-kaiso-border pt-8">
@@ -271,6 +331,9 @@ const ChefSection = () => {
                 </p>
               ))}
             </div>
+            <p className="text-kaiso-gold/70 text-xs uppercase tracking-[0.2em] mt-8">
+              {t.chef.complement}
+            </p>
           </div>
         </div>
       </div>
@@ -279,11 +342,11 @@ const ChefSection = () => {
 };
 
 // Tecnica Section
-const TecnicaSection = () => {
+const TecnicaSection = ({ onMenuClick }) => {
   const { t } = useLanguage();
 
   return (
-    <section className="py-28 md:py-40 px-6 bg-kaiso-card">
+    <section className="py-28 md:py-40 px-6 bg-kaiso-bg">
       <div className="max-w-7xl mx-auto">
         <div className="mb-12">
           <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.tecnica.label}</span>
@@ -313,11 +376,84 @@ const TecnicaSection = () => {
           </div>
         </div>
 
-        <div className="max-w-2xl">
-          <p className="font-serif text-2xl md:text-3xl text-kaiso-text mb-4 leading-snug">
+        <div className="max-w-3xl mb-10">
+          <p className="text-base leading-relaxed text-kaiso-muted mb-6">
             {t.tecnica.headline}
           </p>
-          <p className="text-kaiso-muted">{t.tecnica.subtext}</p>
+          <p className="text-kaiso-muted/70 text-sm">{t.tecnica.subtext}</p>
+        </div>
+
+        <button
+          onClick={onMenuClick}
+          className="border border-kaiso-gold text-kaiso-gold px-10 py-3 text-xs uppercase tracking-[0.3em] hover:bg-kaiso-gold hover:text-black transition-all duration-300"
+        >
+          {t.tecnica.cta_menu}
+        </button>
+      </div>
+    </section>
+  );
+};
+
+// Diferenciales Section
+const DiferencialesSection = () => {
+  const { t } = useLanguage();
+
+  return (
+    <section className="py-28 md:py-40 px-6" style={{ backgroundColor: '#F5F0E8' }}>
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-16">
+          <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.diferenciales.label}</span>
+          <h2 className="font-serif text-3xl md:text-4xl text-kaiso-text mt-5 mb-4">
+            {t.diferenciales.headline}
+          </h2>
+          <p className="text-kaiso-muted/70 text-sm italic">
+            {t.diferenciales.tagline}
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          {t.diferenciales.items.map((item, idx) => (
+            <div key={idx} className="flex items-start gap-4">
+              <span className="text-kaiso-gold text-lg shrink-0">◆</span>
+              <p className="text-kaiso-muted text-sm">{item}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// Buffet Section
+const BuffetSection = ({ onReserve, onMenuClick }) => {
+  const { t } = useLanguage();
+
+  return (
+    <section className="py-28 md:py-40 px-6 bg-kaiso-bg">
+      <div className="max-w-3xl mx-auto text-center">
+        <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.buffet.label}</span>
+        <h2 className="font-serif text-3xl md:text-4xl text-kaiso-text mt-5 mb-8">
+          {t.buffet.headline}
+        </h2>
+        <p className="text-kaiso-muted text-base leading-relaxed mb-6">
+          {t.buffet.text}
+        </p>
+        <p className="text-kaiso-muted/70 text-sm italic mb-10">
+          {t.buffet.availability}
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <button
+            onClick={onMenuClick}
+            className="border border-kaiso-gold text-kaiso-gold px-10 py-3 text-xs uppercase tracking-[0.3em] hover:bg-kaiso-gold hover:text-black transition-all duration-300"
+          >
+            {t.buffet.cta_menu}
+          </button>
+          <button
+            onClick={onReserve}
+            className="border border-kaiso-gold text-kaiso-gold px-10 py-3 text-xs uppercase tracking-[0.3em] hover:bg-kaiso-gold hover:text-black transition-all duration-300"
+          >
+            {t.buffet.cta_reserve}
+          </button>
         </div>
       </div>
     </section>
@@ -444,6 +580,48 @@ const InstitutionalSection = ({ onMenuClick }) => {
   );
 };
 
+// Reviews Section
+const ReviewsSection = () => {
+  const { t } = useLanguage();
+
+  return (
+    <section className="py-28 md:py-40 px-6" style={{ backgroundColor: '#F5F0E8' }}>
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-16">
+          <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.opiniones.label}</span>
+          <h2 className="font-serif text-3xl md:text-4xl text-kaiso-text mt-5">
+            {t.opiniones.headline}
+          </h2>
+        </div>
+
+        <div className="bg-white/50 backdrop-blur-sm border border-kaiso-gold/20 p-8 md:p-12 rounded-lg mb-10 text-center">
+          <p className="text-kaiso-muted text-sm mb-6">
+            Descubra lo que nuestros clientes dicen sobre Kaisō Sushi Córdoba en Google.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="https://www.google.com/maps/place/Kaisō+Sushi+Córdoba"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border border-kaiso-gold text-kaiso-gold px-10 py-3 text-xs uppercase tracking-[0.3em] hover:bg-kaiso-gold hover:text-black transition-all duration-300 inline-block"
+            >
+              {t.opiniones.cta_google}
+            </a>
+            <a
+              href="https://www.google.com/maps/place/Kaisō+Sushi+Córdoba"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border border-kaiso-gold/50 text-kaiso-gold px-10 py-3 text-xs uppercase tracking-[0.3em] hover:border-kaiso-gold hover:bg-kaiso-gold/10 transition-all duration-300 inline-block"
+            >
+              {t.opiniones.cta_review}
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 // Location Section
 const LocationSection = () => {
   const { lang, t } = useLanguage();
@@ -558,7 +736,11 @@ const Footer = () => {
           <div>
             <img src="/assets/logo-kaiso.png" alt="Kaisō" className="h-10 w-auto mb-4 opacity-80 object-contain" />
             <p className="text-kaiso-muted/30 text-xs tracking-[0.3em] mt-3">海藻</p>
-            <p className="text-kaiso-muted/50 text-xs mt-4">Córdoba, España</p>
+            <p className="text-kaiso-muted/50 text-xs mt-4">
+              Kaisō Sushi Córdoba<br/>
+              Av. de Barcelona, 19<br/>
+              14010 Córdoba, España
+            </p>
           </div>
 
           <div>
@@ -585,10 +767,10 @@ const Footer = () => {
           <div>
             <h4 className="text-kaiso-text/60 text-[10px] uppercase tracking-[0.3em] mb-6">{t.footer.hours_title}</h4>
             <div className="space-y-2 text-sm text-kaiso-muted">
-              <p>{t.footer.tue} · 20:00–23:30</p>
-              <p>{t.footer.wed_sun} · 13:30–15:30</p>
+              <p>{t.footer.tue} · 12:00–14:00 / 19:00–23:00</p>
+              <p>{t.footer.wed_sun} · 12:00–15:30</p>
               <p className="text-kaiso-muted/60">
-                {t.footer.wed_sun} · 20:00–23:30
+                {t.footer.wed_sun} · 19:00–23:30
               </p>
               <p className="text-kaiso-red mt-4">{t.footer.closed}</p>
             </div>
@@ -596,23 +778,64 @@ const Footer = () => {
 
           <div>
             <h4 className="text-kaiso-text/60 text-[10px] uppercase tracking-[0.3em] mb-6">{t.footer.location}</h4>
-            <div className="space-y-4">
+            <div className="space-y-3 text-sm text-kaiso-muted">
               <a
                 href="https://kaisosushicordoba.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-kaiso-muted hover:text-kaiso-gold transition-colors text-sm"
+                className="hover:text-kaiso-gold transition-colors"
                 aria-label={t.footer.digital_menu}
               >
                 {t.footer.digital_menu}
               </a>
+              <a
+                href="https://reservas.kaisosushi.es/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block hover:text-kaiso-gold transition-colors"
+              >
+                Reservas
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-kaiso-border pt-8 mb-8">
+          <div className="grid md:grid-cols-3 gap-6 text-sm text-kaiso-muted">
+            <div>
+              <h5 className="text-kaiso-text/60 text-[10px] uppercase tracking-[0.3em] mb-3">{t.footer.company_info}</h5>
+              <div className="space-y-2 text-xs text-kaiso-muted/70">
+                <p>Kaisō Sushi Córdoba</p>
+                <p>Av. de Barcelona, 19, 14010 Córdoba</p>
+                <p>+34 673 036 835</p>
+              </div>
+            </div>
+            <div>
+              <h5 className="text-kaiso-text/60 text-[10px] uppercase tracking-[0.3em] mb-3">Políticas</h5>
+              <div className="space-y-2 text-xs">
+                <a href="#" className="text-kaiso-muted/70 hover:text-kaiso-gold transition-colors">{t.footer.privacy_policy}</a>
+                <br/>
+                <a href="#" className="text-kaiso-muted/70 hover:text-kaiso-gold transition-colors">{t.footer.cookies_policy}</a>
+                <br/>
+                <a href="#" className="text-kaiso-muted/70 hover:text-kaiso-gold transition-colors">{t.footer.terms}</a>
+                <br/>
+                <a href="#" className="text-kaiso-muted/70 hover:text-kaiso-gold transition-colors">{t.footer.cancellation_policy}</a>
+              </div>
+            </div>
+            <div>
+              <h5 className="text-kaiso-text/60 text-[10px] uppercase tracking-[0.3em] mb-3">{t.footer.followus}</h5>
+              <div className="space-y-2 text-xs">
+                <a href="#" className="text-kaiso-muted/70 hover:text-kaiso-gold transition-colors">Instagram</a>
+                <br/>
+                <a href="#" className="text-kaiso-muted/70 hover:text-kaiso-gold transition-colors">Facebook</a>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="border-t border-kaiso-border pt-8 flex justify-between items-center">
           <p className="text-kaiso-muted/25 text-xs">
-            © {new Date().getFullYear()} Kaisō Sushi · Córdoba
+            {t.footer.copyright}
           </p>
           <Link
             to="/admin"
@@ -688,12 +911,17 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-kaiso-bg text-kaiso-text pb-20 lg:pb-0">
       <Navigation onReserve={handleOpenReservation} />
-      <HeroSection onReserve={handleOpenReservation} />
-      <FilosofiaSection />
+      <HeroSection onReserve={handleOpenReservation} onMenuClick={handleMenuClick} />
+      <PresentacionKaisoSection />
+      <HistoriaSection />
+      <AniversarioSection />
+      <DiferencialesSection />
+      <BuffetSection onReserve={handleOpenReservation} onMenuClick={handleMenuClick} />
       <ChefSection />
-      <TecnicaSection />
+      <TecnicaSection onMenuClick={handleMenuClick} />
       <EditorialCartaSection onReserve={handleOpenReservation} />
       <InstitutionalSection onMenuClick={handleMenuClick} />
+      <ReviewsSection />
       <LocationSection />
       <Footer />
 

@@ -13,11 +13,14 @@ const translations = {
       experiencia: "Experiencia"
     },
     hero: {
-      badge: "KAISŌ SUSHI FUSION",
-      headline: "kaisō",
-      subtitle: "Japanese Fusion · Córdoba · Solo reservas",
+      badge: "KAISŌ SUSHI",
+      headline: "Sushi fresco, creativo y preparado al momento en Córdoba",
+      subtitle: "20 años de historia llevando la experiencia Kaisō desde Brasil hasta Portugal y España.",
       subheadline: "Experiencia gastronómica japonesa contemporánea en el corazón de Córdoba",
+      location: "Av. de Barcelona, 19 · Córdoba",
       cta_reservar: "Reservar mesa",
+      cta_menu: "Ver menú",
+      cta_whatsapp: "Hablar por WhatsApp",
       cta_carta: "Ver Carta"
     },
     reservation: {
@@ -76,7 +79,25 @@ const translations = {
       closed: "Lun · Cerrado",
       contact: "Contacto",
       location: "Ubicación",
-      digital_menu: "Carta digital"
+      digital_menu: "Carta digital",
+      company_info: "Información Legal",
+      privacy_policy: "Política de Privacidad",
+      cookies_policy: "Política de Cookies",
+      terms: "Términos y Condiciones",
+      cancellation_policy: "Política de Cancelación",
+      followus: "Síguenos",
+      copyright: "© Kaisō Sushi Córdoba. Todos los derechos reservados."
+    },
+    historia: {
+      label: "NUESTRA HISTORIA",
+      headline: "20 años de historia",
+      text: "Kaisō Sushi nació en Brasil hace 20 años, impulsado por una pasión por la gastronomía japonesa, la creatividad y el cuidado de cada pieza.\n\nA lo largo de nuestra historia, el concepto Kaisō ha crecido y ha formado parte de proyectos y operaciones en Brasil, Portugal y España.\n\nEl 12 de agosto de 2025 abrimos las puertas de Kaisō Sushi Córdoba, en la Avenida de Barcelona, 19. En agosto de 2026 celebramos nuestro primer aniversario en la ciudad, manteniendo la esencia construida durante dos décadas: sushi preparado al momento, sabor, creatividad y cercanía con nuestros clientes.",
+      countries: "Brasil · Portugal · España"
+    },
+    aniversario: {
+      headline: "Primer aniversario en Córdoba",
+      text: "El 12 de agosto celebramos nuestro primer año en Córdoba. Un año de nuevos clientes, experiencias, aprendizajes y mucho sushi preparado con dedicación.",
+      tagline: "Gracias, Córdoba, por formar parte de nuestra historia."
     },
     filosofia: {
       line1: "No seguimos tradición.",
@@ -85,22 +106,45 @@ const translations = {
       text2: "Cada pieza nace de la precisión. Cada sabor rompe expectativas. Eso es lo que servimos."
     },
     chef: {
-      label: "El Chef",
-      text1: "Doce años perfeccionando una idea. Técnica. Creatividad. Precisión. Sin límites.",
-      text2: "Leandro Crispim no busca imitar la tradición. Busca superarla. Cada lote, cada corte, cada combinación es el resultado de años de estudio técnico y de una libertad creativa que define la identidad de Kaisō.",
+      label: "El fundador detrás de Kaisō",
+      text1: "Leandro Crispim inició la historia de Kaisō Sushi en Brasil hace 20 años. Su experiencia en gastronomía japonesa, creación de marcas y desarrollo de operaciones llevó el concepto Kaisō desde Brasil hasta Portugal y España.",
+      text2: "En Córdoba, combina técnica, creatividad y experiencia para ofrecer un sushi preparado al momento, con identidad propia y una excelente relación calidad-precio.",
+      complement: "20 años de experiencia · Brasil · Portugal · España",
       details: [
-        "Ingredientes frescos de temporada",
-        "Arroz preparado con técnica japonesa",
-        "Fusión contemporánea premium",
-        "Precisión al servicio de la creatividad"
+        "Técnica japonesa, respeto por la tradición",
+        "Producto seleccionado con cuidado",
+        "Creatividad en cada pieza",
+        "Relación calidad-precio excelente"
       ]
     },
     tecnica: {
       label: "La Técnica",
       caption1: "Precisión de corte",
       caption2: "Materia prima",
-      headline: "No tenemos carta fija. Tenemos lo que imaginamos hoy.",
-      subtext: "La técnica sostiene la experiencia. La creatividad la define."
+      headline: "Descubre nuestra carta, combinados, piezas de autor, platos calientes, buffet y opciones para compartir en nuestro menú digital.",
+      subtext: "La técnica sostiene la experiencia. La creatividad la define.",
+      cta_menu: "Ver menú completo"
+    },
+    diferenciales: {
+      label: "¿POR QUÉ ELEGIR KAISŌ?",
+      headline: "¿Por qué elegir Kaisō?",
+      tagline: "Tradición, experiencia y creatividad reunidas en cada pieza.",
+      items: [
+        "20 años de historia",
+        "Sushi preparado al momento",
+        "Creaciones con identidad propia",
+        "Experiencia internacional",
+        "Restaurante, delivery y recogida",
+        "Reserva y pedido digital"
+      ]
+    },
+    buffet: {
+      label: "RÓDIZIO PREMIUM",
+      headline: "Ródizio Premium Kaisō",
+      text: "Disfruta una experiencia completa con sushi, entrantes, platos calientes y especialidades servidas en tu mesa.",
+      availability: "Disponible en días seleccionados y con reserva anticipada.",
+      cta_menu: "Consultar en el menú",
+      cta_reserve: "Reservar mesa"
     },
     carta_editorial: {
       label: "LA CARTA",
@@ -117,6 +161,12 @@ const translations = {
       note: "Consulta platos, precios y promociones en nuestra carta digital.",
       cta_menu: "Ver menú completo",
       cta_reserve: "Reservar mesa"
+    },
+    opiniones: {
+      label: "LO QUE DICEN NUESTROS CLIENTES",
+      headline: "Lo que dicen nuestros clientes",
+      cta_google: "Ver opiniones en Google",
+      cta_review: "Dejar una opinión"
     },
     institutional: {
       label: "MÁS QUE SUSHI",
@@ -157,11 +207,14 @@ const translations = {
       experiencia: "Experiência"
     },
     hero: {
-      badge: "KAISŌ SUSHI FUSION",
-      headline: "kaisō",
-      subtitle: "Japanese Fusion · Córdoba · Apenas reservas",
+      badge: "KAISŌ SUSHI",
+      headline: "Sushi fresco, criativo e preparado na hora em Córdoba",
+      subtitle: "20 anos de história levando a experiência Kaisō desde o Brasil até Portugal e Espanha.",
       subheadline: "Experiência gastronômica japonesa contemporânea no coração de Córdoba",
+      location: "Av. de Barcelona, 19 · Córdoba",
       cta_reservar: "Reservar mesa",
+      cta_menu: "Ver menu",
+      cta_whatsapp: "Falar no WhatsApp",
       cta_carta: "Ver Cardápio"
     },
     reservation: {
@@ -220,7 +273,25 @@ const translations = {
       closed: "Seg · Fechado",
       contact: "Contato",
       location: "Localização",
-      digital_menu: "Menu digital"
+      digital_menu: "Menu digital",
+      company_info: "Informações Legais",
+      privacy_policy: "Política de Privacidade",
+      cookies_policy: "Política de Cookies",
+      terms: "Termos e Condições",
+      cancellation_policy: "Política de Cancelamento",
+      followus: "Siga-nos",
+      copyright: "© Kaisō Sushi Córdoba. Todos os direitos reservados."
+    },
+    historia: {
+      label: "NOSSA HISTÓRIA",
+      headline: "20 anos de história",
+      text: "Kaisō Sushi nasceu no Brasil há 20 anos, impulsionado por uma paixão pela gastronomia japonesa, criatividade e cuidado com cada peça.\n\nAo longo de nossa história, o conceito Kaisō cresceu e fez parte de projetos e operações no Brasil, Portugal e Espanha.\n\nEm 12 de agosto de 2025 abrimos as portas de Kaisō Sushi Córdoba, na Avenida de Barcelona, 19. Em agosto de 2026 celebramos nosso primeiro aniversário na cidade, mantendo a essência construída em duas décadas: sushi preparado na hora, sabor, criatividade e proximidade com nossos clientes.",
+      countries: "Brasil · Portugal · Espanha"
+    },
+    aniversario: {
+      headline: "Primeiro aniversário em Córdoba",
+      text: "Em 12 de agosto celebramos nosso primeiro ano em Córdoba. Um ano de novos clientes, experiências, aprendizados e muito sushi preparado com dedicação.",
+      tagline: "Obrigado, Córdoba, por fazer parte de nossa história."
     },
     filosofia: {
       line1: "Não seguimos tradição.",
@@ -229,22 +300,45 @@ const translations = {
       text2: "Cada peça nasce da precisão. Cada sabor quebra expectativas. É isso que servimos."
     },
     chef: {
-      label: "O Chef",
-      text1: "Doze anos aperfeiçoando uma ideia. Técnica. Criatividade. Precisão. Sem limites.",
-      text2: "Leandro Crispim não busca imitar a tradição. Busca superá-la. Cada lote, cada corte, cada combinação é o resultado de anos de estudo técnico e de uma liberdade criativa que define a identidade do Kaisō.",
+      label: "O fundador por trás de Kaisō",
+      text1: "Leandro Crispim iniciou a história de Kaisō Sushi no Brasil há 20 anos. Sua experiência em gastronomia japonesa, criação de marcas e desenvolvimento de operações levou o conceito Kaisō desde o Brasil até Portugal e Espanha.",
+      text2: "Em Córdoba, combina técnica, criatividade e experiência para oferecer um sushi preparado na hora, com identidade própria e uma excelente relação custo-benefício.",
+      complement: "20 anos de experiência · Brasil · Portugal · Espanha",
       details: [
-        "Ingredientes frescos de temporada",
-        "Arroz preparado com técnica japonesa",
-        "Fusão contemporânea premium",
-        "Precisão a serviço da criatividade"
+        "Técnica japonesa, respeito pela tradição",
+        "Produto selecionado com cuidado",
+        "Criatividade em cada peça",
+        "Excelente relação custo-benefício"
       ]
     },
     tecnica: {
       label: "A Técnica",
       caption1: "Precisão de corte",
       caption2: "Matéria-prima",
-      headline: "Não temos cardápio fixo. Temos o que imaginamos hoje.",
-      subtext: "A técnica sustenta a experiência. A criatividade a define."
+      headline: "Descubra nosso cardápio, combinados, peças autorais, pratos quentes, rodízio e opções para compartilhar em nosso menu digital.",
+      subtext: "A técnica sustenta a experiência. A criatividade a define.",
+      cta_menu: "Ver menu completo"
+    },
+    diferenciales: {
+      label: "POR QUE ESCOLHER KAISŌ?",
+      headline: "Por que escolher Kaisō?",
+      tagline: "Tradição, experiência e criatividade reunidas em cada peça.",
+      items: [
+        "20 anos de história",
+        "Sushi preparado na hora",
+        "Criações com identidade própria",
+        "Experiência internacional",
+        "Restaurante, delivery e retirada",
+        "Reserva e pedido digital"
+      ]
+    },
+    buffet: {
+      label: "RODÍZIO PREMIUM",
+      headline: "Rodízio Premium Kaisō",
+      text: "Aproveite uma experiência completa com sushi, entradas, pratos quentes e especialidades servidas à sua mesa.",
+      availability: "Disponível em dias selecionados e com reserva antecipada.",
+      cta_menu: "Consulte no menu",
+      cta_reserve: "Reservar mesa"
     },
     carta_editorial: {
       label: "O MENU",
@@ -261,6 +355,12 @@ const translations = {
       note: "Consulte pratos, preços e promoções em nosso menu digital.",
       cta_menu: "Ver menu completo",
       cta_reserve: "Reservar mesa"
+    },
+    opiniones: {
+      label: "O QUE DIZEM NOSSOS CLIENTES",
+      headline: "O que dizem nossos clientes",
+      cta_google: "Ver opiniões no Google",
+      cta_review: "Deixar uma opinião"
     },
     institutional: {
       label: "MAIS QUE SUSHI",
@@ -301,11 +401,14 @@ const translations = {
       experiencia: "Experience"
     },
     hero: {
-      badge: "KAISŌ SUSHI FUSION",
-      headline: "kaisō",
-      subtitle: "Japanese Fusion · Córdoba · Reservations only",
+      badge: "KAISŌ SUSHI",
+      headline: "Fresh, creative sushi prepared right now in Córdoba",
+      subtitle: "20 years of history bringing the Kaisō experience from Brazil to Portugal and Spain.",
       subheadline: "Contemporary Japanese fusion dining in the heart of Córdoba",
+      location: "Av. de Barcelona, 19 · Córdoba",
       cta_reservar: "Reserve a table",
+      cta_menu: "View menu",
+      cta_whatsapp: "Chat on WhatsApp",
       cta_carta: "View Menu"
     },
     reservation: {
@@ -364,7 +467,25 @@ const translations = {
       closed: "Mon · Closed",
       contact: "Contact",
       location: "Location",
-      digital_menu: "Digital menu"
+      digital_menu: "Digital menu",
+      company_info: "Legal Information",
+      privacy_policy: "Privacy Policy",
+      cookies_policy: "Cookies Policy",
+      terms: "Terms and Conditions",
+      cancellation_policy: "Cancellation Policy",
+      followus: "Follow us",
+      copyright: "© Kaisō Sushi Córdoba. All rights reserved."
+    },
+    historia: {
+      label: "OUR STORY",
+      headline: "20 years of history",
+      text: "Kaisō Sushi was born in Brazil 20 years ago, driven by a passion for Japanese gastronomy, creativity and care for each piece.\n\nThroughout our history, the Kaisō concept has grown and been part of projects and operations in Brazil, Portugal and Spain.\n\nOn August 12, 2025 we opened the doors of Kaisō Sushi Córdoba, on Avenida de Barcelona, 19. In August 2026 we celebrate our first anniversary in the city, maintaining the essence built over two decades: sushi prepared fresh, flavor, creativity and closeness with our customers.",
+      countries: "Brazil · Portugal · Spain"
+    },
+    aniversario: {
+      headline: "First anniversary in Córdoba",
+      text: "On August 12 we celebrate our first year in Córdoba. A year of new customers, experiences, learning and lots of sushi prepared with dedication.",
+      tagline: "Thank you, Córdoba, for being part of our story."
     },
     filosofia: {
       line1: "We don't follow tradition.",
@@ -373,22 +494,45 @@ const translations = {
       text2: "Each piece is born from precision. Each flavor breaks expectations. That is what we serve."
     },
     chef: {
-      label: "The Chef",
-      text1: "Twelve years perfecting one idea. Technique. Creativity. Precision. No limits.",
-      text2: "Leandro Crispim doesn't seek to imitate tradition. He seeks to surpass it. Each batch, each cut, each combination is the result of years of technical study and a creative freedom that defines the identity of Kaisō.",
+      label: "The founder behind Kaisō",
+      text1: "Leandro Crispim started the history of Kaisō Sushi in Brazil 20 years ago. His experience in Japanese gastronomy, brand creation and operations development brought the Kaisō concept from Brazil to Portugal and Spain.",
+      text2: "In Córdoba, he combines technique, creativity and experience to offer sushi prepared fresh, with its own identity and excellent value for money.",
+      complement: "20 years of experience · Brazil · Portugal · Spain",
       details: [
-        "Fresh seasonal ingredients",
-        "Rice prepared with Japanese technique",
-        "Contemporary premium fusion",
-        "Precision in service of creativity"
+        "Japanese technique, respect for tradition",
+        "Carefully selected product",
+        "Creativity in every piece",
+        "Excellent value for money"
       ]
     },
     tecnica: {
       label: "The Craft",
       caption1: "Cutting precision",
       caption2: "Raw material",
-      headline: "We have no fixed menu. We have what we imagined today.",
-      subtext: "Technique sustains the experience. Creativity defines it."
+      headline: "Discover our menu, signature combinations, author-created pieces, hot dishes, buffet and sharing options in our digital menu.",
+      subtext: "Technique sustains the experience. Creativity defines it.",
+      cta_menu: "View full menu"
+    },
+    diferenciales: {
+      label: "WHY CHOOSE KAISŌ?",
+      headline: "Why choose Kaisō?",
+      tagline: "Tradition, experience and creativity united in every piece.",
+      items: [
+        "20 years of history",
+        "Fresh sushi prepared right now",
+        "Creations with their own identity",
+        "International experience",
+        "Restaurant, delivery and takeout",
+        "Digital reservations and orders"
+      ]
+    },
+    buffet: {
+      label: "PREMIUM RODIZIO",
+      headline: "Kaisō Premium Rodizio",
+      text: "Enjoy a complete experience with sushi, appetizers, hot dishes and specialties served at your table.",
+      availability: "Available on selected days and with advance reservation.",
+      cta_menu: "Check the menu",
+      cta_reserve: "Reserve a table"
     },
     carta_editorial: {
       label: "THE MENU",
@@ -405,6 +549,12 @@ const translations = {
       note: "Check out dishes, prices and promotions in our digital menu.",
       cta_menu: "View full menu",
       cta_reserve: "Reserve a table"
+    },
+    opiniones: {
+      label: "WHAT OUR CUSTOMERS SAY",
+      headline: "What our customers say",
+      cta_google: "View reviews on Google",
+      cta_review: "Leave a review"
     },
     institutional: {
       label: "MORE THAN SUSHI",
