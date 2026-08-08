@@ -166,12 +166,6 @@ const translations = {
       cta_menu: "Ver menú completo",
       cta_reserve: "Reservar mesa"
     },
-    opiniones: {
-      label: "LO QUE DICEN NUESTROS CLIENTES",
-      headline: "Lo que dicen nuestros clientes",
-      cta_google: "Ver opiniones en Google",
-      cta_review: "Dejar una opinión"
-    },
     institutional: {
       label: "MÁS QUE SUSHI",
       headline: "Una experiencia Kaisō",
@@ -364,12 +358,6 @@ const translations = {
       cta_menu: "Ver menu completo",
       cta_reserve: "Reservar mesa"
     },
-    opiniones: {
-      label: "O QUE DIZEM NOSSOS CLIENTES",
-      headline: "O que dizem nossos clientes",
-      cta_google: "Ver opiniões no Google",
-      cta_review: "Deixar uma opinião"
-    },
     institutional: {
       label: "MAIS QUE SUSHI",
       headline: "Uma experiência Kaisō",
@@ -561,12 +549,6 @@ const translations = {
       note: "Check out dishes, prices and promotions in our digital menu.",
       cta_menu: "View full menu",
       cta_reserve: "Reserve a table"
-    },
-    opiniones: {
-      label: "WHAT OUR CUSTOMERS SAY",
-      headline: "What our customers say",
-      cta_google: "View reviews on Google",
-      cta_review: "Leave a review"
     },
     institutional: {
       label: "MORE THAN SUSHI",

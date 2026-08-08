@@ -581,46 +581,6 @@ const InstitutionalSection = ({ onMenuClick }) => {
 };
 
 // Reviews Section
-const ReviewsSection = () => {
-  const { t } = useLanguage();
-
-  return (
-    <section className="py-28 md:py-40 px-6" style={{ backgroundColor: '#F5F0E8' }}>
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-16">
-          <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.opiniones.label}</span>
-          <h2 className="font-serif text-3xl md:text-4xl text-kaiso-text mt-5">
-            {t.opiniones.headline}
-          </h2>
-        </div>
-
-        <div className="bg-white/50 backdrop-blur-sm border border-kaiso-gold/20 p-8 md:p-12 rounded-lg mb-10 text-center">
-          <p className="text-kaiso-muted text-sm mb-6">
-            Descubra lo que nuestros clientes dicen sobre Kaisō Sushi Córdoba en Google.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="https://www.google.com/maps/place/Kaiso+Sushi+Cordoba+Av+de+Barcelona+19+14010+Cordoba+Espana"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="border border-kaiso-gold text-kaiso-gold px-10 py-3 text-xs uppercase tracking-[0.3em] hover:bg-kaiso-gold hover:text-black transition-all duration-300 inline-block"
-            >
-              {t.opiniones.cta_google}
-            </a>
-            <a
-              href="https://www.google.com/maps/place/Kaiso+Sushi+Cordoba+Av+de+Barcelona+19+14010+Cordoba+Espana"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="border border-kaiso-gold/50 text-kaiso-gold px-10 py-3 text-xs uppercase tracking-[0.3em] hover:border-kaiso-gold hover:bg-kaiso-gold/10 transition-all duration-300 inline-block"
-            >
-              {t.opiniones.cta_review}
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
 
 // Location Section
 const LocationSection = () => {
@@ -701,7 +661,7 @@ const LocationSection = () => {
               </a>
 
               <a
-                href="https://www.google.com/maps/place/Kaiso+Sushi+Cordoba+Av+de+Barcelona+19+Cordoba+Espana"
+                href="https://www.google.com/maps/dir/?api=1&destination=37.887392,-4.763649"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 mt-6 px-4 py-3 bg-kaiso-gold/10 border border-kaiso-gold/30 hover:bg-kaiso-gold/20 transition-colors text-kaiso-gold text-sm font-medium rounded"
@@ -930,7 +890,6 @@ const HomePage = () => {
       <TecnicaSection onMenuClick={handleMenuClick} />
       <EditorialCartaSection onReserve={handleOpenReservation} />
       <InstitutionalSection onMenuClick={handleMenuClick} />
-      <ReviewsSection />
       <LocationSection />
       <Footer />
 
