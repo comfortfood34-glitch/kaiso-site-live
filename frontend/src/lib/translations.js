@@ -88,9 +88,9 @@ const translations = {
       followus: "Síguenos",
       copyright: "© Kaisō Sushi Córdoba. Todos los derechos reservados.",
       hours_monday: "Cerrado",
-      hours_tue_thu: "12:00–14:00 / 19:00–23:00",
-      hours_fri_sun_lunch: "12:00–15:30",
-      hours_fri_sun_dinner: "19:00–23:30"
+      hours_tuesday: "20:00–23:00",
+      hours_wed_sun_lunch: "13:30–15:00",
+      hours_wed_sun_dinner: "20:00–23:00"
     },
     historia: {
       label: "NUESTRA HISTORIA",
@@ -144,7 +144,7 @@ const translations = {
     },
     buffet: {
       label: "RÓDIZIO PREMIUM",
-      headline: "Ródizio Premium Kaisō",
+      headline: "Rodizio Premium / Buffet",
       text: "Disfruta una experiencia completa con sushi, entrantes, platos calientes y especialidades servidas en tu mesa.",
       availability: "Disponible en días seleccionados y con reserva anticipada.",
       cta_menu: "Consultar en el menú",
@@ -280,9 +280,9 @@ const translations = {
       followus: "Siga-nos",
       copyright: "© Kaisō Sushi Córdoba. Todos os direitos reservados.",
       hours_monday: "Fechado",
-      hours_tue_thu: "12:00–14:00 / 19:00–23:00",
-      hours_fri_sun_lunch: "12:00–15:30",
-      hours_fri_sun_dinner: "19:00–23:30"
+      hours_tuesday: "20:00–23:00",
+      hours_wed_sun_lunch: "13:30–15:00",
+      hours_wed_sun_dinner: "20:00–23:00"
     },
     historia: {
       label: "NOSSA HISTÓRIA",
@@ -336,7 +336,7 @@ const translations = {
     },
     buffet: {
       label: "RODÍZIO PREMIUM",
-      headline: "Rodízio Premium Kaisō",
+      headline: "Rodízio Premium / Buffet",
       text: "Aproveite uma experiência completa com sushi, entradas, pratos quentes e especialidades servidas à sua mesa.",
       availability: "Disponível em dias selecionados e com reserva antecipada.",
       cta_menu: "Consulte no menu",
@@ -472,9 +472,9 @@ const translations = {
       followus: "Follow us",
       copyright: "© Kaisō Sushi Córdoba. All rights reserved.",
       hours_monday: "Closed",
-      hours_tue_thu: "12:00–14:00 / 19:00–23:00",
-      hours_fri_sun_lunch: "12:00–15:30",
-      hours_fri_sun_dinner: "19:00–23:30"
+      hours_tuesday: "20:00–23:00",
+      hours_wed_sun_lunch: "13:30–15:00",
+      hours_wed_sun_dinner: "20:00–23:00"
     },
     historia: {
       label: "OUR STORY",
@@ -528,7 +528,7 @@ const translations = {
     },
     buffet: {
       label: "PREMIUM RODIZIO",
-      headline: "Kaisō Premium Rodizio",
+      headline: "Premium Rodizio / Buffet",
       text: "Enjoy a complete experience with sushi, appetizers, hot dishes and specialties served at your table.",
       availability: "Available on selected days and with advance reservation.",
       cta_menu: "Check the menu",

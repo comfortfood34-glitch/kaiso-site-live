@@ -258,10 +258,10 @@ const HistoriaSection = () => {
     <section className="py-28 md:py-40 px-6" style={{ backgroundColor: '#F5F0E8' }}>
       <div className="max-w-3xl mx-auto text-center">
         <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.historia.label}</span>
-        <h2 className="font-serif text-3xl md:text-4xl text-kaiso-text mt-5 mb-10">
+        <h2 className="font-serif text-3xl md:text-4xl text-gray-900 mt-5 mb-10">
           {t.historia.headline}
         </h2>
-        <p className="text-kaiso-muted text-base leading-relaxed mb-8 whitespace-pre-wrap">
+        <p className="text-gray-700 text-base leading-relaxed mb-8 whitespace-pre-wrap">
           {t.historia.text}
         </p>
         <div className="w-8 h-[1px] mx-auto mb-8" style={{ backgroundColor: '#C9A24A' }} />
@@ -314,24 +314,24 @@ const ChefSection = () => {
 
           <div className="md:pl-8">
             <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.chef.label}</span>
-            <h2 className="font-serif text-3xl md:text-4xl text-kaiso-text mt-5 mb-8">
+            <h2 className="font-serif text-3xl md:text-4xl text-gray-900 mt-5 mb-8">
               Leandro Crispim
             </h2>
-            <p className="text-kaiso-muted text-base leading-relaxed mb-6">
+            <p className="text-gray-700 text-base leading-relaxed mb-6">
               {t.chef.text1}
             </p>
-            <p className="text-kaiso-muted text-base leading-relaxed mb-10">
+            <p className="text-gray-700 text-base leading-relaxed mb-10">
               {t.chef.text2}
             </p>
             <div className="space-y-4 border-t border-kaiso-border pt-8">
               {t.chef.details.map((detail, i) => (
-                <p key={i} className="text-sm text-kaiso-muted flex items-start gap-3">
+                <p key={i} className="text-sm text-gray-700 flex items-start gap-3">
                   <span className="text-kaiso-gold/50 mt-[2px] shrink-0">—</span>
                   {detail}
                 </p>
               ))}
             </div>
-            <p className="text-kaiso-gold/70 text-xs uppercase tracking-[0.2em] mt-8">
+            <p className="text-kaiso-gold text-xs uppercase tracking-[0.2em] mt-8">
               {t.chef.complement}
             </p>
           </div>
@@ -403,10 +403,10 @@ const DiferencialesSection = () => {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-16">
           <span className="text-kaiso-gold text-xs uppercase tracking-[0.3em]">{t.diferenciales.label}</span>
-          <h2 className="font-serif text-3xl md:text-4xl text-kaiso-text mt-5 mb-4">
+          <h2 className="font-serif text-3xl md:text-4xl text-gray-900 mt-5 mb-4">
             {t.diferenciales.headline}
           </h2>
-          <p className="text-kaiso-muted/70 text-sm italic">
+          <p className="text-gray-700 text-sm italic">
             {t.diferenciales.tagline}
           </p>
         </div>
@@ -415,7 +415,7 @@ const DiferencialesSection = () => {
           {t.diferenciales.items.map((item, idx) => (
             <div key={idx} className="flex items-start gap-4">
               <span className="text-kaiso-gold text-lg shrink-0">◆</span>
-              <p className="text-kaiso-muted text-sm">{item}</p>
+              <p className="text-gray-700 text-sm">{item}</p>
             </div>
           ))}
         </div>
@@ -588,23 +588,26 @@ const LocationSection = () => {
 
   const hours = {
     es: {
-      tue_thu: 'Mar–Jue · 12:00–14:00 / 19:00–23:00',
-      fri_sun_lunch: 'Vie–Dom · 12:00–15:30',
-      fri_sun_dinner: 'Vie–Dom · 19:00–23:30',
+      monday: 'Lun · Cerrado',
+      tuesday: 'Mar · 20:00–23:00',
+      wed_sun_lunch: 'Mié–Dom · 13:30–15:00',
+      wed_sun_dinner: 'Mié–Dom · 20:00–23:00',
       closed: 'Lun · Cerrado',
       tagline: 'La mesa no espera. Reserve antes.'
     },
     pt: {
-      tue_thu: 'Ter–Qui · 12:00–14:00 / 19:00–23:00',
-      fri_sun_lunch: 'Sex–Dom · 12:00–15:30',
-      fri_sun_dinner: 'Sex–Dom · 19:00–23:30',
+      monday: 'Seg · Fechado',
+      tuesday: 'Ter · 20:00–23:00',
+      wed_sun_lunch: 'Qua–Dom · 13:30–15:00',
+      wed_sun_dinner: 'Qua–Dom · 20:00–23:00',
       closed: 'Seg · Fechado',
       tagline: 'A mesa não espera. Reserve antes.'
     },
     en: {
-      tue_thu: 'Tue–Thu · 12:00–14:00 / 19:00–23:00',
-      fri_sun_lunch: 'Fri–Sun · 12:00–15:30',
-      fri_sun_dinner: 'Fri–Sun · 19:00–23:30',
+      monday: 'Mon · Closed',
+      tuesday: 'Tue · 20:00–23:00',
+      wed_sun_lunch: 'Wed–Sun · 13:30–15:00',
+      wed_sun_dinner: 'Wed–Sun · 20:00–23:00',
       closed: 'Mon · Closed',
       tagline: 'The table does not wait. Reserve ahead.'
     }
@@ -643,10 +646,10 @@ const LocationSection = () => {
               <div className="flex items-start gap-3">
                 <Clock size={16} className="text-kaiso-gold mt-1 shrink-0" />
                 <div className="text-sm space-y-2 leading-relaxed">
-                  <p>{h.tue_thu}</p>
-                  <p>{h.fri_sun_lunch}</p>
-                  <p>{h.fri_sun_dinner}</p>
-                  <p className="text-kaiso-red mt-2">{h.closed}</p>
+                  <p>{h.monday}</p>
+                  <p>{h.tuesday}</p>
+                  <p>{h.wed_sun_lunch}</p>
+                  <p>{h.wed_sun_dinner}</p>
                 </div>
               </div>
 
@@ -737,12 +740,12 @@ const Footer = () => {
           <div>
             <h4 className="text-kaiso-text/60 text-[10px] uppercase tracking-[0.3em] mb-6">{t.footer.hours_title}</h4>
             <div className="space-y-2 text-sm text-kaiso-muted">
-              <p>{t.footer.tue} · 12:00–14:00 / 19:00–23:00</p>
-              <p>{t.footer.wed_sun} · 12:00–15:30</p>
+              <p>{t.footer.closed}</p>
+              <p>{t.footer.tue} · {t.footer.hours_tuesday}</p>
+              <p>{t.footer.wed_sun} · {t.footer.hours_wed_sun_lunch}</p>
               <p className="text-kaiso-muted/60">
-                {t.footer.wed_sun} · 19:00–23:30
+                {t.footer.wed_sun} · {t.footer.hours_wed_sun_dinner}
               </p>
-              <p className="text-kaiso-red mt-4">{t.footer.closed}</p>
             </div>
           </div>
 
