@@ -86,7 +86,11 @@ const translations = {
       terms: "Términos y Condiciones",
       cancellation_policy: "Política de Cancelación",
       followus: "Síguenos",
-      copyright: "© Kaisō Sushi Córdoba. Todos los derechos reservados."
+      copyright: "© Kaisō Sushi Córdoba. Todos los derechos reservados.",
+      hours_monday: "Cerrado",
+      hours_tue_thu: "12:00–14:00 / 19:00–23:00",
+      hours_fri_sun_lunch: "12:00–15:30",
+      hours_fri_sun_dinner: "19:00–23:30"
     },
     historia: {
       label: "NUESTRA HISTORIA",
@@ -280,7 +284,11 @@ const translations = {
       terms: "Termos e Condições",
       cancellation_policy: "Política de Cancelamento",
       followus: "Siga-nos",
-      copyright: "© Kaisō Sushi Córdoba. Todos os direitos reservados."
+      copyright: "© Kaisō Sushi Córdoba. Todos os direitos reservados.",
+      hours_monday: "Fechado",
+      hours_tue_thu: "12:00–14:00 / 19:00–23:00",
+      hours_fri_sun_lunch: "12:00–15:30",
+      hours_fri_sun_dinner: "19:00–23:30"
     },
     historia: {
       label: "NOSSA HISTÓRIA",
@@ -474,7 +482,11 @@ const translations = {
       terms: "Terms and Conditions",
       cancellation_policy: "Cancellation Policy",
       followus: "Follow us",
-      copyright: "© Kaisō Sushi Córdoba. All rights reserved."
+      copyright: "© Kaisō Sushi Córdoba. All rights reserved.",
+      hours_monday: "Closed",
+      hours_tue_thu: "12:00–14:00 / 19:00–23:00",
+      hours_fri_sun_lunch: "12:00–15:30",
+      hours_fri_sun_dinner: "19:00–23:30"
     },
     historia: {
       label: "OUR STORY",

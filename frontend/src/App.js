@@ -600,7 +600,7 @@ const ReviewsSection = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="https://www.google.com/maps/place/Kaisō+Sushi+Córdoba"
+              href="https://www.google.com/maps/place/Kaiso+Sushi+Cordoba+Av+de+Barcelona+19+14010+Cordoba+Espana"
               target="_blank"
               rel="noopener noreferrer"
               className="border border-kaiso-gold text-kaiso-gold px-10 py-3 text-xs uppercase tracking-[0.3em] hover:bg-kaiso-gold hover:text-black transition-all duration-300 inline-block"
@@ -608,7 +608,7 @@ const ReviewsSection = () => {
               {t.opiniones.cta_google}
             </a>
             <a
-              href="https://www.google.com/maps/place/Kaisō+Sushi+Córdoba"
+              href="https://www.google.com/maps/place/Kaiso+Sushi+Cordoba+Av+de+Barcelona+19+14010+Cordoba+Espana"
               target="_blank"
               rel="noopener noreferrer"
               className="border border-kaiso-gold/50 text-kaiso-gold px-10 py-3 text-xs uppercase tracking-[0.3em] hover:border-kaiso-gold hover:bg-kaiso-gold/10 transition-all duration-300 inline-block"
@@ -628,23 +628,23 @@ const LocationSection = () => {
 
   const hours = {
     es: {
-      tue: 'Mar · 20:00–23:30',
-      wed_sun_lunch: 'Mié–Dom · 13:30–15:30',
-      wed_sun_dinner: 'Mié–Dom · 20:00–23:30',
+      tue_thu: 'Mar–Jue · 12:00–14:00 / 19:00–23:00',
+      fri_sun_lunch: 'Vie–Dom · 12:00–15:30',
+      fri_sun_dinner: 'Vie–Dom · 19:00–23:30',
       closed: 'Lun · Cerrado',
       tagline: 'La mesa no espera. Reserve antes.'
     },
     pt: {
-      tue: 'Ter · 20:00–23:30',
-      wed_sun_lunch: 'Qua–Dom · 13:30–15:30',
-      wed_sun_dinner: 'Qua–Dom · 20:00–23:30',
+      tue_thu: 'Ter–Qui · 12:00–14:00 / 19:00–23:00',
+      fri_sun_lunch: 'Sex–Dom · 12:00–15:30',
+      fri_sun_dinner: 'Sex–Dom · 19:00–23:30',
       closed: 'Seg · Fechado',
       tagline: 'A mesa não espera. Reserve antes.'
     },
     en: {
-      tue: 'Tue · 20:00–23:30',
-      wed_sun_lunch: 'Wed–Sun · 13:30–15:30',
-      wed_sun_dinner: 'Wed–Sun · 20:00–23:30',
+      tue_thu: 'Tue–Thu · 12:00–14:00 / 19:00–23:00',
+      fri_sun_lunch: 'Fri–Sun · 12:00–15:30',
+      fri_sun_dinner: 'Fri–Sun · 19:00–23:30',
       closed: 'Mon · Closed',
       tagline: 'The table does not wait. Reserve ahead.'
     }
@@ -683,9 +683,9 @@ const LocationSection = () => {
               <div className="flex items-start gap-3">
                 <Clock size={16} className="text-kaiso-gold mt-1 shrink-0" />
                 <div className="text-sm space-y-2 leading-relaxed">
-                  <p>{h.tue}</p>
-                  <p>{h.wed_sun_lunch}</p>
-                  <p>{h.wed_sun_dinner}</p>
+                  <p>{h.tue_thu}</p>
+                  <p>{h.fri_sun_lunch}</p>
+                  <p>{h.fri_sun_dinner}</p>
                   <p className="text-kaiso-red mt-2">{h.closed}</p>
                 </div>
               </div>
@@ -698,6 +698,16 @@ const LocationSection = () => {
               >
                 <WhatsAppIcon size={16} className="text-kaiso-gold shrink-0" />
                 +34 673 036 835
+              </a>
+
+              <a
+                href="https://www.google.com/maps/place/Kaiso+Sushi+Cordoba+Av+de+Barcelona+19+Cordoba+Espana"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 mt-6 px-4 py-3 bg-kaiso-gold/10 border border-kaiso-gold/30 hover:bg-kaiso-gold/20 transition-colors text-kaiso-gold text-sm font-medium rounded"
+              >
+                <MapPin size={16} />
+                {lang === 'pt' ? 'Como chegar' : lang === 'en' ? 'Get directions' : 'Cómo llegar'}
               </a>
             </div>
 
@@ -888,7 +898,6 @@ const HomePage = () => {
   const [showReservation, setShowReservation] = useState(false);
   const { lang } = useLanguage();
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     trackEvent({
       event_type: 'page_view',
@@ -897,7 +906,7 @@ const HomePage = () => {
       language: lang,
       screen_width: window.innerWidth
     });
-  }, []);
+  }, [lang]);
 
   const handleOpenReservation = () => {
     trackEvent({ event_type: 'reservation_open', page: '/', language: lang, screen_width: window.innerWidth });
