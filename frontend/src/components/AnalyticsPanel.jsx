@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, LineChart, Line } from 'recharts';
 import { Lock, RefreshCw, LogOut, TrendingUp, Eye, Users, MousePointerClick, Globe, Monitor, Smartphone, Clock } from 'lucide-react';
@@ -37,11 +37,7 @@ export default function AnalyticsPanel() {
     }
   }, []);
 
-  useEffect(() => {
-    if (isLoggedIn) loadStats();
-  }, [isLoggedIn, period]);
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     setLoading(true);
     try {
       const data = await getAnalyticsStats(period, credentials.username, credentials.password);
@@ -51,7 +47,11 @@ export default function AnalyticsPanel() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [period, credentials]);
+
+  useEffect(() => {
+    if (isLoggedIn) loadStats();
+  }, [isLoggedIn, loadStats]);
 
   const logout = () => {
     localStorage.removeItem('kaiso_admin');
